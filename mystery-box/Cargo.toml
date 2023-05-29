@@ -1,0 +1,15 @@
+[package]
+name = "mystery-box"
+version = "0.0.1"
+authors = [ "you",]
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/mystery_box.rs"
+
+[dependencies.multiversx-sc]
+version = "0.41.1"
+
+[dev-dependencies.multiversx-sc-scenario]
+version = "0.41.1"

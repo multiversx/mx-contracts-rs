@@ -1,0 +1,24 @@
+[package]
+name = "mystery-box-wasm"
+version = "0.0.1"
+authors = [ "you",]
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = [ "cdylib",]
+
+[workspace]
+
+[profile.release]
+codegen-units = 1
+opt-level = "z"
+lto = true
+debug = false
+panic = "abort"
+
+[dependencies.mystery-box]
+path = ".."
+
+[dependencies.multiversx-sc-wasm-adapter]
+version = "0.41.1"

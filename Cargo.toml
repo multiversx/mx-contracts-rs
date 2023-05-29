@@ -1,7 +1,5 @@
 [workspace]
-resolver = "2"
-
 members = [
-  "neversea",
-  "neversea/meta"
+  "mystery-box",
+  "mystery-box/meta"
 ]
