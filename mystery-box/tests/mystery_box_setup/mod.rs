@@ -10,7 +10,6 @@ use mystery_box::{
 pub const MYSTERY_BOX_WASM_PATH: &str = "mystery-box/output/mystery-box.wasm";
 pub const MB_TOKEN_ID: &[u8] = b"MBTOK-abcdef";
 pub const SFT_REWARD_TOKEN_ID: &[u8] = b"SFTR-abcdef";
-pub const PRICE_DECIMALS: u64 = 1_000_000_000_000_000_000;
 
 #[allow(dead_code)]
 pub struct MysteryBoxSetup<MysteryBoxObjBuilder>
@@ -31,7 +30,7 @@ where
     pub fn new(mystery_box_builder: MysteryBoxObjBuilder) -> Self {
         let rust_zero = rust_biguint!(0u64);
         let mut b_mock = BlockchainStateWrapper::new();
-        let owner_addr = b_mock.create_user_account(&rust_zero);
+        let owner_addr = b_mock.create_user_account(&rust_biguint!(100_000_000));
         let mystery_box_wrapper = b_mock.create_sc_account(
             &rust_zero,
             Some(&owner_addr),
@@ -56,7 +55,7 @@ where
             &mb_token_roles[..],
         );
 
-        let user_addr = b_mock.create_user_account(&rust_biguint!(100_000_000));
+        let user_addr = b_mock.create_user_account(&rust_zero);
 
         MysteryBoxSetup {
             b_mock,
@@ -70,12 +69,16 @@ where
         &mut self,
         experience_points_amount: u64,
         experience_points_percentage: u64,
+        experience_points_cooldown: u64,
         nft_reward_nonce: u64,
         nft_reward_percentage: u64,
+        nft_reward_cooldown: u64,
         percent_reward_amount: u64,
         percent_reward_percentage: u64,
+        percent_reward_cooldown: u64,
         fixed_value_reward_amount: u64,
         fixed_value_reward_percentage: u64,
+        fixed_value_reward_cooldown: u64,
         mb_token_expected_nonce: u64,
         mb_token_expected_amount: u64,
     ) -> u64 {
@@ -93,7 +96,7 @@ where
                         reward_token_nonce: 0,
                         value: managed_biguint!(experience_points_amount),
                         percentage_chance: experience_points_percentage,
-                        epochs_cooldown: 0u64,
+                        epochs_cooldown: experience_points_cooldown,
                     };
                     rewards_list.push(reward);
 
@@ -105,7 +108,7 @@ where
                         reward_token_nonce: nft_reward_nonce,
                         value: managed_biguint!(1),
                         percentage_chance: nft_reward_percentage,
-                        epochs_cooldown: 0u64,
+                        epochs_cooldown: nft_reward_cooldown,
                     };
                     rewards_list.push(reward);
 
@@ -115,7 +118,7 @@ where
                         reward_token_nonce: 0,
                         value: managed_biguint!(percent_reward_amount),
                         percentage_chance: percent_reward_percentage,
-                        epochs_cooldown: 0u64,
+                        epochs_cooldown: percent_reward_cooldown,
                     };
                     rewards_list.push(reward);
 
@@ -123,9 +126,9 @@ where
                         reward_type: RewardType::FixedValue,
                         reward_token_id: EgldOrEsdtTokenIdentifier::egld(),
                         reward_token_nonce: 0,
-                        value: managed_biguint!(fixed_value_reward_amount) * PRICE_DECIMALS,
+                        value: managed_biguint!(fixed_value_reward_amount),
                         percentage_chance: fixed_value_reward_percentage,
-                        epochs_cooldown: 1u64,
+                        epochs_cooldown: fixed_value_reward_cooldown,
                     };
                     rewards_list.push(reward);
                     let output_payment =
@@ -158,6 +161,19 @@ where
                 &rust_biguint!(1),
                 |sc| {
                     sc.open_mystery_box();
+                },
+            )
+            .assert_ok();
+    }
+
+    pub fn deposit_rewards(&mut self, token_amount: u64) {
+        self.b_mock
+            .execute_tx(
+                &self.owner_address,
+                &self.mystery_box_wrapper,
+                &rust_biguint!(token_amount),
+                |sc| {
+                    sc.deposit_rewards();
                 },
             )
             .assert_ok();
