@@ -6,7 +6,7 @@ First [set up a node terminal](../../../../tutorial/src/interaction/interaction-
 let erdjs = await require('@elrondnetwork/erdjs');
 let { erdSys, wallets: { alice, bob, carol } } = await erdjs.setupInteractive("local-testnet");
 
-let crowdfunding = await erdSys.loadWrapper("contracts/examples/crowdfunding-esdt");
+let crowdfunding = await erdSys.loadWrapper("contracts/crowdfunding-esdt");
 
 // Issue a new fungible token
 let MyToken = await erdSys.sender(alice).issueFungible("MyFungibleToken", "MYTOKEN", 1_000_00, 2);

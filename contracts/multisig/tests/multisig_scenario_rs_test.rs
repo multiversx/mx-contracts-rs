@@ -2,7 +2,7 @@ use multiversx_sc_scenario::*;
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
-    blockchain.set_current_dir_from_workspace("contracts/examples/multisig");
+    blockchain.set_current_dir_from_workspace("contracts/multisig");
 
     blockchain.register_partial_contract::<multisig::AbiProvider, _>(
         "file:output/multisig.wasm",

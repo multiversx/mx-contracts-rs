@@ -6,7 +6,7 @@ First [set up a node terminal](../../../../tutorial/src/interaction/interaction-
 let erdjs = await require('@elrondnetwork/erdjs');
 let { erdSys, wallets: { alice } } = await erdjs.setupInteractive("local-testnet");
 
-let adder = await erdSys.loadWrapper("contracts/examples/adder");
+let adder = await erdSys.loadWrapper("contracts/adder");
 
 // Deploy the adder contract with an initial value of 42
 await adder.sender(alice).gas(20_000_000).call.deploy(42);

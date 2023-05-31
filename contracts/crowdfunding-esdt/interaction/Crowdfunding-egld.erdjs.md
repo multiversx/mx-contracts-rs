@@ -6,7 +6,7 @@ First [set up a node terminal](../../../../tutorial/src/interaction/interaction-
 let erdjs = await require('@elrondnetwork/erdjs');
 let { erdSys, Egld, wallets: { alice, bob, carol }} = await erdjs.setupInteractive("local-testnet");
 
-let crowdfunding = await erdSys.loadWrapper("contracts/examples/crowdfunding-esdt");
+let crowdfunding = await erdSys.loadWrapper("contracts/crowdfunding-esdt");
 
 // Set the deadline to 1 minute from now (adjust this if you want more time before claiming the rewards)
 let someTimeFromNow = await erdSys.currentNonce() + erdjs.minutesToNonce(1);

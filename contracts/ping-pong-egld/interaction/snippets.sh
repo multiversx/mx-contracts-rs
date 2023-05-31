@@ -1,5 +1,5 @@
 PEM_FILE="./ping-pong.pem"
-PING_PONG_CONTRACT="./elrond-wasm-rs/contracts/examples/ping-pong-egld"
+PING_PONG_CONTRACT="./elrond-wasm-rs/contracts/ping-pong-egld"
 
 PROXY_ARGUMENT="--proxy=https://devnet-api.elrond.com"
 CHAIN_ARGUMENT="--chain=D"

@@ -6,7 +6,7 @@ First [set up a node terminal](../../../../tutorial/src/interaction/interaction-
 let erdjs = await require('@elrondnetwork/erdjs');
 let { erdSys, Egld, wallets: { alice, bob, carol, dan } } = await erdjs.setupInteractive("local-testnet");
 
-let pingPong = await erdSys.loadWrapper("contracts/examples/ping-pong-egld");
+let pingPong = await erdSys.loadWrapper("contracts/ping-pong-egld");
 
 await pingPong.sender(alice).gas(150_000_000).call.deploy(Egld(0.5), 2 * 60, null, Egld(1.5));
 
