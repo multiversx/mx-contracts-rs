@@ -1,0 +1,18 @@
+[package]
+name = "token-release"
+version = "0.0.1"
+authors = [ "you",]
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/token_release.rs"
+
+[dependencies.multiversx-sc]
+version = "0.41.1"
+
+
+[dev-dependencies.multiversx-sc-scenario]
+version = "0.41.1"
+
+

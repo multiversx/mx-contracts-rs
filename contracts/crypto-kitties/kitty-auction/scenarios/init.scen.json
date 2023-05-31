@@ -1,0 +1,123 @@
+{
+    "name": "deploy kitty auction",
+    "gasSchedule": "dummy",
+    "steps": [
+        {
+            "step": "setState",
+            "accounts": {
+                "address:my_address": {
+                    "nonce": "0",
+                    "balance": "1,000,000"
+                }
+            },
+            "newAddresses": [
+                {
+                    "creatorAddress": "address:my_address",
+                    "creatorNonce": "0",
+                    "newAddress": "sc:kitty_ownership_contract"
+                },
+                {
+                    "creatorAddress": "address:my_address",
+                    "creatorNonce": "1",
+                    "newAddress": "sc:kitty_auction_contract"
+                }
+            ]
+        },
+        {
+            "step": "scDeploy",
+            "id": "deploy - kitty ownership contract",
+            "comment": "we don't care about autoBirthFee in this test, so we set it to 0",
+            "tx": {
+                "from": "address:my_address",
+                "contractCode": "file:../../kitty-ownership/output/kitty-ownership.wasm",
+                "arguments": [
+                    "0"
+                ],
+                "gasLimit": "1,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scDeploy",
+            "id": "deploy - kitty auction contract",
+            "tx": {
+                "from": "address:my_address",
+                "contractCode": "file:../output/kitty-auction.wasm",
+                "arguments": [
+                    "100",
+                    "500",
+                    "100,000",
+                    "sc:kitty_ownership_contract"
+                ],
+                "gasLimit": "1,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "tx-set-auction-contract-address",
+            "tx": {
+                "from": "address:my_address",
+                "to": "sc:kitty_ownership_contract",
+                "function": "setKittyAuctionContractAddress",
+                "arguments": [
+                    "sc:kitty_auction_contract"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "checkState",
+            "accounts": {
+                "address:my_address": {
+                    "nonce": "3",
+                    "balance": "1,000,000",
+                    "storage": {}
+                },
+                "sc:kitty_ownership_contract": {
+                    "nonce": "0",
+                    "balance": "0",
+                    "storage": {
+                        "str:kittyAuctionContractAddress": "sc:kitty_auction_contract",
+                        "str:totalKitties": "1",
+                        "str:kitty|u32:0": "u8:0|u8:0|u8:0|u8:0|u8:0|u8:0|u8:0|u64:0|u64:0|u32:0|u32:0|u32:0|u16:0|u16:0"
+                    },
+                    "code": "file:../../kitty-ownership/output/kitty-ownership.wasm"
+                },
+                "sc:kitty_auction_contract": {
+                    "nonce": "0",
+                    "balance": "0",
+                    "storage": {
+                        "str:kittyOwnershipContractAddress": "sc:kitty_ownership_contract",
+                        "str:genZeroKittyStartingPrice": "100",
+                        "str:genZeroKittyEndingPrice": "500",
+                        "str:genZeroKittyAuctionDuration": "100,000"
+                    },
+                    "code": "file:../output/kitty-auction.wasm"
+                }
+            }
+        }
+    ]
+}

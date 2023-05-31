@@ -1,0 +1,19 @@
+[package]
+name = "multiversx-wegld-swap-sc-meta"
+version = "0.0.0"
+authors = [ "Dorin Iancu <dorin.iancu@multiversx.com>",]
+edition = "2021"
+publish = false
+
+[dev-dependencies]
+
+[dependencies.multiversx-wegld-swap-sc]
+path = ".."
+
+[dependencies.multiversx-sc]
+version = "0.41.1"
+
+
+[dependencies.multiversx-sc-meta]
+version = "0.41.1"
+

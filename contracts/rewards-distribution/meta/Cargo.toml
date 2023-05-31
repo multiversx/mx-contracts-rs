@@ -1,0 +1,15 @@
+[package]
+name = "rewards-distribution-meta"
+version = "0.0.0"
+edition = "2021"
+publish = false
+authors = ["Claudiu-Marcel Bruda <claudiu.bruda@multiversx.com>"]
+
+[dev-dependencies]
+
+[dependencies.rewards-distribution]
+path = ".."
+
+[dependencies.multiversx-sc-meta]
+version = "0.41.1"
+
