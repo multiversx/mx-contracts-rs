@@ -68,13 +68,13 @@ pub trait RewardsModule: config::ConfigModule {
         reward: &Reward<Self::Api>,
     ) -> bool {
         if reward.epochs_cooldown == 0 {
-            return false;
+            false
         } else if cooldown_epoch <= current_epoch {
             self.cooldown_epoch()
                 .set(current_epoch + reward.epochs_cooldown);
-            return false;
+            false
         } else {
-            return true;
+            true
         }
     }
 }

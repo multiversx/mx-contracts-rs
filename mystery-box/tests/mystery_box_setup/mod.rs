@@ -65,6 +65,7 @@ where
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn create_mystery_box(
         &mut self,
         experience_points_amount: u64,
