@@ -14,7 +14,6 @@ pub trait RewardsModule: config::ConfigModule {
             return winning_reward;
         }
 
-        // TODO - check randomness result
         let mut rng = RandomnessSource::new();
         let winner_number = rng.next_u64_in_range(1, MAX_PERCENTAGE + 1);
         let mut cumulative_percentage = 0;

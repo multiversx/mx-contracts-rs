@@ -15,10 +15,10 @@ fn test_create_and_open_mystery_box() {
     mb_setup.b_mock.set_block_epoch(1);
     let mb_token_nonce = mb_setup.create_mystery_box(
         900,
-        4_999,
+        5_999,
         1,
         1,
-        4_000,
+        3_000,
         0,
         1_500,
         1_000,
@@ -31,12 +31,14 @@ fn test_create_and_open_mystery_box() {
     );
     mb_setup.open_mystery_box(mb_token_nonce);
 
+    // We need to change the block random seed to properly test the RandomnessSource functionality
+    mb_setup.b_mock.set_block_random_seed(Box::from([1u8; 48]));
     let mb_token_nonce = mb_setup.create_mystery_box(
         900,
-        4_999,
+        5_999,
         1,
         1,
-        4_000,
+        3_000,
         0,
         1_500,
         1_000,
@@ -50,12 +52,13 @@ fn test_create_and_open_mystery_box() {
     mb_setup.open_mystery_box(mb_token_nonce);
 
     mb_setup.b_mock.set_block_epoch(2);
+    mb_setup.b_mock.set_block_random_seed(Box::from([2u8; 48]));
     let mb_token_nonce = mb_setup.create_mystery_box(
         900,
-        4_999,
+        5_999,
         1,
         1,
-        4_000,
+        3_000,
         0,
         1_500,
         1_000,
@@ -74,6 +77,7 @@ fn test_create_and_open_mystery_box() {
         .check_egld_balance(&mb_setup.user_address, &rust_biguint!(0u64));
 
     mb_setup.b_mock.set_block_epoch(3);
+    mb_setup.b_mock.set_block_random_seed(Box::from([3u8; 48]));
     mb_setup.deposit_rewards(fixed_value_reward_amount);
     let mb_token_nonce = mb_setup.create_mystery_box(
         900,
