@@ -2,8 +2,6 @@
 resolver = "2"
 
 members = [
-  "mystery-box",
-  "mystery-box/meta",
   "modules",
 
   "contracts/price-aggregator",
@@ -42,6 +40,8 @@ members = [
   "contracts/multisig",
   "contracts/multisig/meta",
   "contracts/multisig/interact-rs",
+  "contracts/mystery-box",
+  "contracts/mystery-box/meta",
   "contracts/nft-minter",
   "contracts/nft-minter/meta",
   "contracts/nft-storage-prepay",
