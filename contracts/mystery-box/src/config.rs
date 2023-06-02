@@ -1,7 +1,7 @@
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
-pub const MAX_PERCENTAGE: u64 = 10_000; // TODO - maybe increase to 100_000?
+pub const MAX_PERCENTAGE: u64 = 10_000;
 pub const NFT_AMOUNT: u64 = 1;
 
 #[derive(
@@ -49,8 +49,4 @@ pub trait ConfigModule {
     #[view(getCooldownEpoch)]
     #[storage_mapper("cooldownEpoch")]
     fn cooldown_epoch(&self) -> SingleValueMapper<u64>;
-
-    // #[view(getEgldReserve)]
-    // #[storage_mapper("egldReserve")]
-    // fn egld_reserve(&self) -> SingleValueMapper<BigUint>;
 }

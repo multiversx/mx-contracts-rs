@@ -131,12 +131,12 @@ pub trait MysteryBox:
         self.emit_open_mystery_box_event(&winning_reward);
     }
 
+    // We limit the deposit function only to admins
+    // Can be further extended to store reward amounts in storage
     #[payable("*")]
     #[endpoint(depositRewards)]
     fn deposit_rewards(&self) {
         let caller = self.blockchain().get_caller();
         self.require_admin(&caller);
-        // let payment_amount = self.call_value().egld_value().clone_value();
-        // self.egld_reserve().update(|value| *value += payment_amount);
     }
 }
