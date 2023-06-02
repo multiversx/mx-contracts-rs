@@ -1,0 +1,29 @@
+[package]
+name = "kitty-ownership"
+version = "0.0.0"
+authors = [ "dorin-iancu <dorin.iancu@multiversx.com>",]
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies.kitty]
+version = "0.0.0"
+path = "../common/kitty"
+
+[dependencies.random]
+version = "0.0.0"
+path = "../common/random"
+
+[dependencies.kitty-genetic-alg]
+version = "0.0.0"
+path = "../kitty-genetic-alg"
+
+[dependencies.multiversx-sc]
+version = "0.41.1"
+
+
+[dev-dependencies.multiversx-sc-scenario]
+version = "0.41.1"
+

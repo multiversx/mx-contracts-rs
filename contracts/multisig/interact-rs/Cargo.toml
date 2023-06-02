@@ -1,0 +1,21 @@
+[package]
+name = "multisig-interact"
+version = "0.0.0"
+authors = ["Andrei Marinica <andrei.marinica@multiversx.com>"]
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "multisig-interact"
+path = "src/multisig_interact.rs"
+
+[dependencies.multisig]
+path = ".."
+
+[dependencies.multiversx-sc-modules]
+version = "0.41.1"
+
+
+[dependencies.multiversx-sc-snippets]
+version = "0.41.1"
+

@@ -1,0 +1,12 @@
+[package]
+name = "empty-meta"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies.empty]
+path = ".."
+
+[dependencies.multiversx-sc-meta]
+version = "0.41.1"
+

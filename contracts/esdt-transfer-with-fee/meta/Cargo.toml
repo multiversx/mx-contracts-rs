@@ -1,0 +1,12 @@
+[package]
+name = "esdt-transfer-with-fee-meta"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies.esdt-transfer-with-fee]
+path = ".."
+
+[dependencies.multiversx-sc-meta]
+version = "0.41.1"
+

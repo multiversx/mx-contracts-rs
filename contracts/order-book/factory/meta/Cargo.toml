@@ -1,0 +1,13 @@
+[package]
+name = "factory-meta"
+version = "0.0.0"
+authors = ["you"]
+edition = "2021"
+publish = false
+
+[dependencies.order-book-factory]
+path = ".."
+
+[dependencies.multiversx-sc-meta]
+version = "0.41.1"
+

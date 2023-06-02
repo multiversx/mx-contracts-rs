@@ -1,0 +1,15 @@
+[package]
+name = "token-release-meta"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dev-dependencies]
+
+[dependencies.token-release]
+path = ".."
+
+[dependencies.multiversx-sc-meta]
+version = "0.41.1"
+
+
