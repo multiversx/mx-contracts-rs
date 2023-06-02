@@ -4,7 +4,7 @@ use multiversx_sc_scenario::{num_bigint::BigUint, scenario_model::*, *};
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
-    blockchain.set_current_dir_from_workspace("contracts/examples/adder");
+    blockchain.set_current_dir_from_workspace("contracts/adder");
 
     blockchain.register_contract("file:output/adder.wasm", adder::ContractBuilder);
     blockchain

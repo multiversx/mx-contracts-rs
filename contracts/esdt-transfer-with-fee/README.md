@@ -1,4 +1,4 @@
-# Interaction
+# ESDT-transfer-with-fee contract
 
 The contract allows transfering token with the `ESDTRoleTransfer` role.
 
