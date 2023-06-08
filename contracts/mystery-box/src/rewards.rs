@@ -37,14 +37,10 @@ pub trait RewardsModule: config::ConfigModule {
                     "The experience points amount must be greater than 0"
                 );
             }
-            RewardType::NFT => {
+            RewardType::MysteryBox => {
                 require!(
-                    reward.reward_token_nonce > 0,
-                    "The reward token nonce must be positive"
-                );
-                require!(
-                    reward.reward_token_id.is_valid(),
-                    "The reward token id is not valid"
+                    reward.reward_token_id == self.mystery_box_token().get_token_id(),
+                    "The reward token id must be the same as the mystery box"
                 );
             }
             RewardType::Percent => {
@@ -60,16 +56,13 @@ pub trait RewardsModule: config::ConfigModule {
         }
     }
 
-    fn check_reward_cooldown(
-        &self,
-        current_epoch: u64,
-        cooldown_epoch: u64,
-        reward: &Reward<Self::Api>,
-    ) -> bool {
+    fn check_global_cooldown(&self, current_epoch: u64, reward: &Reward<Self::Api>) -> bool {
+        let global_cooldown_epoch = self.global_cooldown_epoch(&reward.reward_type).get();
+
         if reward.epochs_cooldown == 0 {
             false
-        } else if cooldown_epoch <= current_epoch {
-            self.cooldown_epoch()
+        } else if global_cooldown_epoch <= current_epoch {
+            self.global_cooldown_epoch(&reward.reward_type)
                 .set(current_epoch + reward.epochs_cooldown);
             false
         } else {

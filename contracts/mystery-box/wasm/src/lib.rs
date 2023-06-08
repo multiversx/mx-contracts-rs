@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                            7
+// Endpoints:                           11
 // Async Callback (empty):               1
-// Total number of exported functions:   9
+// Total number of exported functions:  13
 
 #![no_std]
 #![feature(lang_items)]
@@ -18,11 +18,15 @@ multiversx_sc_wasm_adapter::panic_handler!();
 multiversx_sc_wasm_adapter::endpoints! {
     mystery_box
     (
+        setupMysteryBox
+        updateMysteryBoxUris
         createMysteryBox
         openMysteryBox
-        depositRewards
         getMysteryBoxTokenIdentifier
-        getCooldownEpoch
+        getMysteryBoxCooldownPeriod
+        getGlobalCooldownEpoch
+        getWinningRates
+        getMysteryBoxUris
         addAdmin
         removeAdmin
     )

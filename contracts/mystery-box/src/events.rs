@@ -7,24 +7,29 @@ use crate::config::Reward;
 pub trait EventsModule {
     fn emit_create_mystery_box_event(
         &self,
-        receiver: &ManagedAddress,
-        reward: &ManagedVec<Reward<Self::Api>>,
+        caller: &ManagedAddress,
+        current_epoch: u64,
+        payment: &EsdtTokenPayment,
+        rewards: &ManagedVec<Reward<Self::Api>>,
     ) {
-        let epoch = self.blockchain().get_block_epoch();
-        self.create_mystery_box_event(receiver, epoch, reward)
+        self.create_mystery_box_event(caller, current_epoch, payment, rewards);
     }
 
-    fn emit_open_mystery_box_event(&self, reward: &Reward<Self::Api>) {
-        let epoch = self.blockchain().get_block_epoch();
-        let caller = self.blockchain().get_caller();
-        self.open_mystery_box_event(&caller, epoch, reward)
+    fn emit_open_mystery_box_event(
+        &self,
+        caller: &ManagedAddress,
+        current_epoch: u64,
+        reward: &Reward<Self::Api>,
+    ) {
+        self.open_mystery_box_event(caller, current_epoch, reward)
     }
 
     #[event("create_mystery_box")]
     fn create_mystery_box_event(
         &self,
-        #[indexed] receiver: &ManagedAddress,
-        #[indexed] epoch: u64,
+        #[indexed] user: &ManagedAddress,
+        #[indexed] current_epoch: u64,
+        #[indexed] payment: &EsdtTokenPayment,
         reward: &ManagedVec<Reward<Self::Api>>,
     );
 
