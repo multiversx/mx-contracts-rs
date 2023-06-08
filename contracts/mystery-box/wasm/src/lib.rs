@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           11
+// Endpoints:                           13
 // Async Callback (empty):               1
-// Total number of exported functions:  13
+// Total number of exported functions:  15
 
 #![no_std]
 #![feature(lang_items)]
@@ -27,8 +27,10 @@ multiversx_sc_wasm_adapter::endpoints! {
         getGlobalCooldownEpoch
         getWinningRates
         getMysteryBoxUris
+        isAdmin
         addAdmin
         removeAdmin
+        getAdmins
     )
 }
 

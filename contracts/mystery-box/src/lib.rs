@@ -5,19 +5,19 @@ multiversx_sc::derive_imports!();
 
 pub mod config;
 pub mod events;
-pub mod permissions_module;
 pub mod rewards;
 pub mod token_attributes;
 
 use crate::config::{MysteryBoxAttributes, SFT_AMOUNT};
 use config::{Reward, RewardType, MAX_PERCENTAGE};
+use multiversx_sc_modules::only_admin;
 
 #[multiversx_sc::contract]
 pub trait MysteryBox:
     config::ConfigModule
     + rewards::RewardsModule
     + token_attributes::TokenAttributesModule
-    + permissions_module::PermissionsModule
+    + only_admin::OnlyAdminModule
     + events::EventsModule
 {
     #[init]
@@ -31,13 +31,12 @@ pub trait MysteryBox:
             .set(mystery_box_epochs_cooldown_period);
 
         let caller = self.blockchain().get_caller();
-        self.add_admin(&caller);
+        self.add_admin(caller);
     }
 
     #[endpoint(setupMysteryBox)]
     fn setup_mystery_box(&self, winning_rates: ManagedVec<Reward<Self::Api>>) {
-        let caller = self.blockchain().get_caller();
-        self.require_admin(&caller);
+        self.require_caller_is_admin();
         let mut accumulated_percentage = 0u64;
         for winning_rate in winning_rates.into_iter() {
             accumulated_percentage += winning_rate.percentage_chance;
@@ -54,16 +53,13 @@ pub trait MysteryBox:
 
     #[endpoint(updateMysteryBoxUris)]
     fn update_mystery_box_uris(&self, uris: ManagedVec<ManagedBuffer>) {
-        let caller = self.blockchain().get_caller();
-        self.require_admin(&caller);
-
+        self.require_caller_is_admin();
         self.mystery_box_uris().set(uris);
     }
 
     #[endpoint(createMysteryBox)]
     fn create_mystery_box(&self, amount: BigUint) -> EsdtTokenPayment<Self::Api> {
-        let caller = self.blockchain().get_caller();
-        self.require_admin(&caller);
+        self.require_caller_is_admin();
         let winning_rates_mapper = self.winning_rates();
         require!(
             !winning_rates_mapper.is_empty(),
@@ -74,6 +70,7 @@ pub trait MysteryBox:
         let mystery_box_attributes =
             MysteryBoxAttributes::new(winning_rates_mapper.get(), current_epoch);
         let output_payment = self.create_new_tokens(amount, &mystery_box_attributes);
+        let caller = self.blockchain().get_caller();
         self.send()
             .direct_non_zero_esdt_payment(&caller, &output_payment);
 
