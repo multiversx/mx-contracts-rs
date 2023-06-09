@@ -98,9 +98,7 @@ pub trait LiquidLocking {
                 if epoch > block_epoch {
                     unbound_amount += self
                         .unstaked_token_amounts(&caller, &token_identifier, epoch)
-                        .get();
-                    self.unstaked_token_amounts(&caller, &token_identifier, epoch)
-                        .clear();
+                        .take();
                     unbound_token_epochs.push(epoch);
                 }
             }
