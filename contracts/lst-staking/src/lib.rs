@@ -8,7 +8,9 @@ use esdt::{AvailableAmount, Esdt};
 #[multiversx_sc::contract]
 pub trait LstStakingContract {
     #[init]
-    fn init(&self) {}
+    fn init(&self, unbond_period: u64) {
+        self.unbond_period().set(unbond_period);
+    }
 
     #[only_owner]
     #[endpoint]
