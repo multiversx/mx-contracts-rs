@@ -118,10 +118,7 @@ fn test() {
             .to(&contract)
             .esdt_transfer(blacklisted_token, 0u64, 500u64)
             .call(contract.stake())
-            .expect(TxExpect::err(
-                4,
-                "str:the provided token is not whitelisted",
-            )),
+            .expect(TxExpect::err(4, "str:token is not whitelisted")),
     );
 
     // stake success

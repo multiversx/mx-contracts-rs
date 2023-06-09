@@ -136,11 +136,11 @@ pub trait UserEndpointsModule: storage::StorageModule + events::EventsModule {
         loop {
             require!(!nonces.is_empty(), "Insufficient balance");
             let nonce = nonces.get(0);
-            let unstaked_amount = self.nonce_amount(&token, nonce).get();
+            let available_amount = self.nonce_amount(&token, nonce).get();
 
             let amount_to_send: BigUint;
-            if unstaked_amount <= total_amount {
-                amount_to_send = unstaked_amount.clone();
+            if available_amount <= total_amount {
+                amount_to_send = available_amount.clone();
                 total_amount -= amount_to_send.clone();
                 self.nonce_amount(&token, nonce).clear();
                 nonces.remove(0);
