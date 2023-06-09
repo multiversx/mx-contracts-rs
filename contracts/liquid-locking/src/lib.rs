@@ -2,9 +2,6 @@
 
 multiversx_sc::imports!();
 
-mod unstaked_amount;
-use unstaked_amount::UnstakedAmount;
-
 #[multiversx_sc::contract]
 pub trait LiquidLocking {
     #[init]
@@ -65,12 +62,22 @@ pub trait LiquidLocking {
                 .update(|staked_amount| {
                     if *staked_amount >= token.amount {
                         *staked_amount -= token.amount.clone();
-                        let unstaked_amount = UnstakedAmount {
-                            epoch: block_epoch + self.unbond_period().get(),
-                            amount: token.amount,
-                        };
-                        self.unstaked_tokens(&caller, &token.token_identifier)
-                            .insert(unstaked_amount);
+                        let unbounding_epoch = block_epoch + self.unbond_period().get();
+
+                        self.unstaked_token_amounts(
+                            &caller,
+                            &token.token_identifier,
+                            unbounding_epoch,
+                        )
+                        .update(|amount| *amount += &token.amount);
+
+                        if !self
+                            .unstaked_token_epochs(&caller, &token.token_identifier)
+                            .contains(&unbounding_epoch)
+                        {
+                            self.unstaked_token_epochs(&caller, &token.token_identifier)
+                                .insert(unbounding_epoch);
+                        }
                     }
                 });
         }
@@ -83,12 +90,23 @@ pub trait LiquidLocking {
         let mut unbond_tokens = ManagedVec::<Self::Api, EsdtTokenPayment<Self::Api>>::new();
         for token_identifier in tokens.iter() {
             let mut unbound_amount = BigUint::zero();
-            for unstaked_amount in self.unstaked_tokens(&caller, &token_identifier).iter() {
-                if unstaked_amount.epoch > block_epoch {
-                    unbound_amount += &unstaked_amount.amount;
-                    self.unstaked_tokens(&caller, &token_identifier)
-                        .swap_remove(&unstaked_amount);
+            let mut unbound_token_epochs = ManagedVec::<Self::Api, u64>::new();
+            for epoch in self
+                .unstaked_token_epochs(&caller, &token_identifier)
+                .iter()
+            {
+                if epoch > block_epoch {
+                    unbound_amount += self
+                        .unstaked_token_amounts(&caller, &token_identifier, epoch)
+                        .get();
+                    self.unstaked_token_amounts(&caller, &token_identifier, epoch)
+                        .clear();
+                    unbound_token_epochs.push(epoch);
                 }
+            }
+            for epoch in unbound_token_epochs.iter() {
+                self.unstaked_token_epochs(&caller, &token_identifier)
+                    .swap_remove(&epoch);
             }
             if unbound_amount > 0u64 {
                 unbond_tokens.push(EsdtTokenPayment::new(
@@ -110,12 +128,20 @@ pub trait LiquidLocking {
         token: &TokenIdentifier,
     ) -> SingleValueMapper<BigUint>;
 
-    #[storage_mapper("unstaked_tokens")]
-    fn unstaked_tokens(
+    #[storage_mapper("unstaked_token_epochs")]
+    fn unstaked_token_epochs(
         &self,
         address: &ManagedAddress,
         token: &TokenIdentifier,
-    ) -> UnorderedSetMapper<UnstakedAmount<Self::Api>>;
+    ) -> UnorderedSetMapper<u64>;
+
+    #[storage_mapper("unstaked_token_amounts")]
+    fn unstaked_token_amounts(
+        &self,
+        address: &ManagedAddress,
+        token: &TokenIdentifier,
+        epoch: u64,
+    ) -> SingleValueMapper<BigUint>;
 
     #[storage_mapper("token_whitelist")]
     fn token_whitelist(&self) -> UnorderedSetMapper<TokenIdentifier>;

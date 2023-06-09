@@ -33,6 +33,9 @@ fn test() {
     let whitelisted_token_1 = "str:AAA-111111";
     let whitelisted_token_2 = "str:BBB-222222";
     let blacklisted_token = "str:CCC-333333";
+    let whitelisted_token_1_id = "AAA-111111";
+    let whitelisted_token_2_id = "BBB-222222";
+    let blacklisted_token_id = "CCC-333333";
 
     world.set_state_step(
         SetStateStep::new()
@@ -86,14 +89,14 @@ fn test() {
             ScCallStep::new()
                 .from(owner_address)
                 .to(&contract)
-                .call(contract.whitelist_token(TokenIdentifier::from(whitelisted_token_1)))
+                .call(contract.whitelist_token(TokenIdentifier::from(whitelisted_token_1_id)))
                 .expect(TxExpect::ok().no_result()),
         )
         .sc_call_step(
             ScCallStep::new()
                 .from(owner_address)
                 .to(&contract)
-                .call(contract.whitelist_token(TokenIdentifier::from(whitelisted_token_2)))
+                .call(contract.whitelist_token(TokenIdentifier::from(whitelisted_token_2_id)))
                 .expect(TxExpect::ok().no_result()),
         )
         .check_state_step(
