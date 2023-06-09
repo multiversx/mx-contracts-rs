@@ -2,19 +2,26 @@
 
 multiversx_sc::imports!();
 
-mod esdt;
-use esdt::{AvailableAmount, Esdt};
+mod unstaked_amount;
+use unstaked_amount::UnstakedAmount;
 
 #[multiversx_sc::contract]
-pub trait LstStakingContract {
+pub trait LiquidLocking {
     #[init]
     fn init(&self, unbond_period: u64) {
+        self.unbond_period().set_if_empty(unbond_period);
+    }
+
+    #[only_owner]
+    #[endpoint]
+    fn set_unbond_period(&self, unbond_period: u64) {
         self.unbond_period().set(unbond_period);
     }
 
     #[only_owner]
     #[endpoint]
     fn whitelist_token(&self, token: TokenIdentifier) {
+        require!(token.is_valid_esdt_identifier(), "invalid token provided");
         let _ = self.token_whitelist().insert(token);
     }
 
@@ -30,15 +37,17 @@ pub trait LstStakingContract {
         let payments = self.call_value().all_esdt_transfers();
         let caller = self.blockchain().get_caller();
         for payment in payments.iter() {
-            self.require_whitelisted_token(&payment.token_identifier);
+            self.validate_payment(&payment);
             self.stake_token(&caller, payment);
         }
     }
 
-    fn require_whitelisted_token(&self, token: &TokenIdentifier) {
+    fn validate_payment(&self, payment: &EsdtTokenPayment) {
+        require!(payment.token_nonce != 0, "invalid token provided");
+        require!(payment.amount != 0, "amount must be greater than 0");
         require!(
-            self.token_whitelist().contains(token),
-            "The provided token is not whitelisted"
+            self.token_whitelist().contains(&payment.token_identifier),
+            "token is not whitelisted"
         );
     }
 
@@ -48,7 +57,7 @@ pub trait LstStakingContract {
     }
 
     #[endpoint]
-    fn unstake(&self, tokens: ManagedVec<Esdt<Self::Api>>) {
+    fn unstake(&self, tokens: ManagedVec<EsdtTokenPayment<Self::Api>>) {
         let caller = self.blockchain().get_caller();
         let block_epoch = self.blockchain().get_block_epoch();
         for token in tokens.iter() {
@@ -56,12 +65,12 @@ pub trait LstStakingContract {
                 .update(|staked_amount| {
                     if *staked_amount >= token.amount {
                         *staked_amount -= token.amount.clone();
-                        let available_amount = AvailableAmount {
+                        let unstaked_amount = UnstakedAmount {
                             epoch: block_epoch + self.unbond_period().get(),
                             amount: token.amount,
                         };
                         self.unstaked_tokens(&caller, &token.token_identifier)
-                            .insert(available_amount);
+                            .insert(unstaked_amount);
                     }
                 });
         }
@@ -73,16 +82,20 @@ pub trait LstStakingContract {
         let block_epoch = self.blockchain().get_block_epoch();
         let mut unbond_tokens = ManagedVec::<Self::Api, EsdtTokenPayment<Self::Api>>::new();
         for token_identifier in tokens.iter() {
-            for available_amount in self.unstaked_tokens(&caller, &token_identifier).iter() {
-                if available_amount.epoch >= block_epoch {
-                    unbond_tokens.push(EsdtTokenPayment::new(
-                        token_identifier.clone_value(),
-                        0,
-                        available_amount.amount.clone(),
-                    ));
+            let mut unbound_amount = BigUint::zero();
+            for unstaked_amount in self.unstaked_tokens(&caller, &token_identifier).iter() {
+                if unstaked_amount.epoch > block_epoch {
+                    unbound_amount += &unstaked_amount.amount;
                     self.unstaked_tokens(&caller, &token_identifier)
-                        .swap_remove(&available_amount);
+                        .swap_remove(&unstaked_amount);
                 }
+            }
+            if unbound_amount > 0u64 {
+                unbond_tokens.push(EsdtTokenPayment::new(
+                    token_identifier.clone_value(),
+                    0,
+                    unbound_amount,
+                ));
             }
         }
         if !unbond_tokens.is_empty() {
@@ -102,7 +115,7 @@ pub trait LstStakingContract {
         &self,
         address: &ManagedAddress,
         token: &TokenIdentifier,
-    ) -> UnorderedSetMapper<AvailableAmount<Self::Api>>;
+    ) -> UnorderedSetMapper<UnstakedAmount<Self::Api>>;
 
     #[storage_mapper("token_whitelist")]
     fn token_whitelist(&self) -> UnorderedSetMapper<TokenIdentifier>;

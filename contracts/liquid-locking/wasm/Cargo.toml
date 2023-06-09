@@ -1,5 +1,5 @@
 [package]
-name = "lst-staking-wasm"
+name = "liquid-locking-wasm"
 version = "0.0.0"
 edition = "2018"
 publish = false
@@ -20,7 +20,7 @@ lto = true
 debug = false
 panic = "abort"
 
-[dependencies.lst-staking]
+[dependencies.liquid-locking]
 path = ".."
 
 [dependencies.multiversx-sc-wasm-adapter]

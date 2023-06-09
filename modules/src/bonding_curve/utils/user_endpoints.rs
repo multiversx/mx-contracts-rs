@@ -108,10 +108,10 @@ pub trait UserEndpointsModule: storage::StorageModule + events::EventsModule {
                     self.token_details(&requested_token)
                         .update(|details| details.remove_nonce(nonce));
                 }
-            },
+            }
             OptionalValue::None => {
                 self.send_next_available_tokens(&caller, requested_token, requested_amount);
-            },
+            }
         };
 
         self.send().direct(
@@ -136,11 +136,11 @@ pub trait UserEndpointsModule: storage::StorageModule + events::EventsModule {
         loop {
             require!(!nonces.is_empty(), "Insufficient balance");
             let nonce = nonces.get(0);
-            let available_amount = self.nonce_amount(&token, nonce).get();
+            let unstaked_amount = self.nonce_amount(&token, nonce).get();
 
             let amount_to_send: BigUint;
-            if available_amount <= total_amount {
-                amount_to_send = available_amount.clone();
+            if unstaked_amount <= total_amount {
+                amount_to_send = unstaked_amount.clone();
                 total_amount -= amount_to_send.clone();
                 self.nonce_amount(&token, nonce).clear();
                 nonces.remove(0);

@@ -1,5 +1,5 @@
 {
-    "name": "lst-staking",
+    "name": "liquid-locking",
     "steps": [
         {
             "step": "setState",
@@ -22,7 +22,7 @@
             "id": "deploy",
             "tx": {
                 "from": "address:owner",
-                "contractCode": "file:../output/lst-staking.wasm",
+                "contractCode": "file:../output/liquid-locking.wasm",
                 "arguments": [],
                 "gasLimit": "5,000,000",
                 "gasPrice": "0"

@@ -1,5 +1,5 @@
 [package]
-name = "lst-staking-meta"
+name = "liquid-locking-meta"
 version = "0.0.0"
 edition = "2018"
 publish = false
@@ -7,7 +7,7 @@ authors = [ "you",]
 
 [dev-dependencies]
 
-[dependencies.lst-staking]
+[dependencies.liquid-locking]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
