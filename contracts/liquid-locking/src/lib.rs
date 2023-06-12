@@ -113,7 +113,7 @@ pub trait LiquidLocking {
                 .unlocked_token_epochs(&caller, &token_identifier)
                 .iter()
             {
-                require!(epoch > block_epoch, "Unbond period has not passed");
+                require!(block_epoch > epoch, "unbond period has not passed yet");
                 unbound_amount += self
                     .unlocked_token_amounts(&caller, &token_identifier, epoch)
                     .take();
@@ -138,9 +138,9 @@ pub trait LiquidLocking {
                 ));
             }
         }
-        if !unbond_tokens.is_empty() {
-            self.send().direct_multi(&caller, &unbond_tokens);
-        }
+
+        require!(!unbond_tokens.is_empty(), "nothing to unbond");
+        self.send().direct_multi(&caller, &unbond_tokens);
     }
 
     #[view(lockedTokenAmounts)]

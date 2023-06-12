@@ -103,6 +103,18 @@ fn test() {
         CheckStateStep::new()
             .put_account(owner_address, CheckAccount::new())
             .put_account(
+                user_1,
+                CheckAccount::new()
+                    .esdt_balance(whitelisted_token_1, 1_000u64)
+                    .esdt_balance(whitelisted_token_2, 1_000u64),
+            )
+            .put_account(
+                user_2,
+                CheckAccount::new()
+                    .esdt_balance(blacklisted_token, 1_000u64)
+                    .esdt_balance(whitelisted_token_2, 1_000u64),
+            )
+            .put_account(
                 &contract,
                 CheckAccount::new()
                     .check_storage("str:unbond_period", "10")
@@ -157,7 +169,10 @@ fn test() {
             CheckStateStep::new()
                 .put_account(owner_address, CheckAccount::new())
                 .put_account(user_1, CheckAccount::new())
-                .put_account(user_2, CheckAccount::new())
+                .put_account(
+                    user_2,
+                    CheckAccount::new().esdt_balance(blacklisted_token, 1_000u64),
+                )
                 .put_account(
                     &contract,
                     CheckAccount::new()
@@ -246,7 +261,7 @@ fn test() {
                 .expect(TxExpect::err(4, "str:requested amount cannot be 0")),
         );
 
-    // unstake success
+    // unlock success
 
     unlock_single_esdt = ManagedVec::<DebugApi, EsdtTokenPayment<DebugApi>>::new();
     unlock_multiple_esdt = ManagedVec::<DebugApi, EsdtTokenPayment<DebugApi>>::new();
@@ -288,7 +303,7 @@ fn test() {
                 .call(contract.unlock(unlock_single_esdt.clone()))
                 .expect(TxExpect::ok().no_result()),
         )
-        .set_state_step(SetStateStep::new().block_epoch(20))
+        .set_state_step(SetStateStep::new().block_epoch(8))
         .sc_call_step(
             ScCallStep::new()
                 .from(user_1)
@@ -299,8 +314,15 @@ fn test() {
         .check_state_step(
             CheckStateStep::new()
                 .put_account(owner_address, CheckAccount::new())
-                .put_account(user_1, CheckAccount::new())
-                .put_account(user_2, CheckAccount::new())
+                .put_account(
+                    user_1,
+                    CheckAccount::new()
+                )
+                .put_account(
+                    user_2,
+                    CheckAccount::new()
+                        .esdt_balance(blacklisted_token, 1_000u64)
+                )
                 .put_account(
                     &contract,
                     CheckAccount::new()
@@ -371,18 +393,18 @@ fn test() {
                         )
                         .check_storage(
                             "str:unlocked_token_epochs|address:user1|nested:str:BBB-222222|str:.item|u32:2",
-                            "30",
+                            "18",
                         )
                         .check_storage(
                             "str:unlocked_token_epochs|address:user1|nested:str:BBB-222222|str:.index|u64:10",
                             "1",
                         )
                         .check_storage(
-                            "str:unlocked_token_epochs|address:user1|nested:str:BBB-222222|str:.index|u64:30",
+                            "str:unlocked_token_epochs|address:user1|nested:str:BBB-222222|str:.index|u64:18",
                             "2",
                         )
                         .check_storage("str:unlocked_token_amounts|address:user1|nested:str:BBB-222222|u64:10", "500")
-                        .check_storage("str:unlocked_token_amounts|address:user1|nested:str:BBB-222222|u64:30", "200")
+                        .check_storage("str:unlocked_token_amounts|address:user1|nested:str:BBB-222222|u64:18", "200")
                         .check_storage("str:unlocked_token_epochs|address:user1|nested:str:AAA-111111|str:.len", "1")
                         .check_storage(
                             "str:unlocked_token_epochs|address:user1|nested:str:AAA-111111|str:.item|u32:1",
@@ -403,6 +425,105 @@ fn test() {
                             "1",
                         )
                         .check_storage("str:unlocked_token_amounts|address:user2|nested:str:BBB-222222|u64:10", "200"),
+                ),
+        );
+
+    // unbond fail
+
+    let mut unbond_tokens = ManagedVec::<DebugApi, TokenIdentifier<DebugApi>>::new();
+    unbond_tokens.push(TokenIdentifier::from(blacklisted_token_id));
+    world.sc_call_step(
+        ScCallStep::new()
+            .from(user_2)
+            .to(&contract)
+            .call(contract.unbond(unbond_tokens))
+            .expect(TxExpect::err(4, "str:nothing to unbond")),
+    );
+    unbond_tokens = ManagedVec::<DebugApi, TokenIdentifier<DebugApi>>::new();
+    unbond_tokens.push(TokenIdentifier::from(whitelisted_token_2_id));
+    world.sc_call_step(
+        ScCallStep::new()
+            .from(user_2)
+            .to(&contract)
+            .call(contract.unbond(unbond_tokens))
+            .expect(TxExpect::err(4, "str:unbond period has not passed yet")),
+    );
+
+    // unlock success
+
+    unbond_tokens = ManagedVec::<DebugApi, TokenIdentifier<DebugApi>>::new();
+    unbond_tokens.push(TokenIdentifier::from(whitelisted_token_2_id));
+    world
+        .set_state_step(SetStateStep::new().block_epoch(20))
+        .sc_call_step(
+            ScCallStep::new()
+                .from(user_2)
+                .to(&contract)
+                .call(contract.unbond(unbond_tokens))
+                .expect(TxExpect::ok().no_result()),
+        );
+    unbond_tokens = ManagedVec::<DebugApi, TokenIdentifier<DebugApi>>::new();
+    unbond_tokens.push(TokenIdentifier::from(whitelisted_token_2_id));
+    unbond_tokens.push(TokenIdentifier::from(whitelisted_token_1_id));
+    world
+        .sc_call_step(
+            ScCallStep::new()
+                .from(user_1)
+                .to(&contract)
+                .call(contract.unbond(unbond_tokens))
+                .expect(TxExpect::ok().no_result()),
+        )
+        .check_state_step(
+            CheckStateStep::new()
+                .put_account(owner_address, CheckAccount::new())
+                .put_account(
+                    user_1,
+                    CheckAccount::new()
+                        .esdt_balance(whitelisted_token_1, 1_000u64)
+                        .esdt_balance(whitelisted_token_2, 700u64),
+                )
+                .put_account(
+                    user_2,
+                    CheckAccount::new()
+                        .esdt_balance(blacklisted_token, 1_000u64)
+                        .esdt_balance(whitelisted_token_2, 200u64),
+                )
+                .put_account(
+                    &contract,
+                    CheckAccount::new()
+                        .esdt_balance(whitelisted_token_2, 1_100u64)
+                        .check_storage("str:unbond_period", "10")
+                        .check_storage("str:token_whitelist.len", "2")
+                        .check_storage("str:token_whitelist.item|u32:1", "str:AAA-111111")
+                        .check_storage("str:token_whitelist.item|u32:2", "str:BBB-222222")
+                        .check_storage("str:token_whitelist.index|nested:str:AAA-111111", "1")
+                        .check_storage("str:token_whitelist.index|nested:str:BBB-222222", "2")
+                        .check_storage("str:locked_tokens|address:user2|str:.len", "1")
+                        .check_storage(
+                            "str:locked_tokens|address:user2|str:.item|u32:1",
+                            "str:BBB-222222",
+                        )
+                        .check_storage(
+                            "str:locked_tokens|address:user2|str:.index|nested:str:BBB-222222",
+                            "1",
+                        )
+                        .check_storage(
+                            "str:locked_token_amounts|address:user2|nested:str:BBB-222222",
+                            "800",
+                        )
+                        .check_storage("str:locked_tokens|address:user1|str:.len", "1")
+                        .check_storage(
+                            "str:locked_tokens|address:user1|str:.item|u32:1",
+                            "str:BBB-222222",
+                        )
+                        .check_storage(
+                            "str:locked_tokens|address:user1|str:.index|nested:str:BBB-222222",
+                            "1",
+                        )
+                        .check_storage(
+                            "str:locked_token_amounts|address:user1|nested:str:BBB-222222",
+                            "300",
+                        ),
                 ),
         );
 }
