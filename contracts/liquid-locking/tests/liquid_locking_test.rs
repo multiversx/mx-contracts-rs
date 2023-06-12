@@ -1,5 +1,5 @@
 use liquid_locking::*;
-use multiversx_sc::types::TokenIdentifier;
+use multiversx_sc::types::{BigUint, EsdtTokenPayment, ManagedVec, TokenIdentifier};
 use multiversx_sc_scenario::{
     scenario_model::{
         Account, CheckAccount, CheckStateStep, IntoBlockchainCall, ScCallStep, SetStateStep,
@@ -30,12 +30,12 @@ fn test() {
     let user_2 = "address:user2";
     let mut contract = ContractInfo::<liquid_locking::Proxy<DebugApi>>::new("sc:liquid-locking");
 
-    let whitelisted_token_1 = "str:AAA-111111";
-    let whitelisted_token_2 = "str:BBB-222222";
-    let blacklisted_token = "str:CCC-333333";
     let whitelisted_token_1_id = "AAA-111111";
     let whitelisted_token_2_id = "BBB-222222";
     let blacklisted_token_id = "CCC-333333";
+    let whitelisted_token_1 = "str:AAA-111111";
+    let whitelisted_token_2 = "str:BBB-222222";
+    let blacklisted_token = "str:CCC-333333";
 
     world.set_state_step(
         SetStateStep::new()
@@ -106,14 +106,15 @@ fn test() {
                 &contract,
                 CheckAccount::new()
                     .check_storage("str:unbond_period", "10")
-                    .check_storage(
-                        "str:token_whitelist",
-                        "u32:2|nested:str:AAA-111111|nested:str:BBB-222222",
-                    ),
+                    .check_storage("str:token_whitelist.len", "2")
+                    .check_storage("str:token_whitelist.item|u32:1", "str:AAA-111111")
+                    .check_storage("str:token_whitelist.item|u32:2", "str:BBB-222222")
+                    .check_storage("str:token_whitelist.index|nested:str:AAA-111111", "1")
+                    .check_storage("str:token_whitelist.index|nested:str:BBB-222222", "2"),
             ),
     );
 
-    // stake fail
+    // lock fail
 
     world.sc_call_step(
         ScCallStep::new()
@@ -124,44 +125,116 @@ fn test() {
             .expect(TxExpect::err(4, "str:token is not whitelisted")),
     );
 
-    // stake success
+    // lock success
 
-    // world
-    //     .sc_call_step(
-    //         ScCallStep::new()
-    //             .from(user_2)
-    //             .to(&contract)
-    //             .esdt_transfer(whitelisted_token_2, 0u64, 500u64)
-    //             .call(contract.stake())
-    //             .expect(TxExpect::ok().no_result()),
-    //     )
-    //     .sc_call_step(
-    //         ScCallStep::new()
-    //             .from(user_2)
-    //             .to(&contract)
-    //             .esdt_transfer(whitelisted_token_2, 0u64, 500u64)
-    //             .call(contract.stake())
-    //             .expect(TxExpect::ok().no_result()),
-    //     )
-    //     .sc_call_step(
-    //         ScCallStep::new()
-    //             .from(user_1)
-    //             .to(&contract)
-    //             .esdt_transfer(whitelisted_token_1, 0u64, 1_000u64)
-    //             .esdt_transfer(whitelisted_token_2, 0u64, 1_000u64)
-    //             .call(contract.stake())
-    //             .expect(TxExpect::ok().no_result()),
-    //     );
-    // .check_state_step(
-    //     CheckStateStep::new()
-    //         .put_account(owner_address, CheckAccount::new())
-    //         .put_account(user_1, CheckAccount::new())
-    //         .put_account(user_2, CheckAccount::new())
-    //         .put_account(
-    //             contract,
-    //             CheckAccount::new()
-    //                 .esdt_balance(whitelisted_token_1, 1_000u64)
-    //                 .esdt_balance(whitelisted_token_2, 2_000u64),
-    //         ),
-    // );
+    world
+        .sc_call_step(
+            ScCallStep::new()
+                .from(user_2)
+                .to(&contract)
+                .esdt_transfer(whitelisted_token_2, 0u64, 500u64)
+                .call(contract.lock())
+                .expect(TxExpect::ok().no_result()),
+        )
+        .sc_call_step(
+            ScCallStep::new()
+                .from(user_1)
+                .to(&contract)
+                .esdt_transfer(whitelisted_token_1, 0u64, 1_000u64)
+                .esdt_transfer(whitelisted_token_2, 0u64, 1_000u64)
+                .call(contract.lock())
+                .expect(TxExpect::ok().no_result()),
+        )
+        .check_state_step(
+            CheckStateStep::new()
+                .put_account(owner_address, CheckAccount::new())
+                .put_account(user_1, CheckAccount::new())
+                .put_account(user_2, CheckAccount::new())
+                .put_account(
+                    &contract,
+                    CheckAccount::new()
+                        .esdt_balance(whitelisted_token_1, 1_000u64)
+                        .esdt_balance(whitelisted_token_2, 2_000u64)
+                        .check_storage("str:unbond_period", "10")
+                        .check_storage("str:token_whitelist.len", "2")
+                        .check_storage("str:token_whitelist.item|u32:1", "str:AAA-111111")
+                        .check_storage("str:token_whitelist.item|u32:2", "str:BBB-222222")
+                        .check_storage("str:token_whitelist.index|nested:str:AAA-111111", "1")
+                        .check_storage("str:token_whitelist.index|nested:str:BBB-222222", "2")
+                        .check_storage("str:locked_tokens|address:user2|str:.len", "1")
+                        .check_storage(
+                            "str:locked_tokens|address:user2|str:.item|u32:1",
+                            "str:BBB-222222",
+                        )
+                        .check_storage(
+                            "str:locked_tokens|address:user2|str:.index|nested:str:BBB-222222",
+                            "1",
+                        )
+                        .check_storage(
+                            "str:locked_token_amounts|address:user2|nested:str:BBB-222222",
+                            "500",
+                        )
+                        .check_storage("str:locked_tokens|address:user1|str:.len", "2")
+                        .check_storage(
+                            "str:locked_tokens|address:user1|str:.item|u32:1",
+                            "str:AAA-111111",
+                        )
+                        .check_storage(
+                            "str:locked_tokens|address:user1|str:.item|u32:2",
+                            "str:BBB-222222",
+                        )
+                        .check_storage(
+                            "str:locked_tokens|address:user1|str:.index|nested:str:AAA-111111",
+                            "1",
+                        )
+                        .check_storage(
+                            "str:locked_tokens|address:user1|str:.index|nested:str:BBB-222222",
+                            "2",
+                        )
+                        .check_storage(
+                            "str:locked_token_amounts|address:user1|nested:str:AAA-111111",
+                            "1000",
+                        )
+                        .check_storage(
+                            "str:locked_token_amounts|address:user1|nested:str:BBB-222222",
+                            "1000",
+                        ),
+                ),
+        );
+
+    // unstake fail
+
+    let mut unlock_single_esdt = ManagedVec::<DebugApi, EsdtTokenPayment<DebugApi>>::new();
+    let mut unlock_multiple_esdt = ManagedVec::<DebugApi, EsdtTokenPayment<DebugApi>>::new();
+
+    unlock_single_esdt.push(EsdtTokenPayment {
+        token_identifier: TokenIdentifier::from(blacklisted_token_id),
+        token_nonce: 0,
+        amount: BigUint::from(800u64),
+    });
+    unlock_multiple_esdt.push(EsdtTokenPayment {
+        token_identifier: TokenIdentifier::from(whitelisted_token_1),
+        token_nonce: 0,
+        amount: BigUint::zero(),
+    });
+    unlock_multiple_esdt.push(EsdtTokenPayment {
+        token_identifier: TokenIdentifier::from(whitelisted_token_1),
+        token_nonce: 0,
+        amount: BigUint::from(300u64),
+    });
+    world
+        .sc_call_step(
+            ScCallStep::new()
+                .from(user_2)
+                .to(&contract)
+                .call(contract.unlock(unlock_single_esdt))
+                .expect(TxExpect::err(4, "str:unavailable amount")),
+        )
+        .sc_call_step(
+            ScCallStep::new()
+                .from(user_2)
+                .to(&contract)
+                .call(contract.unlock(unlock_multiple_esdt))
+                .expect(TxExpect::err(4, "str:requested amount cannot be 0")),
+        );
 }

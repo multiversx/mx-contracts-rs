@@ -43,7 +43,7 @@ pub trait LiquidLocking {
     }
 
     fn validate_payment(&self, payment: &EsdtTokenPayment) {
-        require!(payment.token_nonce != 0, "invalid token provided");
+        require!(payment.token_nonce == 0, "invalid token provided");
         require!(payment.amount != 0, "amount must be greater than 0");
         require!(
             self.token_whitelist().contains(&payment.token_identifier),
@@ -70,6 +70,7 @@ pub trait LiquidLocking {
         for token in tokens.iter() {
             self.locked_token_amounts(&caller, &token.token_identifier)
                 .update(|staked_amount| {
+                    require!(token.amount > 0, "requested amount cannot be 0");
                     require!(*staked_amount >= token.amount, "unavailable amount");
                     *staked_amount -= token.amount.clone();
                     let unbounding_epoch = block_epoch + self.unbond_period().get();
