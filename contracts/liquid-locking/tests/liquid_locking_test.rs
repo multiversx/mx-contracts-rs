@@ -98,20 +98,20 @@ fn test() {
                 .to(&contract)
                 .call(contract.whitelist_token(TokenIdentifier::from(whitelisted_token_2_id)))
                 .expect(TxExpect::ok().no_result()),
-        )
-        .check_state_step(
-            CheckStateStep::new()
-                .put_account(owner_address, CheckAccount::new())
-                .put_account(
-                    &contract,
-                    CheckAccount::new()
-                        .check_storage("str:unbond_period", "10")
-                        .check_storage(
-                            "str:token_whitelist",
-                            "u32:2|nested:str:AAA-111111|nested:str:BBB-222222",
-                        ),
-                ),
         );
+    world.check_state_step(
+        CheckStateStep::new()
+            .put_account(owner_address, CheckAccount::new())
+            .put_account(
+                &contract,
+                CheckAccount::new()
+                    .check_storage("str:unbond_period", "10")
+                    .check_storage(
+                        "str:token_whitelist",
+                        "u32:2|nested:str:AAA-111111|nested:str:BBB-222222",
+                    ),
+            ),
+    );
 
     // stake fail
 
@@ -120,7 +120,7 @@ fn test() {
             .from(user_2)
             .to(&contract)
             .esdt_transfer(blacklisted_token, 0u64, 500u64)
-            .call(contract.stake())
+            .call(contract.lock())
             .expect(TxExpect::err(4, "str:token is not whitelisted")),
     );
 
