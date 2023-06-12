@@ -78,10 +78,6 @@ pub trait LiquidLocking {
                     self.unlocked_token_amounts(&caller, &token.token_identifier, unbounding_epoch)
                         .update(|amount| {
                             *amount += &token.amount;
-                            if *amount == BigUint::zero() {
-                                self.locked_tokens(&caller)
-                                    .swap_remove(&token.token_identifier);
-                            }
                         });
 
                     if !self
@@ -90,6 +86,10 @@ pub trait LiquidLocking {
                     {
                         self.unlocked_token_epochs(&caller, &token.token_identifier)
                             .insert(unbounding_epoch);
+                    }
+                    if *staked_amount == BigUint::zero() {
+                        self.locked_tokens(&caller)
+                            .swap_remove(&token.token_identifier);
                     }
                     if !self
                         .unlocked_tokens(&caller)
@@ -113,12 +113,11 @@ pub trait LiquidLocking {
                 .unlocked_token_epochs(&caller, &token_identifier)
                 .iter()
             {
-                if epoch > block_epoch {
-                    unbound_amount += self
-                        .unlocked_token_amounts(&caller, &token_identifier, epoch)
-                        .take();
-                    unbound_token_epochs.push(epoch);
-                }
+                require!(epoch > block_epoch, "Unbond period has not passed");
+                unbound_amount += self
+                    .unlocked_token_amounts(&caller, &token_identifier, epoch)
+                    .take();
+                unbound_token_epochs.push(epoch);
             }
             for epoch in unbound_token_epochs.iter() {
                 self.unlocked_token_epochs(&caller, &token_identifier)

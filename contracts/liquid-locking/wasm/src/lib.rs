@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                            6
+// Endpoints:                           12
 // Async Callback (empty):               1
-// Total number of exported functions:   8
+// Total number of exported functions:  14
 
 #![no_std]
 #![feature(lang_items)]
@@ -21,9 +21,15 @@ multiversx_sc_wasm_adapter::endpoints! {
         set_unbond_period
         whitelist_token
         blacklist_token
-        stake
-        unstake
+        lock
+        unlock
         unbond
+        lockedTokenAmounts
+        unlockedTokenAmounts
+        lockedTokens
+        unlockedTokens
+        whitelistedTokens
+        unbondPeriod
     )
 }
 
