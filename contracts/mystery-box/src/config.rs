@@ -38,6 +38,25 @@ impl<M: ManagedTypeApi> Default for Reward<M> {
     }
 }
 
+impl<M: ManagedTypeApi> Reward<M> {
+    #[inline]
+    pub fn new(
+        reward_type: RewardType,
+        reward_token_id: EgldOrEsdtTokenIdentifier<M>,
+        value: BigUint<M>,
+        percentage_chance: u64,
+        epochs_cooldown: u64,
+    ) -> Self {
+        Reward {
+            reward_type,
+            reward_token_id,
+            value,
+            percentage_chance,
+            epochs_cooldown,
+        }
+    }
+}
+
 #[derive(
     ManagedVecItem, NestedEncode, NestedDecode, TopEncode, TopDecode, PartialEq, Eq, TypeAbi, Clone,
 )]

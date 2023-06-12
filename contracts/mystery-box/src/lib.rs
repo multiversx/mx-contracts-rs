@@ -35,12 +35,28 @@ pub trait MysteryBox:
     }
 
     #[endpoint(setupMysteryBox)]
-    fn setup_mystery_box(&self, winning_rates: ManagedVec<Reward<Self::Api>>) {
+    fn setup_mystery_box(
+        &self,
+        winning_rates_list: MultiValueEncoded<
+            MultiValue5<RewardType, EgldOrEsdtTokenIdentifier, BigUint, u64, u64>,
+        >,
+    ) {
         self.require_caller_is_admin();
         let mut accumulated_percentage = 0u64;
-        for winning_rate in winning_rates.into_iter() {
-            accumulated_percentage += winning_rate.percentage_chance;
-            self.check_reward_validity(&winning_rate);
+        let mut winning_rates = ManagedVec::new();
+        for winning_rate in winning_rates_list.into_iter() {
+            let (reward_type, reward_token_id, value, percentage_chance, epochs_cooldown) =
+                winning_rate.into_tuple();
+            accumulated_percentage += percentage_chance;
+            let reward = Reward::new(
+                reward_type,
+                reward_token_id,
+                value,
+                percentage_chance,
+                epochs_cooldown,
+            );
+            self.check_reward_validity(&reward);
+            winning_rates.push(reward);
         }
         require!(
             accumulated_percentage == MAX_PERCENTAGE,
@@ -52,9 +68,9 @@ pub trait MysteryBox:
     }
 
     #[endpoint(updateMysteryBoxUris)]
-    fn update_mystery_box_uris(&self, uris: ManagedVec<ManagedBuffer>) {
+    fn update_mystery_box_uris(&self, uris: MultiValueEncoded<ManagedBuffer>) {
         self.require_caller_is_admin();
-        self.mystery_box_uris().set(uris);
+        self.mystery_box_uris().set(uris.to_vec());
     }
 
     #[endpoint(createMysteryBox)]
@@ -88,6 +104,10 @@ pub trait MysteryBox:
     #[endpoint(openMysteryBox)]
     fn open_mystery_box(&self) {
         let caller = self.blockchain().get_caller();
+        require!(
+            !self.blockchain().is_smart_contract(&caller),
+            "Only user accounts can open mystery boxes"
+        );
         let payment = self.call_value().single_esdt();
         let mystery_box_token_mapper = self.mystery_box_token();
         let mystery_box_token_id = mystery_box_token_mapper.get_token_id();

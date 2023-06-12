@@ -1,11 +1,8 @@
-use multiversx_sc::types::{Address, EgldOrEsdtTokenIdentifier, EsdtLocalRole, ManagedVec};
+use multiversx_sc::types::{Address, EgldOrEsdtTokenIdentifier, EsdtLocalRole, MultiValueEncoded};
 use multiversx_sc_scenario::{
     managed_biguint, managed_buffer, managed_token_id, rust_biguint, whitebox::*, DebugApi,
 };
-use mystery_box::{
-    config::{Reward, RewardType},
-    MysteryBox,
-};
+use mystery_box::{config::RewardType, MysteryBox};
 
 pub const MYSTERY_BOX_WASM_PATH: &str = "mystery-box/output/mystery-box.wasm";
 pub const MB_TOKEN_ID: &[u8] = b"MBTOK-abcdef";
@@ -99,47 +96,50 @@ where
     {
         b_mock
             .execute_tx(owner_address, mb_wrapper, &rust_biguint!(0), |sc| {
-                let mut rewards_list = ManagedVec::new();
-                let mut reward = Reward {
-                    reward_type: RewardType::ExperiencePoints,
-                    reward_token_id: EgldOrEsdtTokenIdentifier::egld(),
-                    value: managed_biguint!(experience_points_amount),
-                    percentage_chance: experience_points_percentage,
-                    epochs_cooldown: experience_points_cooldown,
-                };
+                let mut rewards_list = MultiValueEncoded::new();
+                let mut reward = (
+                    RewardType::ExperiencePoints,
+                    EgldOrEsdtTokenIdentifier::egld(),
+                    managed_biguint!(experience_points_amount),
+                    experience_points_percentage,
+                    experience_points_cooldown,
+                )
+                    .into();
                 rewards_list.push(reward);
 
-                reward = Reward {
-                    reward_type: RewardType::MysteryBox,
-                    reward_token_id: EgldOrEsdtTokenIdentifier::esdt(managed_token_id!(
-                        MB_TOKEN_ID
-                    )),
-                    value: managed_biguint!(1),
-                    percentage_chance: sft_reward_percentage,
-                    epochs_cooldown: sft_reward_cooldown,
-                };
+                reward = (
+                    RewardType::MysteryBox,
+                    EgldOrEsdtTokenIdentifier::esdt(managed_token_id!(MB_TOKEN_ID)),
+                    managed_biguint!(1),
+                    sft_reward_percentage,
+                    sft_reward_cooldown,
+                )
+                    .into();
                 rewards_list.push(reward);
 
-                reward = Reward {
-                    reward_type: RewardType::Percent,
-                    reward_token_id: EgldOrEsdtTokenIdentifier::egld(),
-                    value: managed_biguint!(percent_reward_amount),
-                    percentage_chance: percent_reward_percentage,
-                    epochs_cooldown: percent_reward_cooldown,
-                };
+                reward = (
+                    RewardType::Percent,
+                    EgldOrEsdtTokenIdentifier::egld(),
+                    managed_biguint!(percent_reward_amount),
+                    percent_reward_percentage,
+                    percent_reward_cooldown,
+                )
+                    .into();
                 rewards_list.push(reward);
 
-                reward = Reward {
-                    reward_type: RewardType::FixedValue,
-                    reward_token_id: EgldOrEsdtTokenIdentifier::egld(),
-                    value: managed_biguint!(fixed_value_reward_amount),
-                    percentage_chance: fixed_value_reward_percentage,
-                    epochs_cooldown: fixed_value_reward_cooldown,
-                };
+                reward = (
+                    RewardType::FixedValue,
+                    EgldOrEsdtTokenIdentifier::egld(),
+                    managed_biguint!(fixed_value_reward_amount),
+                    fixed_value_reward_percentage,
+                    fixed_value_reward_cooldown,
+                )
+                    .into();
                 rewards_list.push(reward);
+
                 sc.setup_mystery_box(rewards_list);
 
-                let mut uris = ManagedVec::new();
+                let mut uris = MultiValueEncoded::new();
                 uris.push(managed_buffer!(b"www.cool_nft.com/my_nft.jpg"));
                 uris.push(managed_buffer!(b"www.cool_nft.com/my_nft.json"));
                 sc.update_mystery_box_uris(uris);
