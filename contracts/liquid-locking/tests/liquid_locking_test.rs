@@ -254,7 +254,7 @@ fn test() {
     unlock_single_esdt.push(EsdtTokenPayment {
         token_identifier: TokenIdentifier::from(whitelisted_token_2_id),
         token_nonce: 0,
-        amount: BigUint::from(600u64),
+        amount: BigUint::from(200u64),
     });
     unlock_multiple_esdt.push(EsdtTokenPayment {
         token_identifier: TokenIdentifier::from(whitelisted_token_1_id),
@@ -281,6 +281,14 @@ fn test() {
                 .call(contract.unlock(unlock_multiple_esdt))
                 .expect(TxExpect::ok().no_result()),
         )
+        .sc_call_step(
+            ScCallStep::new()
+                .from(user_1)
+                .to(&contract)
+                .call(contract.unlock(unlock_single_esdt.clone()))
+                .expect(TxExpect::ok().no_result()),
+        )
+        .set_state_step(SetStateStep::new().block_epoch(20))
         .sc_call_step(
             ScCallStep::new()
                 .from(user_1)
@@ -315,7 +323,7 @@ fn test() {
                         )
                         .check_storage(
                             "str:locked_token_amounts|address:user2|nested:str:BBB-222222",
-                            "400",
+                            "800",
                         )
                         .check_storage("str:locked_tokens|address:user1|str:.len", "1")
                         .check_storage(
@@ -328,7 +336,7 @@ fn test() {
                         )
                         .check_storage(
                             "str:locked_token_amounts|address:user1|nested:str:BBB-222222",
-                            "100",
+                            "300",
                         )
                         .check_storage("str:unlocked_tokens|address:user2|str:.len", "1")
                         .check_storage(
@@ -356,16 +364,25 @@ fn test() {
                             "str:unlocked_tokens|address:user1|str:.index|nested:str:BBB-222222",
                             "2",
                         )
-                        .check_storage("str:unlocked_token_epochs|address:user1|nested:str:BBB-222222|str:.len", "1")
+                        .check_storage("str:unlocked_token_epochs|address:user1|nested:str:BBB-222222|str:.len", "2")
                         .check_storage(
                             "str:unlocked_token_epochs|address:user1|nested:str:BBB-222222|str:.item|u32:1",
                             "10",
                         )
                         .check_storage(
+                            "str:unlocked_token_epochs|address:user1|nested:str:BBB-222222|str:.item|u32:2",
+                            "30",
+                        )
+                        .check_storage(
                             "str:unlocked_token_epochs|address:user1|nested:str:BBB-222222|str:.index|u64:10",
                             "1",
                         )
-                        .check_storage("str:unlocked_token_amounts|address:user1|nested:str:BBB-222222|u64:10", "900")
+                        .check_storage(
+                            "str:unlocked_token_epochs|address:user1|nested:str:BBB-222222|str:.index|u64:30",
+                            "2",
+                        )
+                        .check_storage("str:unlocked_token_amounts|address:user1|nested:str:BBB-222222|u64:10", "500")
+                        .check_storage("str:unlocked_token_amounts|address:user1|nested:str:BBB-222222|u64:30", "200")
                         .check_storage("str:unlocked_token_epochs|address:user1|nested:str:AAA-111111|str:.len", "1")
                         .check_storage(
                             "str:unlocked_token_epochs|address:user1|nested:str:AAA-111111|str:.item|u32:1",
@@ -385,7 +402,7 @@ fn test() {
                             "str:unlocked_token_epochs|address:user2|nested:str:BBB-222222|str:.index|u64:10",
                             "1",
                         )
-                        .check_storage("str:unlocked_token_amounts|address:user2|nested:str:BBB-222222|u64:10", "600"),
+                        .check_storage("str:unlocked_token_amounts|address:user2|nested:str:BBB-222222|u64:10", "200"),
                 ),
         );
 }
