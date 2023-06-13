@@ -39,6 +39,8 @@ members = [
   "contracts/fractional-nfts/meta",
   "contracts/lottery-esdt",
   "contracts/lottery-esdt/meta",
+  "contracts/liquid-locking",
+  "contracts/liquid-locking/meta",
   "contracts/multisig",
   "contracts/multisig/meta",
   "contracts/multisig/interact-rs",
