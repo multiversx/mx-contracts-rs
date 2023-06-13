@@ -201,6 +201,7 @@ where
             .assert_ok();
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn setup_mystery_box(
         &mut self,
         experience_points_amount: u64,
