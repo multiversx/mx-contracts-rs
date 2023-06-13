@@ -10,7 +10,7 @@ pub trait TokenAttributesModule: config::ConfigModule {
         amount: BigUint,
         attributes: &T,
     ) -> EsdtTokenPayment {
-        let mystery_box_token_mapper = self.mystery_box_token();
+        let mystery_box_token_id = self.mystery_box_token_id().get();
         let mut encoded_attributes = ManagedBuffer::new();
         attributes
             .dep_encode(&mut encoded_attributes)
@@ -19,12 +19,12 @@ pub trait TokenAttributesModule: config::ConfigModule {
         let attributes_to_nonce_mapper = self.attributes_to_nonce_mapping(&encoded_attributes);
         let existing_nonce = attributes_to_nonce_mapper.get();
         if existing_nonce != 0 {
-            return mystery_box_token_mapper.nft_add_quantity(existing_nonce, amount);
+            self.send()
+                .esdt_local_mint(&mystery_box_token_id, existing_nonce, &amount);
+
+            return EsdtTokenPayment::new(mystery_box_token_id, existing_nonce, amount);
         }
 
-        // We use the manual esdt_nft_create function instead of the NonFungibleTokenMapper's nft_create function,
-        // as we need to also set the uri, option which is not available in the mapper's built in functions
-        let mystery_box_token_id = mystery_box_token_mapper.get_token_id();
         let mystery_box_uris = self.mystery_box_uris().get();
         let empty_buffer = ManagedBuffer::new();
         let new_nonce = self.send().esdt_nft_create(

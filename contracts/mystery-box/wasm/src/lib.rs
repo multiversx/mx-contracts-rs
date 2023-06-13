@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           13
+// Endpoints:                           12
 // Async Callback (empty):               1
-// Total number of exported functions:  15
+// Total number of exported functions:  14
 
 #![no_std]
 #![feature(lang_items)]
@@ -23,7 +23,6 @@ multiversx_sc_wasm_adapter::endpoints! {
         createMysteryBox
         openMysteryBox
         getMysteryBoxTokenIdentifier
-        getMysteryBoxCooldownPeriod
         getGlobalCooldownEpoch
         getWinningRates
         getMysteryBoxUris

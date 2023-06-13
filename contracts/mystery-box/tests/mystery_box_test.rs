@@ -7,29 +7,25 @@ fn test_mystery_box_setup() {
 }
 
 #[test]
-fn test_mb_token_nonce_stacking_and_opening_cooldown() {
+fn test_mb_token_nonce_stacking() {
     let mut mb_setup = MysteryBoxSetup::new(mystery_box::contract_obj);
 
     mb_setup.b_mock.set_block_epoch(1);
     let first_mb_token_nonce = mb_setup.create_mystery_box(1);
     let second_mb_token_nonce = mb_setup.create_mystery_box(1);
 
-    // Should be equal as they are created in the same epoch
     assert_eq!(first_mb_token_nonce, second_mb_token_nonce);
 
-    // Should throw error, as the 1 epoch cooldown has not passed
-    mb_setup.open_mystery_box_cooldown_error_expected(first_mb_token_nonce);
-
     mb_setup.b_mock.set_block_epoch(2);
-
-    // Should be processed succesfully, as the cooldown period has passed
     mb_setup.open_mystery_box(second_mb_token_nonce);
 
+    mb_setup.setup_mystery_box(
+        1_500, 5_999, 1, 3_000, 0, 1_500, 1_000, 0, 50, 1, 1, 0, 0, 0,
+    );
     let third_mb_token_nonce = mb_setup.create_mystery_box(1);
 
-    // Should be different, as they were created in different epochs
+    // Should be different, as they were with different attributes
     assert_ne!(first_mb_token_nonce, third_mb_token_nonce);
-    mb_setup.open_mystery_box_cooldown_error_expected(third_mb_token_nonce);
 
     mb_setup.b_mock.set_block_epoch(3);
     mb_setup.open_mystery_box(third_mb_token_nonce);
@@ -54,12 +50,8 @@ fn test_open_multiple_mystery_box() {
     mb_setup.b_mock.set_block_random_seed(Box::from([3u8; 48]));
     mb_setup.open_mystery_box(mb_token_nonce);
 
-    let new_mb_token_nonce = 2;
-    // It should throw an error, as it is still the same epoch from when it was created
-    mb_setup.open_mystery_box_cooldown_error_expected(new_mb_token_nonce);
-
     mb_setup.b_mock.set_block_epoch(4);
     mb_setup.b_mock.set_block_random_seed(Box::from([4u8; 48]));
     mb_setup.open_mystery_box(mb_token_nonce);
-    mb_setup.open_mystery_box(new_mb_token_nonce);
+    mb_setup.open_mystery_box(mb_token_nonce);
 }
