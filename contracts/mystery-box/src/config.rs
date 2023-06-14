@@ -11,8 +11,10 @@ pub enum RewardType {
     None,
     ExperiencePoints,
     MysteryBox,
-    Percent,
+    SFT,
+    PercentValue,
     FixedValue,
+    CustomReward,
 }
 
 #[derive(
@@ -22,6 +24,7 @@ pub struct Reward<M: ManagedTypeApi> {
     pub reward_type: RewardType,
     pub reward_token_id: EgldOrEsdtTokenIdentifier<M>,
     pub value: BigUint<M>,
+    pub description: ManagedBuffer<M>,
     pub percentage_chance: u64,
     pub epochs_cooldown: u64,
 }
@@ -32,6 +35,7 @@ impl<M: ManagedTypeApi> Default for Reward<M> {
             reward_type: RewardType::None,
             reward_token_id: EgldOrEsdtTokenIdentifier::egld(),
             value: BigUint::zero(),
+            description: ManagedBuffer::new(),
             percentage_chance: 0u64,
             epochs_cooldown: 0u64,
         }
@@ -44,6 +48,7 @@ impl<M: ManagedTypeApi> Reward<M> {
         reward_type: RewardType,
         reward_token_id: EgldOrEsdtTokenIdentifier<M>,
         value: BigUint<M>,
+        description: ManagedBuffer<M>,
         percentage_chance: u64,
         epochs_cooldown: u64,
     ) -> Self {
@@ -51,26 +56,9 @@ impl<M: ManagedTypeApi> Reward<M> {
             reward_type,
             reward_token_id,
             value,
+            description,
             percentage_chance,
             epochs_cooldown,
-        }
-    }
-}
-
-#[derive(
-    ManagedVecItem, NestedEncode, NestedDecode, TopEncode, TopDecode, PartialEq, Eq, TypeAbi, Clone,
-)]
-pub struct MysteryBoxAttributes<M: ManagedTypeApi> {
-    pub rewards: ManagedVec<M, Reward<M>>,
-    pub create_epoch: u64,
-}
-
-impl<M: ManagedTypeApi> MysteryBoxAttributes<M> {
-    #[inline]
-    pub fn new(rewards: ManagedVec<M, Reward<M>>, create_epoch: u64) -> Self {
-        MysteryBoxAttributes {
-            rewards,
-            create_epoch,
         }
     }
 }
@@ -79,11 +67,7 @@ impl<M: ManagedTypeApi> MysteryBoxAttributes<M> {
 pub trait ConfigModule {
     #[view(getMysteryBoxTokenIdentifier)]
     #[storage_mapper("mysteryBoxTokenIdentifier")]
-    fn mystery_box_token(&self) -> NonFungibleTokenMapper;
-
-    #[view(getMysteryBoxCooldownPeriod)]
-    #[storage_mapper("mysteryBoxCooldownPeriod")]
-    fn mystery_box_cooldown_period(&self) -> SingleValueMapper<u64>;
+    fn mystery_box_token_id(&self) -> SingleValueMapper<TokenIdentifier>;
 
     #[view(getGlobalCooldownEpoch)]
     #[storage_mapper("globalCooldownEpoch")]

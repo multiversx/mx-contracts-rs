@@ -39,11 +39,17 @@ pub trait RewardsModule: config::ConfigModule {
             }
             RewardType::MysteryBox => {
                 require!(
-                    reward.reward_token_id == self.mystery_box_token().get_token_id(),
+                    reward.reward_token_id == self.mystery_box_token_id().get(),
                     "The reward token id must be the same as the mystery box"
                 );
             }
-            RewardType::Percent => {
+            RewardType::SFT => {
+                require!(
+                    reward.reward_token_id.is_esdt(),
+                    "The reward token id must be an ESDT"
+                );
+            }
+            RewardType::PercentValue => {
                 require!(
                     reward.value > 0 && reward.value <= MAX_PERCENTAGE,
                     "The reward percentage must be positive and <= 100%"
@@ -51,6 +57,12 @@ pub trait RewardsModule: config::ConfigModule {
             }
             RewardType::FixedValue => {
                 require!(reward.value > 0, "The reward amount must be greater than 0");
+            }
+            RewardType::CustomReward => {
+                require!(
+                    !reward.description.is_empty(),
+                    "The custom reward needs to have a description"
+                );
             }
             _ => {}
         }

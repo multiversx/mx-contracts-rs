@@ -6,7 +6,6 @@ use mystery_box::{config::RewardType, MysteryBox};
 
 pub const MYSTERY_BOX_WASM_PATH: &str = "mystery-box/output/mystery-box.wasm";
 pub const MB_TOKEN_ID: &[u8] = b"MBTOK-abcdef";
-pub const MYSTERY_BOX_COOLDOWN_PERIOD: u64 = 1;
 
 #[allow(dead_code)]
 pub struct MysteryBoxSetup<MysteryBoxObjBuilder>
@@ -36,7 +35,7 @@ where
 
         b_mock
             .execute_tx(&owner_addr, &mystery_box_wrapper, &rust_zero, |sc| {
-                sc.init(managed_token_id!(MB_TOKEN_ID), MYSTERY_BOX_COOLDOWN_PERIOD);
+                sc.init(managed_token_id!(MB_TOKEN_ID));
             })
             .assert_ok();
 
@@ -51,7 +50,7 @@ where
             &mb_token_roles[..],
         );
 
-        Self::setup_mystery_box(
+        Self::internal_setup_mystery_box(
             900,
             5_999,
             1,
@@ -63,6 +62,9 @@ where
             50,
             1,
             1,
+            1,
+            0,
+            0,
             &owner_addr,
             &mystery_box_wrapper,
             &mut b_mock,
@@ -76,7 +78,7 @@ where
     }
 
     #[allow(clippy::too_many_arguments)]
-    pub fn setup_mystery_box(
+    pub fn internal_setup_mystery_box(
         experience_points_amount: u64,
         experience_points_percentage: u64,
         experience_points_cooldown: u64,
@@ -88,6 +90,9 @@ where
         fixed_value_reward_amount: u64,
         fixed_value_reward_percentage: u64,
         fixed_value_reward_cooldown: u64,
+        custom_reward_amount: u64,
+        custom_reward_percentage: u64,
+        custom_reward_cooldown: u64,
         owner_address: &Address,
         mb_wrapper: &ContractObjWrapper<mystery_box::ContractObj<DebugApi>, MysteryBoxObjBuilder>,
         b_mock: &mut BlockchainStateWrapper,
@@ -101,6 +106,7 @@ where
                     RewardType::ExperiencePoints,
                     EgldOrEsdtTokenIdentifier::egld(),
                     managed_biguint!(experience_points_amount),
+                    managed_buffer!(b"ExperiencePoints"),
                     experience_points_percentage,
                     experience_points_cooldown,
                 )
@@ -111,6 +117,7 @@ where
                     RewardType::MysteryBox,
                     EgldOrEsdtTokenIdentifier::esdt(managed_token_id!(MB_TOKEN_ID)),
                     managed_biguint!(1),
+                    managed_buffer!(b"MysteryBox"),
                     sft_reward_percentage,
                     sft_reward_cooldown,
                 )
@@ -118,9 +125,10 @@ where
                 rewards_list.push(reward);
 
                 reward = (
-                    RewardType::Percent,
+                    RewardType::PercentValue,
                     EgldOrEsdtTokenIdentifier::egld(),
                     managed_biguint!(percent_reward_amount),
+                    managed_buffer!(b"Percent"),
                     percent_reward_percentage,
                     percent_reward_cooldown,
                 )
@@ -131,8 +139,20 @@ where
                     RewardType::FixedValue,
                     EgldOrEsdtTokenIdentifier::egld(),
                     managed_biguint!(fixed_value_reward_amount),
+                    managed_buffer!(b"FixedValue"),
                     fixed_value_reward_percentage,
                     fixed_value_reward_cooldown,
+                )
+                    .into();
+                rewards_list.push(reward);
+
+                reward = (
+                    RewardType::CustomReward,
+                    EgldOrEsdtTokenIdentifier::egld(),
+                    managed_biguint!(custom_reward_amount),
+                    managed_buffer!(b"CustomText"),
+                    custom_reward_percentage,
+                    custom_reward_cooldown,
                 )
                     .into();
                 rewards_list.push(reward);
@@ -181,18 +201,42 @@ where
             .assert_ok();
     }
 
-    pub fn open_mystery_box_cooldown_error_expected(&mut self, mb_token_nonce: u64) {
-        self.b_mock
-            .execute_esdt_transfer(
-                &self.owner_address,
-                &self.mystery_box_wrapper,
-                MB_TOKEN_ID,
-                mb_token_nonce,
-                &rust_biguint!(1),
-                |sc| {
-                    sc.open_mystery_box();
-                },
-            )
-            .assert_error(4, "Mystery box cannot be opened yet");
+    #[allow(clippy::too_many_arguments)]
+    pub fn setup_mystery_box(
+        &mut self,
+        experience_points_amount: u64,
+        experience_points_percentage: u64,
+        experience_points_cooldown: u64,
+        sft_reward_percentage: u64,
+        sft_reward_cooldown: u64,
+        percent_reward_amount: u64,
+        percent_reward_percentage: u64,
+        percent_reward_cooldown: u64,
+        fixed_value_reward_amount: u64,
+        fixed_value_reward_percentage: u64,
+        fixed_value_reward_cooldown: u64,
+        custom_reward_amount: u64,
+        custom_reward_percentage: u64,
+        custom_reward_cooldown: u64,
+    ) {
+        Self::internal_setup_mystery_box(
+            experience_points_amount,
+            experience_points_percentage,
+            experience_points_cooldown,
+            sft_reward_percentage,
+            sft_reward_cooldown,
+            percent_reward_amount,
+            percent_reward_percentage,
+            percent_reward_cooldown,
+            fixed_value_reward_amount,
+            fixed_value_reward_percentage,
+            fixed_value_reward_cooldown,
+            custom_reward_amount,
+            custom_reward_percentage,
+            custom_reward_cooldown,
+            &self.owner_address,
+            &self.mystery_box_wrapper,
+            &mut self.b_mock,
+        );
     }
 }
