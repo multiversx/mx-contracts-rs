@@ -55,48 +55,36 @@ pub trait LiquidLocking {
         self.locked_token_amounts(caller, &payment.token_identifier)
             .update(|amount| *amount += &payment.amount);
 
-        if !self
-            .locked_tokens(caller)
-            .contains(&payment.token_identifier)
-        {
-            self.locked_tokens(caller).insert(payment.token_identifier);
-        }
+        self.locked_tokens(caller).insert(payment.token_identifier);
     }
 
     #[endpoint]
     fn unlock(&self, tokens: ManagedVec<EsdtTokenPayment<Self::Api>>) {
         let caller = self.blockchain().get_caller();
         let block_epoch = self.blockchain().get_block_epoch();
+        let unbond_period = self.unbond_period().get();
         for token in tokens.iter() {
             self.locked_token_amounts(&caller, &token.token_identifier)
                 .update(|staked_amount| {
                     require!(token.amount > 0, "requested amount cannot be 0");
                     require!(*staked_amount >= token.amount, "unavailable amount");
                     *staked_amount -= token.amount.clone();
-                    let unbounding_epoch = block_epoch + self.unbond_period().get();
+                    let unbounding_epoch = block_epoch + unbond_period;
 
                     self.unlocked_token_amounts(&caller, &token.token_identifier, unbounding_epoch)
                         .update(|amount| {
                             *amount += &token.amount;
                         });
 
-                    if !self
-                        .unlocked_token_epochs(&caller, &token.token_identifier)
-                        .contains(&unbounding_epoch)
-                    {
-                        self.unlocked_token_epochs(&caller, &token.token_identifier)
-                            .insert(unbounding_epoch);
-                    }
+                    self.unlocked_token_epochs(&caller, &token.token_identifier)
+                        .insert(unbounding_epoch);
+
                     if *staked_amount == BigUint::zero() {
                         self.locked_tokens(&caller)
                             .swap_remove(&token.token_identifier);
                     }
-                    if !self
-                        .unlocked_tokens(&caller)
-                        .contains(&token.token_identifier)
-                    {
-                        self.unlocked_tokens(&caller).insert(token.token_identifier);
-                    }
+
+                    self.unlocked_tokens(&caller).insert(token.token_identifier);
                 });
         }
     }
@@ -107,26 +95,21 @@ pub trait LiquidLocking {
         let block_epoch = self.blockchain().get_block_epoch();
         let mut unbond_tokens = ManagedVec::<Self::Api, EsdtTokenPayment<Self::Api>>::new();
         for token_identifier in tokens.iter() {
+            let mut unlocked_token_epochs = self.unlocked_token_epochs(&caller, &token_identifier);
             let mut unbound_amount = BigUint::zero();
             let mut unbound_token_epochs = ManagedVec::<Self::Api, u64>::new();
-            for epoch in self
-                .unlocked_token_epochs(&caller, &token_identifier)
-                .iter()
-            {
-                require!(block_epoch > epoch, "unbond period has not passed yet");
-                unbound_amount += self
-                    .unlocked_token_amounts(&caller, &token_identifier, epoch)
-                    .take();
-                unbound_token_epochs.push(epoch);
+            for epoch in unlocked_token_epochs.iter() {
+                if block_epoch > epoch {
+                    unbound_amount += self
+                        .unlocked_token_amounts(&caller, &token_identifier, epoch)
+                        .take();
+                    unbound_token_epochs.push(epoch);
+                }
             }
             for epoch in unbound_token_epochs.iter() {
-                self.unlocked_token_epochs(&caller, &token_identifier)
-                    .swap_remove(&epoch);
+                unlocked_token_epochs.swap_remove(&epoch);
 
-                if self
-                    .unlocked_token_epochs(&caller, &token_identifier)
-                    .is_empty()
-                {
+                if unlocked_token_epochs.is_empty() {
                     self.unlocked_tokens(&caller).swap_remove(&token_identifier);
                 }
             }

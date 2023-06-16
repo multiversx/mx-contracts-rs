@@ -446,10 +446,22 @@ fn test() {
             .from(user_2)
             .to(&contract)
             .call(contract.unbond(unbond_tokens))
-            .expect(TxExpect::err(4, "str:unbond period has not passed yet")),
+            .expect(TxExpect::err(4, "str:nothing to unbond")),
     );
 
-    // unlock success
+    // unbond success
+
+    unbond_tokens = ManagedVec::<DebugApi, TokenIdentifier<DebugApi>>::new();
+    unbond_tokens.push(TokenIdentifier::from(whitelisted_token_2_id));
+    world
+        .set_state_step(SetStateStep::new().block_epoch(11))
+        .sc_call_step(
+            ScCallStep::new()
+                .from(user_1)
+                .to(&contract)
+                .call(contract.unbond(unbond_tokens))
+                .expect(TxExpect::ok().no_result()),
+        );
 
     unbond_tokens = ManagedVec::<DebugApi, TokenIdentifier<DebugApi>>::new();
     unbond_tokens.push(TokenIdentifier::from(whitelisted_token_2_id));
@@ -462,6 +474,7 @@ fn test() {
                 .call(contract.unbond(unbond_tokens))
                 .expect(TxExpect::ok().no_result()),
         );
+
     unbond_tokens = ManagedVec::<DebugApi, TokenIdentifier<DebugApi>>::new();
     unbond_tokens.push(TokenIdentifier::from(whitelisted_token_2_id));
     unbond_tokens.push(TokenIdentifier::from(whitelisted_token_1_id));
