@@ -133,6 +133,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "multiversx-sc-modules"
+version = "0.41.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf2f13e0d94bd5e2d1b0c1b1f31ffe7ef223d396a4b939d46a66c3519557d0a3"
+dependencies = [
+ "multiversx-sc",
+]
+
+[[package]]
 name = "multiversx-sc-wasm-adapter"
 version = "0.41.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -146,6 +155,7 @@ name = "mystery-box"
 version = "0.0.1"
 dependencies = [
  "multiversx-sc",
+ "multiversx-sc-modules",
 ]
 
 [[package]]
