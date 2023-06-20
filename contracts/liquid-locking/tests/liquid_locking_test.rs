@@ -58,7 +58,8 @@ fn test() {
                 user_2,
                 Account::new()
                     .esdt_balance(blacklisted_token, 1_000u64)
-                    .esdt_balance(whitelisted_token_2, 1_000u64),
+                    .esdt_balance(whitelisted_token_2, 1_000u64)
+                    .balance("1_000_000_000"),
             ),
         );
 
@@ -112,7 +113,8 @@ fn test() {
                 user_2,
                 CheckAccount::new()
                     .esdt_balance(blacklisted_token, 1_000u64)
-                    .esdt_balance(whitelisted_token_2, 1_000u64),
+                    .esdt_balance(whitelisted_token_2, 1_000u64)
+                    .balance("1_000_000_000"),
             )
             .put_account(
                 &contract,
@@ -128,14 +130,30 @@ fn test() {
 
     // lock fail
 
-    world.sc_call_step(
-        ScCallStep::new()
-            .from(user_2)
-            .to(&contract)
-            .esdt_transfer(blacklisted_token, 0u64, 500u64)
-            .call(contract.lock())
-            .expect(TxExpect::err(4, "str:token is not whitelisted")),
-    );
+    world
+        .sc_call_step(
+            ScCallStep::new()
+                .from(user_2)
+                .to(&contract)
+                .esdt_transfer(blacklisted_token, 0u64, 500u64)
+                .call(contract.lock())
+                .expect(TxExpect::err(4, "str:token is not whitelisted")),
+        )
+        .sc_call_step(
+            ScCallStep::new()
+                .from(user_2)
+                .to(&contract)
+                .egld_value(1_000_000u64)
+                .call(contract.lock())
+                .expect(TxExpect::err(4, "str:no payment provided")),
+        )
+        .sc_call_step(
+            ScCallStep::new()
+                .from(user_2)
+                .to(&contract)
+                .call(contract.lock())
+                .expect(TxExpect::err(4, "str:no payment provided")),
+        );
 
     // lock success
 
@@ -171,7 +189,9 @@ fn test() {
                 .put_account(user_1, CheckAccount::new())
                 .put_account(
                     user_2,
-                    CheckAccount::new().esdt_balance(blacklisted_token, 1_000u64),
+                    CheckAccount::new()
+                        .esdt_balance(blacklisted_token, 1_000u64)
+                        .balance("1_000_000_000"),
                 )
                 .put_account(
                     &contract,
@@ -322,6 +342,7 @@ fn test() {
                     user_2,
                     CheckAccount::new()
                         .esdt_balance(blacklisted_token, 1_000u64)
+                        .balance("1_000_000_000"),
                 )
                 .put_account(
                     &contract,
@@ -499,7 +520,8 @@ fn test() {
                     user_2,
                     CheckAccount::new()
                         .esdt_balance(blacklisted_token, 1_000u64)
-                        .esdt_balance(whitelisted_token_2, 200u64),
+                        .esdt_balance(whitelisted_token_2, 200u64)
+                        .balance("1_000_000_000"),
                 )
                 .put_account(
                     &contract,
