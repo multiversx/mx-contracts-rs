@@ -35,7 +35,7 @@ pub trait LiquidLocking {
     #[endpoint]
     fn lock(&self) {
         require!(
-            self.call_value().egld_value().clone_value() != BigUint::zero(),
+            self.call_value().egld_value().clone_value() == BigUint::zero(),
             "eGLD payment is not accepted"
         );
         let payments = self.call_value().all_esdt_transfers();
