@@ -34,7 +34,12 @@ pub trait LiquidLocking {
     #[payable("*")]
     #[endpoint]
     fn lock(&self) {
+        require!(
+            self.call_value().egld_value().clone_value() != BigUint::zero(),
+            "eGLD payment is not accepted"
+        );
         let payments = self.call_value().all_esdt_transfers();
+        require!(!payments.is_empty(), "amount must be greater than 0");
         let caller = self.blockchain().get_caller();
         for payment in payments.iter() {
             self.validate_payment(&payment);
