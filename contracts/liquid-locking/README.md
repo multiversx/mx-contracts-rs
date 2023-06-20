@@ -18,7 +18,7 @@ Stake, unstake and unbond work with calls that contain multiple tokens
 
 The init function is called when deploying/upgrading the smart contract. It sets the unbonding period of the tokens locked in the contract.
 
-### set_unbound_period
+### set_unbond_period
 
 ```rust
     #[only_owner]
@@ -26,7 +26,7 @@ The init function is called when deploying/upgrading the smart contract. It sets
     fn set_unbond_period(&self, unbond_period: u64);
 ```
 
-The ```set_unbound_period``` endpoint allows changing the unbond period by the owner of te contract.
+The ```set_unbond_period``` endpoint allows changing the unbond period by the owner of te contract.
 
 ### whitelist_token
 
@@ -67,7 +67,7 @@ Just like the previous endpoint the only owner endpoint ```blacklist_token``` ca
 
 ```unlock``` allows a user to unstake locked tokens from the contract. By calling this endpoint the requested tokens will enter a unbonding period only after which will be available for claiming. The endpoint requires a list of tokens as parameter, representing the tokens desired for unstaking. Each unstake instantiated a separate unbonding period for the desired amount of tokens.
 
-### unbound
+### unbond
 ```rust
     #[endpoint]
     fn unbond(&self, tokens: ManagedVec<TokenIdentifier>);

@@ -74,15 +74,15 @@ pub trait LiquidLocking {
                     require!(token.amount > 0, "requested amount cannot be 0");
                     require!(*staked_amount >= token.amount, "unavailable amount");
                     *staked_amount -= token.amount.clone();
-                    let unbounding_epoch = block_epoch + unbond_period;
+                    let unbonding_epoch = block_epoch + unbond_period;
 
-                    self.unlocked_token_amounts(&caller, &token.token_identifier, unbounding_epoch)
+                    self.unlocked_token_amounts(&caller, &token.token_identifier, unbonding_epoch)
                         .update(|amount| {
                             *amount += &token.amount;
                         });
 
                     self.unlocked_token_epochs(&caller, &token.token_identifier)
-                        .insert(unbounding_epoch);
+                        .insert(unbonding_epoch);
 
                     if *staked_amount == BigUint::zero() {
                         self.locked_tokens(&caller)
@@ -101,28 +101,28 @@ pub trait LiquidLocking {
         let mut unbond_tokens = ManagedVec::<Self::Api, EsdtTokenPayment<Self::Api>>::new();
         for token_identifier in tokens.iter() {
             let mut unlocked_token_epochs = self.unlocked_token_epochs(&caller, &token_identifier);
-            let mut unbound_amount = BigUint::zero();
-            let mut unbound_token_epochs = ManagedVec::<Self::Api, u64>::new();
+            let mut unbond_amount = BigUint::zero();
+            let mut unbond_token_epochs = ManagedVec::<Self::Api, u64>::new();
             for epoch in unlocked_token_epochs.iter() {
                 if block_epoch > epoch {
-                    unbound_amount += self
+                    unbond_amount += self
                         .unlocked_token_amounts(&caller, &token_identifier, epoch)
                         .take();
-                    unbound_token_epochs.push(epoch);
+                    unbond_token_epochs.push(epoch);
                 }
             }
-            for epoch in unbound_token_epochs.iter() {
+            for epoch in unbond_token_epochs.iter() {
                 unlocked_token_epochs.swap_remove(&epoch);
 
                 if unlocked_token_epochs.is_empty() {
                     self.unlocked_tokens(&caller).swap_remove(&token_identifier);
                 }
             }
-            if unbound_amount > 0u64 {
+            if unbond_amount > 0u64 {
                 unbond_tokens.push(EsdtTokenPayment::new(
                     token_identifier.clone_value(),
                     0,
-                    unbound_amount,
+                    unbond_amount,
                 ));
             }
         }
