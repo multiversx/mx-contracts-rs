@@ -41,7 +41,7 @@ pub trait LiquidLocking {
             self.validate_payment(&payment);
             self.stake_token(&caller, payment);
         }
-        self.unlock_event(&caller, &payments);
+        self.lock_event(&caller, &payments);
     }
 
     fn validate_payment(&self, payment: &EsdtTokenPayment) {
