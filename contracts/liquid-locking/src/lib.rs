@@ -41,6 +41,7 @@ pub trait LiquidLocking {
             self.validate_payment(&payment);
             self.stake_token(&caller, payment);
         }
+        self.lock_event(&caller, &payments);
     }
 
     fn validate_payment(&self, payment: &EsdtTokenPayment) {
@@ -88,6 +89,7 @@ pub trait LiquidLocking {
                     self.unlocked_tokens(&caller).insert(token.token_identifier);
                 });
         }
+        self.unlock_event(&caller, &tokens);
     }
 
     #[endpoint]
@@ -126,6 +128,12 @@ pub trait LiquidLocking {
         require!(!unbond_tokens.is_empty(), "nothing to unbond");
         self.send().direct_multi(&caller, &unbond_tokens);
     }
+
+    #[event("lock")]
+    fn lock_event(&self, #[indexed] user: &ManagedAddress, tokens: &ManagedVec<EsdtTokenPayment>);
+
+    #[event("unlock")]
+    fn unlock_event(&self, #[indexed] user: &ManagedAddress, tokens: &ManagedVec<EsdtTokenPayment>);
 
     #[view(lockedTokenAmounts)]
     fn locked_token_amounts_by_address(
