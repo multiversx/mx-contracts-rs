@@ -1,7 +1,7 @@
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
-use crate::config;
+use crate::config::{self, SFT_AMOUNT};
 
 #[multiversx_sc::module]
 pub trait TokenAttributesModule: config::ConfigModule {
@@ -29,7 +29,7 @@ pub trait TokenAttributesModule: config::ConfigModule {
         let empty_buffer = ManagedBuffer::new();
         let new_nonce = self.send().esdt_nft_create(
             &mystery_box_token_id,
-            &amount,
+            &BigUint::from(SFT_AMOUNT), // We need 1 element in the contract for later AddQuantity
             &empty_buffer,
             &BigUint::zero(),
             &empty_buffer,
@@ -37,6 +37,9 @@ pub trait TokenAttributesModule: config::ConfigModule {
             &mystery_box_uris,
         );
         attributes_to_nonce_mapper.set(new_nonce);
+
+        self.send()
+            .esdt_local_mint(&mystery_box_token_id, new_nonce, &amount);
 
         EsdtTokenPayment::new(mystery_box_token_id, new_nonce, amount)
     }
