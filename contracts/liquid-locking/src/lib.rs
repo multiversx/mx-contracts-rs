@@ -157,7 +157,7 @@ pub trait LiquidLocking {
         let mut amounts = ManagedVec::<Self::Api, UnlockedToken<Self::Api>>::new();
         for token in self.unlocked_tokens(&address).iter() {
             for epoch in self.unlocked_token_epochs(&address, &token).iter() {
-                let amount = self.locked_token_amounts(&address, &token).get();
+                let amount = self.unlocked_token_amounts(&address, &token, epoch).get();
                 let payment = EsdtTokenPayment::new(token.clone(), 0, amount);
                 let unlocked_token = UnlockedToken {
                     token: payment,
