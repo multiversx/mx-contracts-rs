@@ -3,6 +3,8 @@ multiversx_sc::derive_imports!();
 
 pub const MAX_PERCENTAGE: u64 = 10_000;
 pub const SFT_AMOUNT: u64 = 1;
+pub const ROYALTIES: u64 = 1_000;
+pub const COLLECTION_NAME: &str = "Mystery Box";
 
 #[derive(
     ManagedVecItem, NestedEncode, NestedDecode, TopEncode, TopDecode, PartialEq, Eq, TypeAbi, Clone,
