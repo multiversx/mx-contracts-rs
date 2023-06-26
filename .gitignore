@@ -11,3 +11,5 @@ Cargo.lock
 
 # VSCode specific files
 .vscode/*
+
+/output*/
