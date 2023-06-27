@@ -3,4 +3,5 @@
 /target/
 */target/
 
-/output*/
+# The mxpy output
+output

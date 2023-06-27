@@ -12,4 +12,5 @@ Cargo.lock
 # VSCode specific files
 .vscode/*
 
-/output*/
+# The mxpy output
+output
