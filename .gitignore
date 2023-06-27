@@ -10,7 +10,7 @@ Cargo.lock
 **/*.rs.bk
 
 # VSCode specific files
-.vscode/*
+.vscode
 
 # The mxpy output
 **/output/**
