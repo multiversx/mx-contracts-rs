@@ -4,10 +4,8 @@ version = "0.0.0"
 authors = ["Andrei Marinica <andrei.marinica@multiversx.com>"]
 edition = "2021"
 publish = false
-
 [dependencies.multisig]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
-version = "0.41.1"
-
+version = "0.41.3"

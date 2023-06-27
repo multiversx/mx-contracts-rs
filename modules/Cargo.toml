@@ -2,7 +2,6 @@
 name = "multiversx-sc-modules"
 version = "0.41.1"
 edition = "2021"
-
 authors = ["MultiversX <contact@multiversx.com>"]
 license = "GPL-3.0-only"
 readme = "README.md"
@@ -15,7 +14,5 @@ categories = ["no-std", "wasm", "cryptography::cryptocurrencies"]
 
 [features]
 alloc = ["multiversx-sc/alloc"]
-
 [dependencies.multiversx-sc]
-version = "0.41.1"
-
+version = "0.41.3"

@@ -1,11 +1,7 @@
 [package]
 name = "multiversx-wegld-swap-sc"
 version = "0.41.1"
-
-authors = [
-    "Dorin Iancu <dorin.iancu@multiversx.com>",
-    "MultiversX <contact@multiversx.com>",
-]
+authors = ["Dorin Iancu <dorin.iancu@multiversx.com>", "MultiversX <contact@multiversx.com>"]
 license = "GPL-3.0-only"
 readme = "README.md"
 repository = "https://github.com/multiversx/mx-sdk-rs"
@@ -18,16 +14,10 @@ edition = "2021"
 
 [lib]
 path = "src/wegld.rs"
-
 [dependencies.multiversx-sc]
-version = "0.41.1"
-
+version = "0.41.3"
 
 [dependencies.multiversx-sc-modules]
-version = "0.41.1"
-
-
-
+version = "0.41.3"
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.41.1"
-
+version = "0.41.3"

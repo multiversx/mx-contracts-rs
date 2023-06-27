@@ -7,11 +7,7 @@ publish = false
 
 [lib]
 path = "src/crypto_bubbles.rs"
-
 [dependencies.multiversx-sc]
-version = "0.41.1"
-
-
+version = "0.41.3"
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.41.1"
-
+version = "0.41.3"

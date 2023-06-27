@@ -7,20 +7,17 @@ publish = false
 
 [lib]
 crate-type = ["cdylib"]
-
 [profile.release]
 codegen-units = 1
 opt-level = "z"
 lto = true
 debug = false
 panic = "abort"
-
 [dependencies.fractional-nfts]
 path = ".."
 
 [dependencies.multiversx-sc-wasm-adapter]
-version = "0.41.1"
-
+version = "0.41.3"
 
 [workspace]
 members = ["."]

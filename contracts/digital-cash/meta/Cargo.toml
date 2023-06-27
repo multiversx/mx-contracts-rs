@@ -3,10 +3,8 @@ name = "digital-cash-meta"
 version = "0.0.0"
 edition = "2021"
 publish = false
-
 [dependencies.digital-cash]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
-version = "0.41.1"
-
+version = "0.41.3"

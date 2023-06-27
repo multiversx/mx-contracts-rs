@@ -5,21 +5,18 @@ edition = "2021"
 publish = false
 
 [lib]
-crate-type = [ "cdylib",]
+crate-type = ["cdylib"]
 
 [workspace]
 members = ["."]
-
 [profile.release]
 codegen-units = 1
 opt-level = "z"
 lto = true
 debug = false
 panic = "abort"
-
 [dependencies.kitty-ownership]
 path = ".."
 
 [dependencies.multiversx-sc-wasm-adapter]
-version = "0.41.1"
-
+version = "0.41.3"

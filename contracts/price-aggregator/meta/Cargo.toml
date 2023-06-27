@@ -3,14 +3,11 @@ name = "multiversx-price-aggregator-sc-meta"
 version = "0.0.0"
 edition = "2021"
 publish = false
-
 [dependencies.multiversx-price-aggregator-sc]
 path = ".."
 
 [dependencies.multiversx-sc]
-version = "0.41.1"
-
+version = "0.41.3"
 
 [dependencies.multiversx-sc-meta]
-version = "0.41.1"
-
+version = "0.41.3"
