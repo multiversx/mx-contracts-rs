@@ -1,14 +1,12 @@
 [package]
 name = "kitty-genetic-alg"
 version = "0.0.0"
-authors = [ "dorin-iancu <dorin.iancu@multiversx.com>",]
+authors = ["dorin-iancu <dorin.iancu@multiversx.com>"]
 edition = "2021"
 publish = false
 
 [lib]
 path = "src/lib.rs"
-
-
 [dependencies.kitty]
 version = "0.0.0"
 path = "../common/kitty"
@@ -18,9 +16,6 @@ version = "0.0.0"
 path = "../common/random"
 
 [dependencies.multiversx-sc]
-version = "0.41.1"
-
-
+version = "0.41.3"
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.41.1"
-
+version = "0.41.3"

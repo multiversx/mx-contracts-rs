@@ -1,14 +1,13 @@
 [package]
 name = "liquid-locking-meta"
 version = "0.0.0"
-edition = "2018"
+edition = "2021"
 publish = false
-authors = [ "you",]
+authors = ["you"]
 
 [dev-dependencies]
-
 [dependencies.liquid-locking]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
-version = "0.41.2"
+version = "0.41.3"
