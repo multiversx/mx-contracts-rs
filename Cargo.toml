@@ -2,8 +2,6 @@
 resolver = "2"
 
 members = [
-  "modules",
-
   "contracts/price-aggregator",
   "contracts/price-aggregator/meta",
   "contracts/wegld-swap",
