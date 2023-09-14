@@ -7,7 +7,9 @@ publish = false
 
 [lib]
 path = "src/esdt_transfer_with_fee.rs"
+
 [dependencies.multiversx-sc]
 version = "0.43.3"
+
 [dev-dependencies.multiversx-sc-scenario]
 version = "0.43.3"

@@ -3,6 +3,7 @@ name = "esdt-transfer-with-fee-meta"
 version = "0.0.0"
 edition = "2021"
 publish = false
+
 [dependencies.esdt-transfer-with-fee]
 path = ".."
 

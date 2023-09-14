@@ -1,3 +1,5 @@
+#![allow(deprecated)] // TODO: migrate tests
+
 use multiversx_sc::{
     codec::multi_types::MultiValue2,
     types::{BigUint, EgldOrEsdtTokenIdentifier, MultiValueEncoded, OperationCompletionStatus},
@@ -15,7 +17,7 @@ mod utils;
 
 #[test]
 fn test_raffle_and_claim() {
-    let _ = DebugApi::dummy();
+    DebugApi::dummy();
 
     let mut wrapper = BlockchainStateWrapper::new();
 
@@ -25,7 +27,7 @@ fn test_raffle_and_claim() {
     let owner = wrapper.create_user_account(&rust_biguint!(0));
     let alice = wrapper.create_user_account(&full_reward_amount);
 
-    let nft_token_id = managed_token_id!(b"NFT-123456");
+    let nft_token_id = b"NFT-123456";
 
     let nft_balance = rust_biguint!(1);
     let nft_attributes: [u8; 0] = [];
@@ -51,7 +53,7 @@ fn test_raffle_and_claim() {
     // setup the mock contract
     wrapper
         .execute_tx(&alice, &seed_nft_minter_mock_sc, &rust_biguint!(0), |sc| {
-            sc.init(nft_token_id.clone());
+            sc.init(managed_token_id!(nft_token_id));
 
             sc.set_nft_count(nft_count);
         })
@@ -149,11 +151,10 @@ fn test_raffle_and_claim() {
 
     // claim the rewards
 
-    let token_identifier = nft_token_id.clone().to_boxed_bytes().into_vec();
     let nft_payments: Vec<TxTokenTransfer> = nft_nonces
         .iter()
         .map(|nonce| TxTokenTransfer {
-            token_identifier: token_identifier.clone(),
+            token_identifier: nft_token_id.to_vec(),
             nonce: *nonce,
             value: rust_biguint!(1),
         })

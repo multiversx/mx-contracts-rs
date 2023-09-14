@@ -11,10 +11,11 @@ path = "src/check_pause.rs"
 [dev-dependencies]
 num-bigint = "0.4.2"
 
-[dev-dependencies.multiversx-sc-scenario]
-version = "0.43.3"
 [dependencies.multiversx-sc]
 version = "0.43.3"
 
 [dependencies.multiversx-sc-modules]
+version = "0.43.3"
+
+[dev-dependencies.multiversx-sc-scenario]
 version = "0.43.3"

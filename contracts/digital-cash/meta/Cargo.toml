@@ -3,6 +3,7 @@ name = "digital-cash-meta"
 version = "0.0.0"
 edition = "2021"
 publish = false
+
 [dependencies.digital-cash]
 path = ".."
 

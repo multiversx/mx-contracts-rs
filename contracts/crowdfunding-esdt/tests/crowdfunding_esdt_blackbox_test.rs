@@ -1,23 +1,21 @@
 use crowdfunding_esdt::*;
 use multiversx_sc::types::EgldOrEsdtTokenIdentifier;
-use multiversx_sc_scenario::{scenario_model::*, *};
+use multiversx_sc_scenario::{api::StaticApi, scenario_model::*, *};
+
+const CF_PATH_EXPR: &str = "file:output/crowdfunding-esdt.wasm";
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
-    blockchain.set_current_dir_from_workspace("contracts/crowdfunding-esdt");
+    blockchain.set_current_dir_from_workspace("contracts/examples/crowdfunding-esdt");
 
-    blockchain.register_contract(
-        "file:output/crowdfunding-esdt.wasm",
-        crowdfunding_esdt::ContractBuilder,
-    );
+    blockchain.register_contract(CF_PATH_EXPR, crowdfunding_esdt::ContractBuilder);
     blockchain
 }
 
 #[test]
 fn crowdfunding_scenario_rust_test() {
-    let _ = DebugApi::dummy();
     let mut world = world();
-    let ctx = world.interpreter_context();
+    let cf_code = world.code_expression(CF_PATH_EXPR);
 
     let owner_addr = "address:owner";
     let first_user_addr = "address:user1";
@@ -26,26 +24,25 @@ fn crowdfunding_scenario_rust_test() {
     let deadline: u64 = 7 * 24 * 60 * 60; // 1 week in seconds
     let cf_token_id_value = "CROWD-123456"; // when passing as argument
     let cf_token_id = "str:CROWD-123456"; // when specifying the token transfer
-    let mut cf_sc = ContractInfo::<crowdfunding_esdt::Proxy<DebugApi>>::new("sc:crowdfunding");
+    let mut cf_sc = ContractInfo::<crowdfunding_esdt::Proxy<StaticApi>>::new("sc:crowdfunding");
 
     // setup owner and crowdfunding SC
-    world.set_state_step(
+    world.start_trace().set_state_step(
         SetStateStep::new()
             .put_account(owner_addr, Account::new())
             .new_address(owner_addr, 0, &cf_sc),
     );
-    let (_, ()) = cf_sc
-        .init(
-            2_000u32,
-            deadline,
-            EgldOrEsdtTokenIdentifier::esdt(cf_token_id_value),
-        )
-        .into_blockchain_call()
-        .from(owner_addr)
-        .contract_code("file:output/crowdfunding-esdt.wasm", &ctx)
-        .gas_limit("5,000,000")
-        .expect(TxExpect::ok().no_result())
-        .execute(&mut world);
+
+    world.sc_deploy(
+        ScDeployStep::new()
+            .from(owner_addr)
+            .code(cf_code)
+            .call(cf_sc.init(
+                2_000u32,
+                deadline,
+                EgldOrEsdtTokenIdentifier::esdt(cf_token_id_value),
+            )),
+    );
 
     // setup user accounts
     world
@@ -60,13 +57,12 @@ fn crowdfunding_scenario_rust_test() {
 
     // first user deposit
     world
-        .sc_call_step(
+        .sc_call(
             ScCallStep::new()
                 .from(first_user_addr)
                 .to(&cf_sc)
                 .esdt_transfer(cf_token_id, 0u64, 1_000u64)
-                .call(cf_sc.fund())
-                .expect(TxExpect::ok().no_result()),
+                .call(cf_sc.fund()),
         )
         .check_state_step(
             CheckStateStep::new()
@@ -82,13 +78,12 @@ fn crowdfunding_scenario_rust_test() {
 
     // second user deposit
     world
-        .sc_call_step(
+        .sc_call(
             ScCallStep::new()
                 .from(second_user_addr)
                 .to(&cf_sc)
                 .esdt_transfer(cf_token_id, 0u64, 500u64)
-                .call(cf_sc.fund())
-                .expect(TxExpect::ok().no_result()),
+                .call(cf_sc.fund()),
         )
         .check_state_step(
             CheckStateStep::new()
@@ -125,12 +120,11 @@ fn crowdfunding_scenario_rust_test() {
 
     // owner claim - failed campaign - nothing is transferred
     world
-        .sc_call_step(
+        .sc_call(
             ScCallStep::new()
                 .from(owner_addr)
                 .to(&cf_sc)
-                .call(cf_sc.claim())
-                .expect(TxExpect::ok().no_result()),
+                .call(cf_sc.claim()),
         )
         .check_state_step(
             CheckStateStep::new()
@@ -146,12 +140,11 @@ fn crowdfunding_scenario_rust_test() {
 
     // first user claim - failed campaign
     world
-        .sc_call_step(
+        .sc_call(
             ScCallStep::new()
                 .from(first_user_addr)
                 .to(&cf_sc)
-                .call(cf_sc.claim())
-                .expect(TxExpect::ok().no_result()),
+                .call(cf_sc.claim()),
         )
         .check_state_step(
             CheckStateStep::new()
@@ -167,12 +160,11 @@ fn crowdfunding_scenario_rust_test() {
 
     // second user claim - failed campaign
     world
-        .sc_call_step(
+        .sc_call(
             ScCallStep::new()
                 .from(second_user_addr)
                 .to(&cf_sc)
-                .call(cf_sc.claim())
-                .expect(TxExpect::ok().no_result()),
+                .call(cf_sc.claim()),
         )
         .check_state_step(
             CheckStateStep::new()
@@ -188,23 +180,21 @@ fn crowdfunding_scenario_rust_test() {
     world.set_state_step(SetStateStep::new().block_timestamp(deadline / 2));
 
     // first user deposit
-    world.sc_call_step(
+    world.sc_call(
         ScCallStep::new()
             .from(first_user_addr)
             .to(&cf_sc)
             .esdt_transfer(cf_token_id, 0u64, 1_000u64)
-            .call(cf_sc.fund())
-            .expect(TxExpect::ok().no_result()),
+            .call(cf_sc.fund()),
     );
 
     // second user deposit
-    world.sc_call_step(
+    world.sc_call(
         ScCallStep::new()
             .from(second_user_addr)
             .to(&cf_sc)
             .esdt_transfer(cf_token_id, 0u64, 1_000u64)
-            .call(cf_sc.fund())
-            .expect(TxExpect::ok().no_result()),
+            .call(cf_sc.fund()),
     );
 
     let status: Status = cf_sc
@@ -224,7 +214,7 @@ fn crowdfunding_scenario_rust_test() {
     assert_eq!(status, Status::Successful);
 
     // first user try claim - successful campaign
-    world.sc_call_step(
+    world.sc_call(
         ScCallStep::new()
             .from(first_user_addr)
             .to(&cf_sc)
@@ -237,12 +227,11 @@ fn crowdfunding_scenario_rust_test() {
 
     // owner claim successful campaign
     world
-        .sc_call_step(
+        .sc_call(
             ScCallStep::new()
                 .from(owner_addr)
                 .to(&cf_sc)
-                .call(cf_sc.claim())
-                .expect(TxExpect::ok().no_result()),
+                .call(cf_sc.claim()),
         )
         .check_state_step(
             CheckStateStep::new()

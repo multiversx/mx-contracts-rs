@@ -4,6 +4,7 @@ version = "0.0.0"
 authors = ["Dorin Iancu <dorin.iancu@multiversx.com>"]
 edition = "2021"
 publish = false
+
 [dependencies.nft-minter]
 path = ".."
 

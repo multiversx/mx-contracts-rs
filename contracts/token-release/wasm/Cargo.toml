@@ -9,12 +9,14 @@ publish = false
 crate-type = ["cdylib"]
 
 [workspace]
+
 [profile.release]
 codegen-units = 1
 opt-level = "z"
 lto = true
 debug = false
 panic = "abort"
+
 [dependencies.token-release]
 path = ".."
 

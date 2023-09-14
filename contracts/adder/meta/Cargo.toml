@@ -9,3 +9,4 @@ path = ".."
 
 [dependencies.multiversx-sc-meta]
 version = "0.43.3"
+path = "../../../../framework/meta"

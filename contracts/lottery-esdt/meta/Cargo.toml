@@ -4,6 +4,7 @@ version = "0.0.0"
 authors = ["Andrei Marinica <andrei.marinica@multiversx.com>"]
 edition = "2021"
 publish = false
+
 [dependencies.lottery-esdt]
 path = ".."
 

@@ -7,7 +7,10 @@ publish = false
 
 [lib]
 path = "src/nft_storage_prepay.rs"
+
+
 [dependencies.multiversx-sc]
 version = "0.43.3"
+
 [dev-dependencies.multiversx-sc-scenario]
 version = "0.43.3"

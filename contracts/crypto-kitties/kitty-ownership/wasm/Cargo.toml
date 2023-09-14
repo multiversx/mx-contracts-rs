@@ -9,12 +9,14 @@ crate-type = ["cdylib"]
 
 [workspace]
 members = ["."]
+
 [profile.release]
 codegen-units = 1
 opt-level = "z"
 lto = true
 debug = false
 panic = "abort"
+
 [dependencies.kitty-ownership]
 path = ".."
 

@@ -10,6 +10,7 @@
 // Total number of exported functions:  15
 
 #![no_std]
+#![allow(internal_features)]
 #![feature(lang_items)]
 
 multiversx_sc_wasm_adapter::allocator!();
@@ -18,20 +19,21 @@ multiversx_sc_wasm_adapter::panic_handler!();
 multiversx_sc_wasm_adapter::endpoints! {
     rewards_distribution
     (
-        depositRoyalties
-        raffle
-        claimRewards
-        computeClaimableAmount
-        getRaffleId
-        getCompletedRaffleIdCount
-        getRoyalties
-        getNftRewardPercent
-        getWasClaimed
-        getSeedNftMinterAddress
-        getBrackets
-        getLastRaffleEpoch
-        getNftTokenId
+        init => init
+        depositRoyalties => deposit_royalties
+        raffle => raffle
+        claimRewards => claim_rewards
+        computeClaimableAmount => compute_claimable_amount
+        getRaffleId => raffle_id
+        getCompletedRaffleIdCount => completed_raffle_id_count
+        getRoyalties => royalties
+        getNftRewardPercent => nft_reward_percent
+        getWasClaimed => was_claimed
+        getSeedNftMinterAddress => seed_nft_minter_address
+        getBrackets => brackets
+        getLastRaffleEpoch => last_raffle_epoch
+        getNftTokenId => nft_token_id
     )
 }
 
-multiversx_sc_wasm_adapter::empty_callback! {}
+multiversx_sc_wasm_adapter::async_callback_empty! {}

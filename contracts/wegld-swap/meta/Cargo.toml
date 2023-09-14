@@ -6,6 +6,7 @@ edition = "2021"
 publish = false
 
 [dev-dependencies]
+
 [dependencies.multiversx-wegld-swap-sc]
 path = ".."
 

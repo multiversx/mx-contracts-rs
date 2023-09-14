@@ -2,8 +2,8 @@
 name = "check-pause-wasm"
 version = "0.0.0"
 edition = "2021"
+authors = ["Alin Cruceat <alin.cruceat@multiversx.com>"]
 publish = false
-authors = ["you"]
 
 [lib]
 crate-type = ["cdylib"]
@@ -12,12 +12,14 @@ crate-type = ["cdylib"]
 members = ["."]
 
 [dev-dependencies]
+
 [profile.release]
 codegen-units = 1
 opt-level = "z"
 lto = true
 debug = false
 panic = "abort"
+
 [dependencies.check-pause]
 path = ".."
 
