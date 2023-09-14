@@ -12,7 +12,7 @@ publish = false
 path = ".."
 
 [dependencies.multiversx-sc-modules]
-version = "0.41.3"
+version = "0.43.3"
 
 [dependencies.multiversx-sc-snippets]
 version = "0.41.1"
