@@ -6,20 +6,23 @@ edition = "2021"
 publish = false
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = [ "cdylib",]
 
 [workspace]
-members = ["."]
+members = [ ".",]
 
 [dev-dependencies]
+
 [profile.release]
 codegen-units = 1
 opt-level = "z"
 lto = true
 debug = false
 panic = "abort"
+
 [dependencies.digital-cash]
 path = ".."
 
 [dependencies.multiversx-sc-wasm-adapter]
-version = "0.41.3"
+version = "0.43.3"
+path = "../../../../framework/wasm-adapter"
