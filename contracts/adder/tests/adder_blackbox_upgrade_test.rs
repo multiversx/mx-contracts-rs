@@ -1,43 +1,42 @@
 use multiversx_sc_scenario::{scenario_model::*, *};
 
+const ADDER_PATH_EXPR: &str = "file:output/adder.wasm";
+
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
-    blockchain.set_current_dir_from_workspace("contracts/adder");
+    blockchain.set_current_dir_from_workspace("contracts/examples/adder");
 
     blockchain.register_contract("file:output/adder.wasm", adder::ContractBuilder);
     blockchain
 }
 
 #[test]
-fn adder_mandos_constructed_raw() {
+fn adder_blackbox_upgrade() {
     let mut world = world();
-    let ic = world.interpreter_context();
+    let adder_code = world.code_expression(ADDER_PATH_EXPR);
+
     world
         .set_state_step(
             SetStateStep::new()
                 .put_account("address:owner", Account::new().nonce(1))
                 .new_address("address:owner", 1, "sc:adder"),
         )
-        .sc_deploy_step(
+        .sc_deploy(
             ScDeployStep::new()
                 .from("address:owner")
-                .contract_code("file:output/adder.wasm", &ic)
+                .code(&adder_code)
                 .argument("5")
                 .gas_limit("5,000,000")
                 .expect(TxExpect::ok().no_result()),
         )
-        .sc_query_step(
-            ScQueryStep::new()
-                .to("sc:adder")
-                .function("getSum")
-                .expect(TxExpect::ok().result("5")),
-        )
-        .sc_call_step(
+        .sc_call(
             ScCallStep::new()
                 .from("address:owner")
                 .to("sc:adder")
-                .function("add")
-                .argument("3")
+                .function("upgradeContract")
+                .argument(&adder_code)
+                .argument("0x0502") // codeMetadata
+                .argument("8") // contract argument
                 .expect(TxExpect::ok().no_result()),
         )
         .check_state_step(
