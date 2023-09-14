@@ -5,10 +5,10 @@ edition = "2021"
 publish = false
 
 [lib]
-crate-type = [ "cdylib",]
+crate-type = ["cdylib"]
 
 [workspace]
-members = [ ".",]
+members = ["."]
 
 [dev-dependencies]
 
@@ -24,4 +24,3 @@ path = ".."
 
 [dependencies.multiversx-sc-wasm-adapter]
 version = "0.43.3"
-path = "../../../../../framework/wasm-adapter"
