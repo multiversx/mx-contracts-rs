@@ -3,7 +3,7 @@ multiversx_sc::imports!();
 pub type PaymentsVec<M> = ManagedVec<M, EsdtTokenPayment<M>>;
 
 static ERR_CALLBACK_MSG: &[u8] = b"Error received in callback:";
-
+pub const ESDT_TRANSFER_FUNC_NAME: &str = "ESDTTransfer";
 #[multiversx_sc::module]
 pub trait ForwardCall {
     fn forward_call(
@@ -15,31 +15,34 @@ pub trait ForwardCall {
     ) {
         let original_caller = self.blockchain().get_caller();
 
-        if !self.blockchain().is_smart_contract(&dest) {
-            self.send().direct_multi(&dest, &payments);
-        } else {
+        let contract_call = if !self.blockchain().is_smart_contract(&dest) {
             let mut args_buffer = ManagedArgBuffer::new();
-            for arg in endpoint_args {
-                args_buffer.push_arg(arg);
-            }
+            args_buffer.push_arg(endpoint_name);
 
-            ContractCallWithMultiEsdt::<Self::Api, ()>::new(dest, endpoint_name, payments.clone())
+            self.send()
+                .contract_call::<()>(dest, ESDT_TRANSFER_FUNC_NAME.into())
                 .with_raw_arguments(args_buffer)
-                .async_call()
-                .with_callback(
-                    self.callbacks()
-                        .transfer_callback(original_caller, payments),
-                )
-                .call_and_exit();
-        }
+        } else {
+            self.send()
+                .contract_call::<()>(dest, endpoint_name)
+                .with_raw_arguments(endpoint_args.to_arg_buffer())
+        };
+        
+        contract_call
+            .with_multi_token_transfer(payments)
+            .async_call()
+            .with_callback(self.callbacks().transfer_callback(original_caller))
+            .call_and_exit()
     }
     #[callback]
     fn transfer_callback(
         &self,
         original_caller: ManagedAddress,
-        initial_payments: ManagedVec<EsdtTokenPayment<Self::Api>>,
+        // initial_payments: ManagedVec<EsdtTokenPayment<Self::Api>>,
         #[call_result] result: ManagedAsyncCallResult<MultiValueEncoded<ManagedBuffer>>,
     ) -> MultiValueEncoded<ManagedBuffer> {
+        let initial_payments = self.call_value().all_esdt_transfers();
+
         match result {
             ManagedAsyncCallResult::Ok(return_values) => return_values,
             ManagedAsyncCallResult::Err(err) => {
