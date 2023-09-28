@@ -69,7 +69,7 @@ pub struct CallActionDataRaw {
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
-    blockchain.set_current_dir_from_workspace("contracts/examples/multisig");
+    blockchain.set_current_dir_from_workspace("contracts/multisig");
 
     blockchain.register_contract(MULTISIG_PATH_EXPR, multisig::ContractBuilder);
     blockchain
@@ -151,7 +151,7 @@ fn call_propose(
                 ActionRaw::_Nothing => panic!("Invalid action"),
                 ActionRaw::AddBoardMember(addr) => {
                     sc.propose_add_board_member(managed_address!(&addr))
-                },
+                }
                 ActionRaw::AddProposer(addr) => sc.propose_add_proposer(managed_address!(&addr)),
                 ActionRaw::RemoveUser(addr) => sc.propose_remove_user(managed_address!(&addr)),
                 ActionRaw::ChangeQuorum(new_size) => sc.propose_change_quorum(new_size),
@@ -170,7 +170,7 @@ fn call_propose(
                         opt_endpoint,
                         boxed_bytes_vec_to_managed(call_data.arguments).into(),
                     )
-                },
+                }
                 ActionRaw::SendAsyncCall(call_data) => {
                     let opt_endpoint = if call_data.endpoint_name.is_empty() {
                         OptionalValue::None
@@ -186,7 +186,7 @@ fn call_propose(
                         opt_endpoint,
                         boxed_bytes_vec_to_managed(call_data.arguments).into(),
                     )
-                },
+                }
                 ActionRaw::SCDeployFromSource {
                     amount,
                     source,

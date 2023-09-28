@@ -37,7 +37,7 @@ type AdderContract = ContractInfo<adder::Proxy<StaticApi>>;
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
-    blockchain.set_current_dir_from_workspace("contracts/examples/multisig");
+    blockchain.set_current_dir_from_workspace("contracts/multisig");
 
     blockchain.register_contract(MULTISIG_PATH_EXPR, multisig::ContractBuilder);
     blockchain.register_contract(ADDER_PATH_EXPR, adder::ContractBuilder);
