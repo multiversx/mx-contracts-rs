@@ -41,7 +41,6 @@ members = [
   "contracts/liquid-locking/meta",
   "contracts/multisig",
   "contracts/multisig/meta",
-  "contracts/multisig/interact-rs",
   "contracts/mystery-box",
   "contracts/mystery-box/meta",
   "contracts/nft-minter",
