@@ -1,9 +1,11 @@
 [package]
 name = "paymaster"
 version = "0.0.0"
-authors = [ "you",]
+authors = [ "MultiversX <contact@multiversx.com>" ]
 edition = "2018"
 publish = false
+readme = "README.md"
+
 
 [lib]
 path = "src/paymaster.rs"
