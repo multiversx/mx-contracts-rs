@@ -37,7 +37,6 @@ pub trait ForwardCall {
     fn transfer_callback(
         &self,
         original_caller: ManagedAddress,
-        // initial_payments: ManagedVec<EsdtTokenPayment<Self::Api>>,
         #[call_result] result: ManagedAsyncCallResult<MultiValueEncoded<ManagedBuffer>>,
     ) -> MultiValueEncoded<ManagedBuffer> {
         let initial_payments = self.call_value().all_esdt_transfers();
