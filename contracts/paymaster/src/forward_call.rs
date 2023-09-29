@@ -15,24 +15,15 @@ pub trait ForwardCall {
     ) {
         let original_caller = self.blockchain().get_caller();
 
-        let (contract_call_endpoint, contract_call_args) =
-            if !self.blockchain().is_smart_contract(&dest) {
-                let mut args_buffer = ManagedArgBuffer::new();
-                args_buffer.push_arg(endpoint_name);
-
-                (ESDT_TRANSFER_FUNC_NAME.into(), args_buffer)
-            } else {
-                (endpoint_name, endpoint_args.to_arg_buffer())
-            };
-
         self.send()
-            .contract_call::<()>(dest, contract_call_endpoint)
-            .with_raw_arguments(contract_call_args)
+            .contract_call::<()>(dest, endpoint_name)
+            .with_raw_arguments(endpoint_args.to_arg_buffer())
             .with_multi_token_transfer(payments)
             .async_call()
             .with_callback(self.callbacks().transfer_callback(original_caller))
             .call_and_exit();
     }
+    
     #[callback]
     fn transfer_callback(
         &self,
