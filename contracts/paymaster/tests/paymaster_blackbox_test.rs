@@ -26,6 +26,7 @@ const OWNER_ADDRESS_EXPR: &str = "address:owner";
 const BALANCE: &str = "100,000,000";
 const PAYMASTER_TOKEN_ID_EXPR: &str = "str:PAYMSTR-123456";
 const FEE_TOKEN_ID_EXPR: &str = "str:FEE-123456";
+const ADDITIONAL_TOKEN_ID_EXPR: &str = "str:ADDIT-123456";
 const FEE_AMOUNT: &str = "20,000";
 const INITIAL_ADD_VALUE: u64 = 5;
 const ADDITIONAL_ADD_VALUE: u64 = 5;
@@ -65,7 +66,8 @@ impl PaymasterTestState {
                         .nonce(1)
                         .balance(BALANCE)
                         .esdt_balance(PAYMASTER_TOKEN_ID_EXPR, BALANCE)
-                        .esdt_balance(FEE_TOKEN_ID_EXPR, BALANCE),
+                        .esdt_balance(FEE_TOKEN_ID_EXPR, BALANCE)
+                        .esdt_balance(ADDITIONAL_TOKEN_ID_EXPR, BALANCE),
                 )
                 .put_account(
                     CALLEE_USER_ADDRESS_EXPR,
@@ -227,6 +229,50 @@ fn test_forward_call_sc_adder() {
     state.check_esdt_balance(
         CALLEE_SC_ADDER_ADDRESS_EXPR,
         PAYMASTER_TOKEN_ID_EXPR,
+        FEE_AMOUNT,
+    );
+}
+
+
+#[test]
+fn test_forward_call_sc_adder_multiple_payments() {
+    let mut state = PaymasterTestState::new();
+    state.deploy_paymaster_contract();
+    state.deploy_adder_contract();
+
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, BALANCE);
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, PAYMASTER_TOKEN_ID_EXPR, BALANCE);
+
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(CALLER_ADDRESS_EXPR)
+            .esdt_transfer(FEE_TOKEN_ID_EXPR, 0, FEE_AMOUNT)
+            .esdt_transfer(PAYMASTER_TOKEN_ID_EXPR, 0, FEE_AMOUNT)
+            .esdt_transfer(ADDITIONAL_TOKEN_ID_EXPR, 0, FEE_AMOUNT)
+            .call(state.paymaster_contract.forward_execution(
+                state.relayer_address.clone(),
+                state.callee_sc_adder_contract.to_address(),
+                managed_buffer!(b"add"),
+                MultiValueVec::from([top_encode_to_vec_u8_or_panic(&ADDITIONAL_ADD_VALUE)]),
+            ))
+            .expect(TxExpect::ok()),
+    );
+
+    let expected_adder_sum = INITIAL_ADD_VALUE + ADDITIONAL_ADD_VALUE;
+    state.world.sc_query(
+        ScQueryStep::new()
+            .call(state.callee_sc_adder_contract.sum())
+            .expect_value(SingleValue::from(BigUint::from(expected_adder_sum))),
+    );
+    state.check_esdt_balance(RELAYER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, FEE_AMOUNT);
+    state.check_esdt_balance(
+        CALLEE_SC_ADDER_ADDRESS_EXPR,
+        PAYMASTER_TOKEN_ID_EXPR,
+        FEE_AMOUNT,
+    );
+    state.check_esdt_balance(
+        CALLEE_SC_ADDER_ADDRESS_EXPR,
+        ADDITIONAL_TOKEN_ID_EXPR,
         FEE_AMOUNT,
     );
 }
