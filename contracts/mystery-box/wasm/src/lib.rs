@@ -10,9 +10,6 @@
 // Total number of exported functions:  14
 
 #![no_std]
-
-// Configuration that works with rustc < 1.73.0.
-// TODO: Recommended rustc version: 1.73.0 or newer.
 #![feature(lang_items)]
 
 multiversx_sc_wasm_adapter::allocator!();
@@ -21,20 +18,19 @@ multiversx_sc_wasm_adapter::panic_handler!();
 multiversx_sc_wasm_adapter::endpoints! {
     mystery_box
     (
-        init => init
-        setupMysteryBox => setup_mystery_box
-        updateMysteryBoxUris => update_mystery_box_uris
-        createMysteryBox => create_mystery_box
-        openMysteryBox => open_mystery_box
-        getMysteryBoxTokenIdentifier => mystery_box_token_id
-        getGlobalCooldownEpoch => global_cooldown_epoch
-        getWinningRates => winning_rates
-        getMysteryBoxUris => mystery_box_uris
-        isAdmin => is_admin
-        addAdmin => add_admin
-        removeAdmin => remove_admin
-        getAdmins => admins
+        setupMysteryBox
+        updateMysteryBoxUris
+        createMysteryBox
+        openMysteryBox
+        getMysteryBoxTokenIdentifier
+        getGlobalCooldownEpoch
+        getWinningRates
+        getMysteryBoxUris
+        isAdmin
+        addAdmin
+        removeAdmin
+        getAdmins
     )
 }
 
-multiversx_sc_wasm_adapter::async_callback_empty! {}
+multiversx_sc_wasm_adapter::empty_callback! {}
