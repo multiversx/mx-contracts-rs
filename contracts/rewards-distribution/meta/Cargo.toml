@@ -6,9 +6,8 @@ publish = false
 authors = ["Claudiu-Marcel Bruda <claudiu.bruda@multiversx.com>"]
 
 [dev-dependencies]
-
 [dependencies.rewards-distribution]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
-version = "0.43.3"
+version = "0.43.4"

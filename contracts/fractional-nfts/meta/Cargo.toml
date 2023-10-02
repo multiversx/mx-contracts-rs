@@ -4,9 +4,8 @@ version = "0.0.0"
 authors = ["Claudiu-Marcel Bruda <claudiu.bruda@multiversx.com>"]
 edition = "2021"
 publish = false
-
 [dependencies.fractional-nfts]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
-version = "0.43.3"
+version = "0.43.4"

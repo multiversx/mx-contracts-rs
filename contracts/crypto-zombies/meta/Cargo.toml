@@ -3,9 +3,8 @@ name = "crypto-zombies-meta"
 version = "0.0.0"
 edition = "2021"
 publish = false
-
 [dependencies.crypto-zombies]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
-version = "0.43.3"
+version = "0.43.4"

@@ -4,9 +4,8 @@ version = "0.0.0"
 authors = ["you"]
 edition = "2021"
 publish = false
-
 [dependencies.order-book-pair]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
-version = "0.43.3"
+version = "0.43.4"

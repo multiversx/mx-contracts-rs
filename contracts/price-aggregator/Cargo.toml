@@ -1,10 +1,7 @@
 [package]
 name = "multiversx-price-aggregator-sc"
 version = "0.43.3"
-authors = [
-    "Claudiu-Marcel Bruda <claudiu.bruda@multiversx.com>",
-    "MultiversX <contact@multiversx.com>",
-]
+authors = ["Claudiu-Marcel Bruda <claudiu.bruda@multiversx.com>", "MultiversX <contact@multiversx.com>"]
 license = "GPL-3.0-only"
 readme = "README.md"
 repository = "https://github.com/multiversx/mx-sdk-rs"
@@ -17,15 +14,14 @@ edition = "2021"
 
 [lib]
 path = "src/lib.rs"
-
 [dependencies.multiversx-sc]
-version = "0.43.3"
+version = "0.43.4"
 
 [dependencies.multiversx-sc-modules]
-version = "0.43.3"
+version = "0.43.4"
 
+[dependencies.arrayvec]
+version = "0.7.1"
+default-features = false
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.43.3"
-
-[dependencies]
-arrayvec = { version = "0.7.1", default-features = false }
+version = "0.43.4"

@@ -7,9 +7,7 @@ publish = false
 
 [lib]
 path = "src/adder.rs"
-
 [dependencies.multiversx-sc]
-version = "0.43.3"
-
+version = "0.43.4"
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.43.3"
+version = "0.43.4"

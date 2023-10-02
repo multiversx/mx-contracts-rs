@@ -9,16 +9,14 @@ crate-type = ["cdylib"]
 
 [workspace]
 members = ["."]
-
 [profile.release]
 codegen-units = 1
 opt-level = "z"
 lto = true
 debug = false
 panic = "abort"
-
 [dependencies.kitty-genetic-alg]
 path = ".."
 
 [dependencies.multiversx-sc-wasm-adapter]
-version = "0.43.3"
+version = "0.43.4"

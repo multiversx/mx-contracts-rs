@@ -9,16 +9,14 @@ publish = false
 crate-type = ["cdylib"]
 
 [workspace]
-
 [profile.release]
 codegen-units = 1
 opt-level = "z"
 lto = true
 debug = false
 panic = "abort"
-
 [dependencies.token-release]
 path = ".."
 
 [dependencies.multiversx-sc-wasm-adapter]
-version = "0.43.3"
+version = "0.43.4"

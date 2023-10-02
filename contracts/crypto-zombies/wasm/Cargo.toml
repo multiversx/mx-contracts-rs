@@ -13,12 +13,11 @@ opt-level = "z"
 lto = true
 debug = false
 panic = "abort"
-
 [dependencies.crypto-zombies]
 path = ".."
 
 [dependencies.multiversx-sc-wasm-adapter]
-version = "0.43.3"
+version = "0.43.4"
 
 [workspace]
 members = ["."]
