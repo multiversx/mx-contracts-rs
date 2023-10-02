@@ -8,10 +8,10 @@ publish = false
 [lib]
 path = "src/multisig.rs"
 [dependencies.multiversx-sc]
-version = "0.41.3"
+version = "0.43.4"
 
 [dependencies.multiversx-sc-modules]
-version = "0.41.3"
+version = "0.43.4"
 
 [dev-dependencies]
 num-bigint = "0.4.2"
@@ -19,10 +19,13 @@ num-traits = "0.2"
 hex = "0.4"
 
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.41.3"
+version = "0.43.4"
 
 [dev-dependencies.adder]
 path = "../adder"
 
 [dev-dependencies.factorial]
 path = "../factorial"
+
+[dev-dependencies.multiversx-wegld-swap-sc]
+version = "0.43.3"
