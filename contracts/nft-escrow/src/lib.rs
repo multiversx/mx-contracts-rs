@@ -143,7 +143,7 @@ pub trait NftEscrowContract {
         let mut result = MultiValueEncoded::new();
 
         for offer_id in self.created_offers(&address).iter() {
-            result.push(MultiValue2::from((offer_id, self.offers(offer_id).get())));
+            result.push(self.get_offer_result(offer_id));
         }
 
         result
@@ -157,10 +157,16 @@ pub trait NftEscrowContract {
         let mut result = MultiValueEncoded::new();
 
         for offer_id in self.wanted_offers(&address).iter() {
-            result.push(MultiValue2::from((offer_id, self.offers(offer_id).get())));
+            result.push(self.get_offer_result(offer_id));
         }
 
         result
+    }
+
+    fn get_offer_result(&self, offer_id: u32) -> MultiValue2<u32, Offer<Self::Api>> {
+        let offer = self.offers(offer_id).get();
+
+        MultiValue2::from((offer_id, offer))
     }
 
     #[view]
