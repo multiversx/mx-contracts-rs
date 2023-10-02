@@ -10,9 +10,6 @@
 // Total number of exported functions:  14
 
 #![no_std]
-
-// Configuration that works with rustc < 1.73.0.
-// TODO: Recommended rustc version: 1.73.0 or newer.
 #![feature(lang_items)]
 
 multiversx_sc_wasm_adapter::allocator!();
@@ -21,20 +18,19 @@ multiversx_sc_wasm_adapter::panic_handler!();
 multiversx_sc_wasm_adapter::endpoints! {
     liquid_locking
     (
-        init => init
-        set_unbond_period => set_unbond_period
-        whitelist_token => whitelist_token
-        blacklist_token => blacklist_token
-        lock => lock
-        unlock => unlock
-        unbond => unbond
-        lockedTokenAmounts => locked_token_amounts_by_address
-        unlockedTokenAmounts => unlocked_token_by_address
-        lockedTokens => locked_tokens
-        unlockedTokens => unlocked_tokens
-        whitelistedTokens => token_whitelist
-        unbondPeriod => unbond_period
+        set_unbond_period
+        whitelist_token
+        blacklist_token
+        lock
+        unlock
+        unbond
+        lockedTokenAmounts
+        unlockedTokenAmounts
+        lockedTokens
+        unlockedTokens
+        whitelistedTokens
+        unbondPeriod
     )
 }
 
-multiversx_sc_wasm_adapter::async_callback_empty! {}
+multiversx_sc_wasm_adapter::empty_callback! {}
