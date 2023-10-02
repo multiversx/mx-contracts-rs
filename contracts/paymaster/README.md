@@ -8,7 +8,7 @@ Also gives some headaches for crypto users as well for the first steps of onboar
 Imagine those people who bridge their NFTs or those who bridge USDC to a new account.
 The new account can’t do anything until it does not have some eGLD to pay for the transactions.
 
-In order for users to onboard faster to xPortal (even when it was called Maiar) we introduced the concept of relayed transactions (we have v1, v2 and soon v3 of it).
+In order for users to onboard faster to xPortal we introduced the concept of relayed transactions (we have v1, v2 and soon v3 of it).
 This means a relayer can wrap the user transaction inside a relayedTX and in this case the relayer pays for the gas, but the user’s transaction is getting executed.
 Right now, the relayers we use are free of charge, thus they do this service for new users for free, but they actually need eGLD to do the transactions.
 When we speak about a few hundred users, this is not an issue, but when you want to scale up relaying transactions to thousands/millions of users, it becomes unsustainable.

@@ -164,7 +164,7 @@ fn test_forward_call_no_fee_payment() {
             .call(state.paymaster_contract.forward_execution(
                 state.relayer_address.clone(),
                 state.callee_user_address.clone(),
-                managed_buffer!(b"add"),
+                b"add"  ,
                 MultiValueVec::<Vec<u8>>::new(),
             ))
             .expect(TxExpect::user_error("str:There is no fee for payment!")),
@@ -184,11 +184,10 @@ fn test_forward_call_user() {
                 .call(state.paymaster_contract.forward_execution(
                     state.relayer_address.clone(),
                     state.callee_user_address.clone(),
-                    managed_buffer!(b"add"),
+                    b"add",
                     MultiValueVec::<Vec<u8>>::new(),
                 ))
                 .esdt_transfer(FEE_TOKEN_ID_EXPR, 0, FEE_AMOUNT)
-                .expect(TxExpect::ok()),
         )
         .check_state_step(CheckStateStep::new().put_account(
             RELAYER_ADDRESS_EXPR,
@@ -213,10 +212,9 @@ fn test_forward_call_sc_adder() {
             .call(state.paymaster_contract.forward_execution(
                 state.relayer_address.clone(),
                 state.callee_sc_adder_contract.to_address(),
-                managed_buffer!(b"add"),
+                b"add",
                 MultiValueVec::from([top_encode_to_vec_u8_or_panic(&ADDITIONAL_ADD_VALUE)]),
             ))
-            .expect(TxExpect::ok()),
     );
 
     let expected_adder_sum = INITIAL_ADD_VALUE + ADDITIONAL_ADD_VALUE;
@@ -252,10 +250,9 @@ fn test_forward_call_sc_adder_multiple_payments() {
             .call(state.paymaster_contract.forward_execution(
                 state.relayer_address.clone(),
                 state.callee_sc_adder_contract.to_address(),
-                managed_buffer!(b"add"),
+                b"add",
                 MultiValueVec::from([top_encode_to_vec_u8_or_panic(&ADDITIONAL_ADD_VALUE)]),
             ))
-            .expect(TxExpect::ok()),
     );
 
     let expected_adder_sum = INITIAL_ADD_VALUE + ADDITIONAL_ADD_VALUE;
