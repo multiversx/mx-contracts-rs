@@ -8,9 +8,9 @@ publish = false
 [lib]
 path = "src/seed_nft_minter.rs"
 [dependencies.multiversx-sc]
-version = "0.41.3"
+version = "0.43.4"
 
 [dependencies.multiversx-sc-modules]
-version = "0.41.3"
+version = "0.43.4"
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.41.3"
+version = "0.43.4"
