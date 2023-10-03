@@ -1,0 +1,23 @@
+[package]
+name = "paymaster"
+version = "0.0.0"
+authors = [ "MultiversX <contact@multiversx.com>" ]
+edition = "2018"
+publish = false
+readme = "README.md"
+
+
+[lib]
+path = "src/paymaster.rs"
+
+[dev-dependencies]
+num-bigint = "0.4.2"
+
+[dependencies.multiversx-sc]
+version = "0.43.4"
+
+[dev-dependencies.multiversx-sc-scenario]
+version = "0.43.4"
+
+[dev-dependencies.adder]
+path = "../adder"
