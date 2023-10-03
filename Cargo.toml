@@ -53,6 +53,8 @@ members = [
   "contracts/order-book/factory/meta",
   "contracts/order-book/pair",
   "contracts/order-book/pair/meta",
+  "contracts/paymaster",
+  "contracts/paymaster/meta",
   "contracts/ping-pong-egld",
   "contracts/ping-pong-egld/meta",
   "contracts/proxy-pause",
