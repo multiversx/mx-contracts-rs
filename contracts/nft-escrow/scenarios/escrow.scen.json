@@ -1,0 +1,226 @@
+{
+    "name": "buy nft",
+    "steps": [
+        {
+            "step": "externalSteps",
+            "path": "init.scen.json"
+        },
+        {
+            "step": "scCall",
+            "id": "escrow-fungible",
+            "tx": {
+                "from": "address:first",
+                "to": "sc:nft-escrow",
+                "egldValue": "0",
+                "function": "escrow",
+                "arguments": [
+                    "str:NFT2-654321",
+                    "2",
+                    "address:second"
+                ],
+                "esdtValue": [
+                    {
+                        "tokenIdentifier": "str:FUNG-123456",
+                        "value": "1000"
+                    }
+                ],
+                "gasLimit": "10,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "4",
+                "message": "str:ESDT is not an NFT",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "escrow-semi-fungible",
+            "tx": {
+                "from": "address:first",
+                "to": "sc:nft-escrow",
+                "egldValue": "0",
+                "function": "escrow",
+                "arguments": [
+                    "str:NFT2-654321",
+                    "2",
+                    "address:second"
+                ],
+                "esdtValue": [
+                    {
+                        "tokenIdentifier": "str:SEMIFUNG-123456",
+                        "value": "1000",
+                        "nonce": "1"
+                    }
+                ],
+                "gasLimit": "10,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "4",
+                "message": "str:ESDT is not an NFT",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "escrow-wanted-not-nft",
+            "tx": {
+                "from": "address:first",
+                "to": "sc:nft-escrow",
+                "egldValue": "0",
+                "function": "escrow",
+                "arguments": [
+                    "str:NFT2-654321",
+                    "0",
+                    "address:second"
+                ],
+                "esdtValue": [
+                    {
+                        "tokenIdentifier": "str:NFT-123456",
+                        "value": "1",
+                        "nonce": "1"
+                    }
+                ],
+                "gasLimit": "10,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "message": "str:Wanted ESDT is not an NFT",
+                "status": "4",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "escrow-same-as-caller",
+            "tx": {
+                "from": "address:first",
+                "to": "sc:nft-escrow",
+                "egldValue": "0",
+                "function": "escrow",
+                "arguments": [
+                    "str:NFT2-654321",
+                    "2",
+                    "address:first"
+                ],
+                "esdtValue": [
+                    {
+                        "tokenIdentifier": "str:NFT-123456",
+                        "value": "1",
+                        "nonce": "1"
+                    }
+                ],
+                "gasLimit": "10,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "message": "str:Wanted address should not be the same as the caller",
+                "status": "4",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "escrow",
+            "tx": {
+                "from": "address:first",
+                "to": "sc:nft-escrow",
+                "egldValue": "0",
+                "function": "escrow",
+                "arguments": [
+                    "str:NFT2-654321",
+                    "2",
+                    "address:second"
+                ],
+                "esdtValue": [
+                    {
+                        "tokenIdentifier": "str:NFT-123456",
+                        "value": "1",
+                        "nonce": "1"
+                    }
+                ],
+                "gasLimit": "10,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": ["1"],
+                "status": "0",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "checkState",
+            "accounts": {
+                "address:first": {
+                    "nonce": "5",
+                    "balance": "0",
+                    "esdt": {
+                        "str:FUNG-123456": "1000",
+                        "str:SEMIFUNG-123456": {
+                            "instances": [
+                                {
+                                    "nonce": "1",
+                                    "balance": "1000"
+                                }
+                            ]
+                        },
+                        "str:NFT-123456": {
+                            "instances": [
+                                {
+                                    "nonce": "2",
+                                    "balance": "1"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "sc:nft-escrow": {
+                    "nonce": "0",
+                    "balance": "0",
+                    "esdt": {
+                        "str:NFT-123456": {
+                            "instances": [
+                                {
+                                    "nonce": "1",
+                                    "balance": "1"
+                                }
+                            ]
+                        }
+                    },
+                    "storage": {
+                        "str:createdOffers|address:first|``.len": "1",
+                        "str:createdOffers|address:first|``.item|u32:1": "1",
+                        "str:createdOffers|address:first|``.index|u32:1": "1",
+
+                        "str:wantedOffers|address:second|``.len": "1",
+                        "str:wantedOffers|address:second|``.item|u32:1": "1",
+                        "str:wantedOffers|address:second|``.index|u32:1": "1",
+
+                        "str:offers|u32:1": {
+                            "01-creator": "address:first",
+                            "02-nft": "nested:str:NFT-123456",
+                            "03-nonce": "u64:1",
+                            "04-wanted_nft": "nested:str:NFT2-654321",
+                            "05-wanted_nonce": "u64:2",
+                            "06-wanted_address": "address:second"
+                        },
+                        "str:lastOfferId": "1"
+                    },
+                    "code": "file:../output/nft-escrow.wasm",
+                    "owner": "address:owner"
+                },
+                "+": ""
+            }
+        }
+    ]
+}

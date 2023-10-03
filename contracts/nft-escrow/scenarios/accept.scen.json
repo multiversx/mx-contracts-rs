@@ -1,0 +1,254 @@
+{
+    "name": "buy nft",
+    "steps": [
+        {
+            "step": "externalSteps",
+            "path": "escrow.scen.json"
+        },
+        {
+            "step": "scCall",
+            "id": "accept-offer-not-exists",
+            "tx": {
+                "from": "address:second",
+                "to": "sc:nft-escrow",
+                "egldValue": "0",
+                "function": "accept",
+                "arguments": [
+                    "2"
+                ],
+                "gasLimit": "10,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "4",
+                "message": "str:Offer does not exist",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "accept-offer-only-wanted",
+            "tx": {
+                "from": "address:first",
+                "to": "sc:nft-escrow",
+                "egldValue": "0",
+                "function": "accept",
+                "arguments": [
+                    "1"
+                ],
+                "gasLimit": "10,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "4",
+                "message": "str:Can not accept this offer",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "accept-other-token",
+            "tx": {
+                "from": "address:second",
+                "to": "sc:nft-escrow",
+                "egldValue": "0",
+                "function": "accept",
+                "arguments": [
+                    "1"
+                ],
+                "esdtValue": [
+                    {
+                        "tokenIdentifier": "str:SEMIFUNG-123456",
+                        "value": "1000",
+                        "nonce": "1"
+                    }
+                ],
+                "gasLimit": "10,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "4",
+                "message": "str:NFT does not match",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "accept-other-nonce",
+            "tx": {
+                "from": "address:second",
+                "to": "sc:nft-escrow",
+                "egldValue": "0",
+                "function": "accept",
+                "arguments": [
+                    "1"
+                ],
+                "esdtValue": [
+                    {
+                        "tokenIdentifier": "str:NFT2-654321",
+                        "value": "1",
+                        "nonce": "1"
+                    }
+                ],
+                "gasLimit": "10,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "4",
+                "message": "str:NFT does not match",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "accept-other-amount",
+            "tx": {
+                "from": "address:second",
+                "to": "sc:nft-escrow",
+                "egldValue": "0",
+                "function": "accept",
+                "arguments": [
+                    "1"
+                ],
+                "esdtValue": [
+                    {
+                        "tokenIdentifier": "str:NFT2-654321",
+                        "value": "2",
+                        "nonce": "2"
+                    }
+                ],
+                "gasLimit": "10,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "4",
+                "message": "str:NFT does not match",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "accept",
+            "tx": {
+                "from": "address:second",
+                "to": "sc:nft-escrow",
+                "egldValue": "0",
+                "function": "accept",
+                "arguments": [
+                    "1"
+                ],
+                "esdtValue": [
+                    {
+                        "tokenIdentifier": "str:NFT2-654321",
+                        "value": "1",
+                        "nonce": "2"
+                    }
+                ],
+                "gasLimit": "10,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "0",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "checkState",
+            "accounts": {
+                "address:first": {
+                    "nonce": "6",
+                    "balance": "0",
+                    "esdt": {
+                        "str:FUNG-123456": "1000",
+                        "str:SEMIFUNG-123456": {
+                            "instances": [
+                                {
+                                    "nonce": "1",
+                                    "balance": "1000"
+                                }
+                            ]
+                        },
+                        "str:NFT-123456": {
+                            "instances": [
+                                {
+                                    "nonce": "2",
+                                    "balance": "1"
+                                }
+                            ]
+                        },
+                        "str:NFT2-654321": {
+                            "instances": [
+                                {
+                                    "nonce": "2",
+                                    "balance": "1"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "address:second": {
+                    "nonce": "5",
+                    "balance": "0",
+                    "esdt": {
+                        "str:FUNG-123456": "1000",
+                        "str:SEMIFUNG-123456": {
+                            "instances": [
+                                {
+                                    "nonce": "1",
+                                    "balance": "1000"
+                                }
+                            ]
+                        },
+                        "str:NFT-123456": {
+                            "instances": [
+                                {
+                                    "nonce": "1",
+                                    "balance": "1"
+                                }
+                            ]
+                        },
+                        "str:NFT2-654321": {
+                            "instances": [
+                                {
+                                    "nonce": "1",
+                                    "balance": "1"
+                                },
+                                {
+                                    "nonce": "2",
+                                    "balance": "1"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "sc:nft-escrow": {
+                    "nonce": "0",
+                    "balance": "0",
+                    "esdt": {
+                        "str:NFT-123456": {
+                            "instances": []
+                        }
+                    },
+                    "storage": {
+                        "str:lastOfferId": "1"
+                    },
+                    "code": "file:../output/nft-escrow.wasm",
+                    "owner": "address:owner"
+                },
+                "+": ""
+            }
+        }
+    ]
+}
