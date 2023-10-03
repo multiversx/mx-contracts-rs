@@ -9,6 +9,7 @@ members = [
 
   "contracts/adder",
   "contracts/adder/meta",
+  "contracts/adder/interact",
   "contracts/esdt-transfer-with-fee",
   "contracts/esdt-transfer-with-fee/meta",
   "contracts/bonding-curve-contract",
@@ -41,6 +42,7 @@ members = [
   "contracts/liquid-locking/meta",
   "contracts/multisig",
   "contracts/multisig/meta",
+  "contracts/multisig/interact",
   "contracts/mystery-box",
   "contracts/mystery-box/meta",
   "contracts/nft-minter",

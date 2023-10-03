@@ -3,12 +3,11 @@ name = "proxy-pause-meta"
 version = "0.0.0"
 edition = "2021"
 publish = false
-authors = [ "you",]
+authors = ["you"]
 
 [dev-dependencies]
-
 [dependencies.proxy-pause]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
-version = "0.41.3"
+version = "0.43.4"

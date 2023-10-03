@@ -20,6 +20,6 @@ version = "0.0.0"
 path = "../kitty-genetic-alg"
 
 [dependencies.multiversx-sc]
-version = "0.41.3"
+version = "0.43.4"
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.41.3"
+version = "0.43.4"

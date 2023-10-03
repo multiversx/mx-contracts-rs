@@ -1,0 +1,33 @@
+[[bin]]
+name = "multisig-interact"
+path = "src/multisig_interact.rs"
+
+[package]
+name = "multisig-interact"
+version = "0.0.0"
+authors = ["Andrei Marinica <andrei.marinica@multiversx.com>"]
+edition = "2021"
+publish = false
+
+[dependencies]
+toml = "0.7.2"
+
+[dependencies.clap]
+version = "4.1.0"
+features = ["derive", "cargo"]
+
+[dependencies.serde]
+version = "1.0"
+features = ["derive"]
+
+[dependencies.multisig]
+path = ".."
+
+[dependencies.multiversx-sc-modules]
+version = "0.43.4"
+
+[dependencies.multiversx-sc-snippets]
+version = "0.43.3"
+
+[dependencies.multiversx-sc-scenario]
+version = "=0.43.4"
