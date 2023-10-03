@@ -7,29 +7,29 @@ fn world() -> ScenarioWorld {
 #[test]
 #[ignore = "not supported"]
 fn accept_rs() {
-    multiversx_sc_scenario::run_rs("scenarios/accept.scen.json", world());
+    world().run("scenarios/accept.scen.json");
 }
 
 #[test]
 #[ignore = "not supported"]
 fn cancel_rs() {
-    multiversx_sc_scenario::run_rs("scenarios/cancel.scen.json", world());
+    world().run("scenarios/cancel.scen.json");
 }
 
 #[test]
 #[ignore = "not supported"]
 fn escrow_rs() {
-    multiversx_sc_scenario::run_rs("scenarios/escrow.scen.json", world());
+    world().run("scenarios/escrow.scen.json");
 }
 
 #[test]
 #[ignore = "not supported"]
 fn init_rs() {
-    multiversx_sc_scenario::run_rs("scenarios/init.scen.json", world());
+    world().run("scenarios/init.scen.json");
 }
 
 #[test]
 #[ignore = "not supported"]
 fn views_rs() {
-    multiversx_sc_scenario::run_rs("scenarios/views.scen.json", world());
+    world().run("scenarios/views.scen.json");
 }
