@@ -1,11 +1,11 @@
 use multiversx_sc::{
-    codec::{multi_types::OptionalValue, CodecFrom},
+    codec::multi_types::OptionalValue,
     storage::mappers::SingleValue,
-    types::{Address, EgldOrEsdtTokenIdentifier, TokenIdentifier},
+    types::{EgldOrEsdtTokenIdentifier, TokenIdentifier},
 };
 use multiversx_sc_scenario::{api::StaticApi, num_bigint::BigUint, scenario_model::*, *};
 use mvx_game_sc::{
-    storage::{ProxyTrait, StorageModule},
+    storage::ProxyTrait,
     types::{GameSettings, Status},
     ProxyTrait as _,
 };
@@ -159,6 +159,9 @@ fn game_sc_simple_game_flow() {
     let number_of_players_min = 1u64;
     let number_of_players_max = 4u64;
     let wager = BigUint::from(100u64);
+    let _ = state.user1;
+    let _ = state.user2;
+    let _ = state.owner;
 
     //deploy
     state.deploy(&mut game_sc);
