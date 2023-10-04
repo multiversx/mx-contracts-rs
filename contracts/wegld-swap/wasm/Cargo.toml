@@ -1,5 +1,5 @@
 [package]
-name = "multiversx-wegld-swap-sc-wasm"
+name = "multiversx_wegld_swap_sc_wasm"
 version = "0.0.0"
 authors = ["Dorin Iancu <dorin.iancu@multiversx.com>"]
 edition = "2021"
@@ -18,7 +18,7 @@ opt-level = "z"
 lto = true
 debug = false
 panic = "abort"
-[dependencies.multiversx-wegld-swap-sc]
+[dependencies.multiversx_wegld_swap_sc]
 path = ".."
 
 [dependencies.multiversx-sc-wasm-adapter]

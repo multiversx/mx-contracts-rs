@@ -1,12 +1,12 @@
 [package]
-name = "multiversx-wegld-swap-sc-meta"
+name = "multiversx_wegld_swap_sc_meta"
 version = "0.0.0"
 authors = ["Dorin Iancu <dorin.iancu@multiversx.com>"]
 edition = "2021"
 publish = false
 
 [dev-dependencies]
-[dependencies.multiversx-wegld-swap-sc]
+[dependencies.multiversx_wegld_swap_sc]
 path = ".."
 
 [dependencies.multiversx-sc]

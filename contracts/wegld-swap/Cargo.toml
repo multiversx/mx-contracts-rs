@@ -1,5 +1,5 @@
 [package]
-name = "multiversx-wegld-swap-sc"
+name = "multiversx_wegld_swap_sc"
 version = "0.43.3"
 authors = ["Dorin Iancu <dorin.iancu@multiversx.com>", "MultiversX <contact@multiversx.com>"]
 license = "GPL-3.0-only"
