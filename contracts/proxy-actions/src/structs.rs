@@ -11,6 +11,26 @@ pub enum TaskType {
     ExitLP,
 }
 
+pub mod pair_proxy {
+    #[multiversx_sc::proxy]
+    pub trait PairProxy {
+        #[payable("*")]
+        #[endpoint(swapTokensFixedInput)]
+        fn swap_tokens_fixed_input(
+            &self,
+            token_out: TokenIdentifier,
+            amount_out_min: BigUint,
+        ) -> EsdtTokenPayment;
+
+        #[view(getSafePriceByDefaultOffset)]
+        fn get_safe_price_by_default_offset(
+            &self,
+            pair_address: ManagedAddress,
+            input_payment: EsdtTokenPayment,
+        ) -> EsdtTokenPayment;
+    }
+}
+
 #[multiversx_sc::module]
 pub trait TaskCall {
     #[payable("*")]
@@ -18,69 +38,41 @@ pub trait TaskCall {
     fn compose_tasks1(
         &self,
         tasks: MultiValueEncoded<
-            MultiValue5<
-                TaskType,
-                ManagedAddress,
-                ManagedBuffer,
-                MultiValueEncoded<ManagedBuffer>,
-                u64,
-            >,
+            MultiValue4<ManagedAddress, ManagedBuffer, MultiValueEncoded<ManagedBuffer>, u64>,
         >,
     ) //-> Result<(), EsdtTokenPayment>
     {
         let payment = self.call_value().egld_or_single_esdt();
-        let mut payment_to_next_task = payment.clone();
+        let payment_to_next_task = payment.clone();
 
         for task in tasks.into_iter() {
-            let (task_type, dest_addr, endpoint_name, endpoint_args, gas_limit) = task.into_tuple();
+            let (dest_addr, endpoint_name, endpoint_args, gas_limit) = task.into_tuple();
 
             let payment_to_next_task = self
                 .send()
-                .contract_call::<(EsdtTokenPayment)>(dest_addr, endpoint_name)
-                .with_egld_or_single_esdt_transfer(payment)
+                .contract_call::<EsdtTokenPayment>(dest_addr, endpoint_name)
+                .with_egld_or_single_esdt_transfer(payment_to_next_task.clone())
                 .with_raw_arguments(endpoint_args.to_arg_buffer())
                 .with_gas_limit(gas_limit)
                 .transfer_execute();
         }
-        // let result;
-        // for proxy_action_id in proxy_action_ids {
-        //     let proxy_action = self.proxy_actions(proxy_action_id).get();
-
-        //     // Payments options
-        //     let payments = self.call_value().all_esdt_transfers();
-        //     // let payments = egld payment based on ContractCallType
-        //     // let payments = use the previous result;
-
-        //     let contract_call =
-        //         ContractCallNoPayment::new(proxy_address, call.endpoint_name, payments);
-
-        //     for arg in proxy_action.args {
-        //         // or use previous result
-        //         contract_call.proxy_arg(&arg);
-        //     }
-
-        //     raw_result = match contract_call_type {
-        //         ContractCallType::ContractCallWithAnyPayment => {
-        //             contract_call
-        //                 .with_gas_limit(proxy_action.gas_limit)
-        //                 .transfer_execute();
-        //         }
-        //     }
-
-        //     result = raw_result.decode()
-        // }
     }
 
     #[payable("*")]
     #[endpoint(composeTasks2)]
-    fn compose_tasks2(&self, tasks: MultiValueEncoded<MultiValue3<TaskType, ManagedAddress, u64>>)
+    fn compose_tasks2(
+        &self,
+        tasks: MultiValueEncoded<
+            MultiValue4<TaskType, ManagedAddress, MultiValueEncoded<ManagedBuffer>, u64>,
+        >,
+    )
     //-> Result<(), EsdtTokenPayment>
     {
         let payment = self.call_value().egld_or_single_esdt();
-        let mut payment_to_next_task = payment.clone();
+        let payment_to_next_task = payment.clone();
 
         for task in tasks.into_iter() {
-            let (task_type, dest_addr, gas_limit) = task.into_tuple();
+            let (task_type, dest_addr, endpoint_args, gas_limit) = task.into_tuple();
 
             let payment_to_next_task = match task_type {
                 TaskType::WrapEGLD => {
@@ -90,16 +82,30 @@ pub trait TaskCall {
                     //TODO
                 }
                 TaskType::Swap => {
-                    // self
-                    // .pair_proxy(dest_addr)
-                    // .swap_tokens_fixed_input(requested_token_id, min_amount_out)
-                    // .with_esdt_transfer(payment)
-                    // .execute_on_dest_context(),
+                    let args = endpoint_args.into_vec_of_buffers();
+                    let token_out = TokenIdentifier::from(args.get(0).clone_value());
+                    let min_amount_out = BigUint::from(args.get(1).clone_value());
+                    let token_payment = payment_to_next_task
+                        .token_identifier
+                        .clone()
+                        .into_esdt_option();
+                    if token_payment.is_none() {
+                        return;
+                    }
+                    self.pair_contract_proxy(dest_addr)
+                        .swap_tokens_fixed_input(token_out, min_amount_out)
+                        .with_esdt_transfer(EsdtTokenPayment::new(
+                            token_payment.unwrap(),
+                            payment_to_next_task.token_nonce,
+                            payment_to_next_task.amount.clone(),
+                        ))
+                        .with_gas_limit(gas_limit)
+                        .transfer_execute();
                 }
                 TaskType::SendEsdt => {
                     self.send()
-                        .contract_call::<(EsdtTokenPayment)>(dest_addr, b"")
-                        .with_egld_or_single_esdt_transfer(payment)
+                        .contract_call::<EsdtTokenPayment>(dest_addr, b"".into())
+                        .with_egld_or_single_esdt_transfer(payment_to_next_task.clone())
                         .with_gas_limit(gas_limit)
                         .transfer_execute();
                 }
@@ -111,34 +117,7 @@ pub trait TaskCall {
                 }
             };
         }
-        // let result;
-        // for proxy_action_id in proxy_action_ids {
-        //     let proxy_action = self.proxy_actions(proxy_action_id).get();
-
-        //     // Payments options
-        //     let payments = self.call_value().all_esdt_transfers();
-        //     // let payments = egld payment based on ContractCallType
-        //     // let payments = use the previous result;
-
-        //     let contract_call =
-        //         ContractCallNoPayment::new(proxy_address, call.endpoint_name, payments);
-
-        //     for arg in proxy_action.args {
-        //         // or use previous result
-        //         contract_call.proxy_arg(&arg);
-        //     }
-
-        //     raw_result = match contract_call_type {
-        //         ContractCallType::ContractCallWithAnyPayment => {
-        //             contract_call
-        //                 .with_gas_limit(proxy_action.gas_limit)
-        //                 .transfer_execute();
-        //         }
-        //     }
-
-        //     result = raw_result.decode()
-        // }
     }
     #[proxy]
-    fn pair_contract_proxy(&self, to: ManagedAddress) -> pair::Proxy<Self::Api>;
+    fn pair_contract_proxy(&self, to: ManagedAddress) -> pair_proxy::Proxy<Self::Api>;
 }
