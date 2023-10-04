@@ -57,6 +57,8 @@ members = [
   "contracts/paymaster/meta",
   "contracts/ping-pong-egld",
   "contracts/ping-pong-egld/meta",
+  "contracts/proxy-actions",
+  "contracts/proxy-actions/meta",
   "contracts/proxy-pause",
   "contracts/proxy-pause/meta",
   "contracts/rewards-distribution",

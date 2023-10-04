@@ -1,0 +1,21 @@
+[package]
+name = "proxy-actions"
+version = "0.0.0"
+authors = [ "MultiversX <contact@multiversx.com>" ]
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/proxy_actions.rs"
+
+[dev-dependencies]
+num-bigint = "0.4.2"
+
+[dependencies.multiversx-sc]
+version = "0.43.4"
+
+[dev-dependencies.multiversx-sc-scenario]
+version = "0.43.4"
+
+[dev-dependencies.multiversx-wegld-swap-sc]
+path = "../wegld-swap"
