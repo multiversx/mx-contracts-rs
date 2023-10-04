@@ -1,0 +1,209 @@
+{
+    "name": "buy nft",
+    "steps": [
+        {
+            "step": "externalSteps",
+            "path": "escrow.scen.json"
+        },
+        {
+            "step": "scQuery",
+            "id": "getCreatedOffersFirst",
+            "tx": {
+                "to": "sc:nft-escrow",
+                "function": "getCreatedOffers",
+                "arguments": [
+                    "address:first"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "1",
+                    {
+                        "01-creator": "address:first",
+                        "02-nft": "nested:str:NFT-123456",
+                        "03-nonce": "u64:1",
+                        "04-wanted_nft": "nested:str:NFT2-654321",
+                        "05-wanted_nonce": "u64:2",
+                        "06-wanted_address": "address:second"
+                    }
+                ]
+            }
+        },
+        {
+            "step": "scQuery",
+            "id": "getCreatedOffersSecond",
+            "tx": {
+                "to": "sc:nft-escrow",
+                "function": "getCreatedOffers",
+                "arguments": [
+                    "address:second"
+                ]
+            },
+            "expect": {
+                "out": []
+            }
+        },
+        {
+            "step": "scQuery",
+            "id": "getWantedOffersFirst",
+            "tx": {
+                "to": "sc:nft-escrow",
+                "function": "getWantedOffers",
+                "arguments": [
+                    "address:first"
+                ]
+            },
+            "expect": {
+                "out": []
+            }
+        },
+        {
+            "step": "scQuery",
+            "id": "getWantedOffersSecond",
+            "tx": {
+                "to": "sc:nft-escrow",
+                "function": "getWantedOffers",
+                "arguments": [
+                    "address:second"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "1",
+                    {
+                        "01-creator": "address:first",
+                        "02-nft": "nested:str:NFT-123456",
+                        "03-nonce": "u64:1",
+                        "04-wanted_nft": "nested:str:NFT2-654321",
+                        "05-wanted_nonce": "u64:2",
+                        "06-wanted_address": "address:second"
+                    }
+                ]
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "escrow",
+            "tx": {
+                "from": "address:first",
+                "to": "sc:nft-escrow",
+                "egldValue": "0",
+                "function": "escrow",
+                "arguments": [
+                    "str:NFT2-654321",
+                    "1",
+                    "address:second"
+                ],
+                "esdtValue": [
+                    {
+                        "tokenIdentifier": "str:NFT-123456",
+                        "value": "1",
+                        "nonce": "2"
+                    }
+                ],
+                "gasLimit": "10,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": ["2"],
+                "status": "0",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scQuery",
+            "id": "getCreatedOffersFirstAgain",
+            "tx": {
+                "to": "sc:nft-escrow",
+                "function": "getCreatedOffers",
+                "arguments": [
+                    "address:first"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "1",
+                    {
+                        "01-creator": "address:first",
+                        "02-nft": "nested:str:NFT-123456",
+                        "03-nonce": "u64:1",
+                        "04-wanted_nft": "nested:str:NFT2-654321",
+                        "05-wanted_nonce": "u64:2",
+                        "06-wanted_address": "address:second"
+                    },
+                    "2",
+                    {
+                        "01-creator": "address:first",
+                        "02-nft": "nested:str:NFT-123456",
+                        "03-nonce": "u64:2",
+                        "04-wanted_nft": "nested:str:NFT2-654321",
+                        "05-wanted_nonce": "u64:1",
+                        "06-wanted_address": "address:second"
+                    }
+                ]
+            }
+        },
+        {
+            "step": "scQuery",
+            "id": "getCreatedOffersSecond",
+            "tx": {
+                "to": "sc:nft-escrow",
+                "function": "getCreatedOffers",
+                "arguments": [
+                    "address:second"
+                ]
+            },
+            "expect": {
+                "out": []
+            }
+        },
+        {
+            "step": "scQuery",
+            "id": "getWantedOffersFirst",
+            "tx": {
+                "to": "sc:nft-escrow",
+                "function": "getWantedOffers",
+                "arguments": [
+                    "address:first"
+                ]
+            },
+            "expect": {
+                "out": []
+            }
+        },
+        {
+            "step": "scQuery",
+            "id": "getWantedOffersSecond",
+            "tx": {
+                "to": "sc:nft-escrow",
+                "function": "getWantedOffers",
+                "arguments": [
+                    "address:second"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "1",
+                    {
+                        "01-creator": "address:first",
+                        "02-nft": "nested:str:NFT-123456",
+                        "03-nonce": "u64:1",
+                        "04-wanted_nft": "nested:str:NFT2-654321",
+                        "05-wanted_nonce": "u64:2",
+                        "06-wanted_address": "address:second"
+                    },
+                    "2",
+                    {
+                        "01-creator": "address:first",
+                        "02-nft": "nested:str:NFT-123456",
+                        "03-nonce": "u64:2",
+                        "04-wanted_nft": "nested:str:NFT2-654321",
+                        "05-wanted_nonce": "u64:1",
+                        "06-wanted_address": "address:second"
+                    }
+                ]
+            }
+        }
+    ]
+}
