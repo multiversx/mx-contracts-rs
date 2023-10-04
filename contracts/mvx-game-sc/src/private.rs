@@ -68,10 +68,8 @@ pub trait PrivateModule: crate::storage::StorageModule {
         let approved_token_id = self.token_id().get();
         let start_fee = self.game_start_fee().get();
 
-        require!(
-            token_id == &approved_token_id && amount == &start_fee,
-            "start game payment not right"
-        );
+        require!(token_id == &approved_token_id, "wrong token id");
+        require!(amount == &start_fee, "start game payment amount not right");
     }
 
     fn validate_join_game(
