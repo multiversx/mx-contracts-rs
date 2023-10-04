@@ -10,7 +10,7 @@ publish = false
 path = ".."
 
 [dependencies.multiversx-sc]
-version = "0.43.4"
+version = "0.43.3"
 
 [dependencies.multiversx-sc-meta]
-version = "0.43.4"
+version = "0.43.3"
