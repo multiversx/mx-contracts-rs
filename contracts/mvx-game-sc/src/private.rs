@@ -162,7 +162,7 @@ pub trait PrivateModule: crate::storage::StorageModule {
             return 1u64;
         }
         let last_id = self.last_game_id().get();
-        return last_id + 1u64;
+        last_id + 1u64
     }
 
     fn get_min_max(&self, a: u64, b: u64) -> (u64, u64) {
