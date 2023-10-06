@@ -35,7 +35,7 @@ pub trait OwnerModule: crate::private::PrivateModule + crate::storage::StorageMo
 
                         for (winner, percentage) in val.into_iter() {
                             let reward_per_winner =
-                                &BigUint::from(percentage) * &total_wager / &BigUint::from(100u64);
+                                &BigUint::from(percentage) * &total_wager / &BigUint::from(10000u64);
                             self.send()
                                 .direct(&winner, &token_id, 0u64, &reward_per_winner);
                         }
