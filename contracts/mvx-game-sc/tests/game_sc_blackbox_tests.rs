@@ -339,14 +339,8 @@ fn game_sc_simple_game_flow() {
         .execute(&mut state.world);
     let players_vec = players.to_vec();
 
-    assert_eq!(
-        players_vec.contains(&ManagedAddress::from(user1.clone())),
-        true
-    );
-    assert_eq!(
-        players_vec.contains(&ManagedAddress::from(user2.clone())),
-        true
-    );
+    assert!(players_vec.contains(&ManagedAddress::from(user1.clone())));
+    assert!(players_vec.contains(&ManagedAddress::from(user2.clone())));
 
     //game should be in users'storage
     let games_per_user1: MultiValueEncoded<StaticApi, u64> = game_sc
@@ -363,10 +357,7 @@ fn game_sc_simple_game_flow() {
         .execute(&mut state.world);
     let games_per_user2_vec = games_per_user2.to_vec();
 
-    assert_eq!(
-        games_per_user1_vec.contains(&1u64) && games_per_user2_vec.contains(&1u64),
-        true
-    );
+    assert!((games_per_user1_vec.contains(&1u64) && games_per_user2_vec.contains(&1u64)));
 }
 
 #[test]
@@ -482,7 +473,7 @@ fn game_sc_complex_flow() {
     state.join_game(
         1u64,
         USER4_ADDR,
-        wager.clone(),
+        wager,
         &mut game_sc,
         OptionalValue::Some(("4", "str:waiting time has passed")),
     );
@@ -590,13 +581,7 @@ fn invalid_game_test() {
     );
 
     //user2 joins
-    state.join_game(
-        1u64,
-        USER2_ADDR,
-        wager.clone(),
-        &mut game_sc,
-        OptionalValue::None,
-    );
+    state.join_game(1u64, USER2_ADDR, wager, &mut game_sc, OptionalValue::None);
 
     //game is still invalid, min number of players not reached
     let game_settings: SingleValue<GameSettings<StaticApi>> = game_sc
