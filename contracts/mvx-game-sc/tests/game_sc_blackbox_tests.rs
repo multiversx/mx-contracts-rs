@@ -2,7 +2,7 @@ use multiversx_sc::{
     codec::multi_types::OptionalValue,
     storage::mappers::SingleValue,
     types::{
-        Address, BigUint, EgldOrEsdtTokenIdentifier, ManagedAddress, MultiValueEncoded,
+        Address, EgldOrEsdtTokenIdentifier, ManagedAddress, MultiValueEncoded,
         TokenIdentifier,
     },
 };
@@ -13,6 +13,8 @@ use mvx_game_sc::{
     types::{GameSettings, Status},
     ProxyTrait as _,
 };
+
+use num_bigint::BigUint;
 
 const GAME_SC_PATH: &str = "file:output/mvx-game-sc.wasm";
 const BALANCE: u64 = 100_000_000u64;
@@ -60,35 +62,35 @@ impl GameContractState {
                 .put_account(
                     USER1_ADDR,
                     Account::new()
-                        .nonce(2)
+                        .nonce(1)
                         .balance(BALANCE)
                         .esdt_balance(TOKEN_ID, BALANCE),
                 )
                 .put_account(
                     USER2_ADDR,
                     Account::new()
-                        .nonce(3)
+                        .nonce(1)
                         .balance(BALANCE)
                         .esdt_balance(TOKEN_ID, BALANCE),
                 )
                 .put_account(
                     USER3_ADDR,
                     Account::new()
-                        .nonce(4)
+                        .nonce(1)
                         .balance(BALANCE)
                         .esdt_balance(TOKEN_ID, BALANCE),
                 )
                 .put_account(
                     USER4_ADDR,
                     Account::new()
-                        .nonce(5)
+                        .nonce(1)
                         .balance(BALANCE)
                         .esdt_balance(TOKEN_ID, BALANCE),
                 )
                 .put_account(
                     USER5_ADDR,
                     Account::new()
-                        .nonce(6)
+                        .nonce(1)
                         .balance(BALANCE)
                         .esdt_balance(TOKEN_ID, BALANCE),
                 ),
@@ -139,7 +141,7 @@ impl GameContractState {
         waiting_time: u64,
         number_of_players_min: u64,
         number_of_players_max: u64,
-        wager: BigUint<StaticApi>,
+        wager: BigUint,
         caller: &str,
         game_sc: &mut ContractInfo<mvx_game_sc::Proxy<StaticApi>>,
     ) -> &mut Self {
@@ -147,7 +149,7 @@ impl GameContractState {
             ScCallStep::new()
                 .from(caller)
                 .to(GAME_SC_ADDR)
-                .esdt_transfer(TOKEN_ID, 0u64, BigUint::<StaticApi>::from(STARTING_FEE))
+                .esdt_transfer(TOKEN_ID, 0u64, BigUint::from(STARTING_FEE))
                 .call(game_sc.create_game(
                     waiting_time,
                     number_of_players_min,
@@ -164,7 +166,7 @@ impl GameContractState {
         &mut self,
         game_id: u64,
         caller: &str,
-        amount: BigUint<StaticApi>,
+        amount: BigUint,
         game_sc: &mut ContractInfo<mvx_game_sc::Proxy<StaticApi>>,
         expected_error: OptionalValue<(&str, &str)>,
     ) -> &mut Self {
@@ -370,7 +372,7 @@ fn game_sc_complex_flow() {
     let number_of_players_min = 2u64;
     let number_of_players_max = 4u64;
     let wager = BigUint::from(100u64);
-    let diff_amount = BigUint::<StaticApi>::from(5u64);
+    let diff_amount = BigUint::from(5u64);
 
     //users
     let _user1 = state.user1.clone();
@@ -500,7 +502,7 @@ fn game_sc_complex_flow() {
     //send tokens to sc
     state.world.transfer_step(
         TransferStep::new()
-            .esdt_transfer(TOKEN_ID, 0u64, BigUint::<StaticApi>::from(10000u64))
+            .esdt_transfer(TOKEN_ID, 0u64, BigUint::from(10_000u64))
             .from(OWNER_ADDR)
             .to(GAME_SC_ADDR),
     );
@@ -509,7 +511,7 @@ fn game_sc_complex_flow() {
         .world
         .check_state_step(CheckStateStep::new().put_account(
             GAME_SC_ADDR,
-            CheckAccount::new().esdt_balance(TOKEN_ID, BigUint::<StaticApi>::from(10320u64)),
+            CheckAccount::new().esdt_balance(TOKEN_ID, BigUint::from(10_320u64)),
         ));
 
     //owner sends rewards
@@ -551,7 +553,7 @@ fn invalid_game_test() {
     let waiting_time = 100u64; // => timestamp 102 should be out of waiting time
     let number_of_players_min = 3u64;
     let number_of_players_max = 5u64;
-    let wager = BigUint::<StaticApi>::from(100u64);
+    let wager = BigUint::from(100u64);
 
     //deploy
     state.deploy(&mut game_sc);
