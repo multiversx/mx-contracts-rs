@@ -28,6 +28,8 @@ pub trait OwnerModule: crate::private::PrivateModule + crate::storage::StorageMo
                 let game_creation_fee = self.game_start_fee().get();
                 self.send()
                     .direct(&game_settings.creator, &token_id, 0u64, &game_creation_fee);
+
+                self.game_settings(game_id).clear();
             }
             Status::Valid => {
                 match winners {

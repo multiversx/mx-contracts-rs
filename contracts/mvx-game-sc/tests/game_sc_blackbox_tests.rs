@@ -2,8 +2,7 @@ use multiversx_sc::{
     codec::multi_types::OptionalValue,
     storage::mappers::SingleValue,
     types::{
-        Address, EgldOrEsdtTokenIdentifier, ManagedAddress, MultiValueEncoded,
-        TokenIdentifier,
+        Address, EgldOrEsdtTokenIdentifier, ManagedAddress, MultiValueEncoded, TokenIdentifier,
     },
 };
 use multiversx_sc_scenario::{api::StaticApi, scenario_model::*, *};
