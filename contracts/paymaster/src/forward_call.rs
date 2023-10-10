@@ -30,7 +30,8 @@ pub trait ForwardCall {
         original_caller: ManagedAddress,
         #[call_result] result: ManagedAsyncCallResult<MultiValueEncoded<ManagedBuffer>>,
     ) -> MultiValueEncoded<ManagedBuffer> {
-        let initial_payments = self.call_value().all_esdt_transfers();
+        // TODO: use ManagedGetBackTransfers once rc1.6 is activated
+        let callback_payments = self.call_value().all_esdt_transfers();
 
         match result {
             ManagedAsyncCallResult::Ok(return_values) => {
