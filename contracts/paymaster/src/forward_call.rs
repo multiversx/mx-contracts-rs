@@ -53,8 +53,6 @@ pub trait ForwardCall {
                 err_result.push(ManagedBuffer::new_from_bytes(ERR_CALLBACK_MSG));
                 err_result.push(err.err_msg.clone());
 
-                sc_print!("{}", err.err_msg);
-
                 err_result
             }
         }

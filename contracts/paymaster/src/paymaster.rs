@@ -5,7 +5,6 @@ multiversx_sc::imports!();
 pub mod forward_call;
 const FEE_PAYMENT: usize = 0;
 
-/// An empty contract. To be used as a template when starting a new contract from scratch.
 #[multiversx_sc::contract]
 pub trait PaymasterContract: forward_call::ForwardCall {
     #[init]
