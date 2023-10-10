@@ -27,7 +27,7 @@ The SC does not have any logic for calculating the winner, so it expects input f
 **The game**:
 - If the game is `invalid`, the `wager` amount will be returned to the players that have joined the game and the `game starting fee` will be returned to the creator
 - If the game is `valid`, but no winners are provided, such in the case of a tie/draw, the contract will send back the `wager` amount paid by every player who joined
-- If the game is `valid` and winners are provided, the SC will send the reward to the them, based on the input of the owner.
+- If the game is `valid` and winners are provided, the SC will send the rewards to them, based on the input of the owner.
 
 ## Endpoints
 ### createGame
