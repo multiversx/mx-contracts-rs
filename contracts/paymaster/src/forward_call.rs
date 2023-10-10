@@ -51,7 +51,7 @@ pub trait ForwardCall {
 
                 let mut err_result = MultiValueEncoded::new();
                 err_result.push(ManagedBuffer::new_from_bytes(ERR_CALLBACK_MSG));
-                err_result.push(err.err_msg.clone());
+                err_result.push(err.err_msg);
 
                 err_result
             }

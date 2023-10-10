@@ -173,6 +173,19 @@ impl PaymasterTestState {
 
         self
     }
+    fn check_egld_balance(
+        &mut self,
+        address_expr: &str,
+        balance_expr: &str,
+    ) -> &mut Self {
+        self.world
+            .check_state_step(CheckStateStep::new().put_account(
+                address_expr,
+                CheckAccount::new().balance(balance_expr),
+            ));
+
+        self
+    }
 }
 
 #[test]
@@ -304,7 +317,40 @@ fn test_forward_call_sc_adder_multiple_payments() {
 }
 
 #[test]
-fn test_forward_call_fails_wegld() {
+fn test_forward_call_wegld() {
+    let mut state = PaymasterTestState::new();
+    state.deploy_paymaster_contract();
+    state.deploy_adder_contract();
+
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, BALANCE);
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, WEGLD_TOKEN_ID_EXPR, BALANCE);
+
+    // Call fails because unwrap amount is 0
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(CALLER_ADDRESS_EXPR)
+            .esdt_transfer(FEE_TOKEN_ID_EXPR, 0, FEE_AMOUNT)
+            .esdt_transfer(WEGLD_TOKEN_ID_EXPR, 0, BALANCE)
+            .call(state.paymaster_contract.forward_execution(
+                state.relayer_address.clone(),
+                state.callee_sc_wegld_address.to_address(),
+                UNWRAP_ENDPOINT_NAME,
+                MultiValueEncoded::new(),
+            ))
+    );
+
+    // Fee is kept by the relayer
+    let new_fee_amount: &str =  "99980000";
+    state.check_esdt_balance(RELAYER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, FEE_AMOUNT);
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, new_fee_amount);
+
+    // Caller has the original balance
+    state.check_egld_balance(CALLER_ADDRESS_EXPR, BALANCE);
+}
+
+
+#[test]
+fn test_forward_call_fails_wegld_0_amount() {
     let mut state = PaymasterTestState::new();
     state.deploy_paymaster_contract();
     state.deploy_adder_contract();
