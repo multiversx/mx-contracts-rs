@@ -21,3 +21,6 @@ version = "0.43.4"
 
 [dev-dependencies.adder]
 path = "../adder"
+
+[dev-dependencies.multiversx-wegld-swap-sc]
+path = "../wegld-swap"

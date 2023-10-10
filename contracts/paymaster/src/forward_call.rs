@@ -23,7 +23,7 @@ pub trait ForwardCall {
             .with_callback(self.callbacks().transfer_callback(original_caller))
             .call_and_exit();
     }
-    
+
     #[callback]
     fn transfer_callback(
         &self,
@@ -33,8 +33,17 @@ pub trait ForwardCall {
         let initial_payments = self.call_value().all_esdt_transfers();
 
         match result {
-            ManagedAsyncCallResult::Ok(return_values) => return_values,
+            ManagedAsyncCallResult::Ok(return_values) => {
+                // Send the resulted tokens to the original caller
+                if !initial_payments.is_empty() {
+                    self.send()
+                        .direct_multi(&original_caller, &initial_payments);
+                }
+
+                return_values
+            }
             ManagedAsyncCallResult::Err(err) => {
+                // Send the original input tokens back to the original caller
                 if !initial_payments.is_empty() {
                     self.send()
                         .direct_multi(&original_caller, &initial_payments);
