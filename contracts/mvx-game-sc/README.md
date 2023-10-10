@@ -22,16 +22,16 @@ Each player has to pay the `wager` amount set by the game creator in the `token 
 
 The game is considered `invalid` until the `minimum number of players` have joined the game and if the `waiting time` has passed, no more players can join.
 
-The SC does not have any logic for calculating the winner, so it expects input from the owner with the winnes' addresses and the percentage (*100) of the total reward (sum of wagers) won by each. 
+The SC does not have any logic for calculating the winner, so it expects input from the owner with the winners' addresses and the percentage (*100) of the total reward (sum of wagers) won by each. 
 
 **The game**:
 - If the game is `invalid`, the `wager` amount will be returned to the players that have joined the game and the `game starting fee` will be returned to the creator
-- If the game is `valid`, but no winners are sent by the owner, such in the case of a tie/draw, the contract will send back the `wager` amount paid by every player who joined
-- If the game is `valid` and winners are sent by the owner, the SC will send the reward to the winners as explained by the owner
+- If the game is `valid`, but no winners are provided, such in the case of a tie/draw, the contract will send back the `wager` amount paid by every player who joined
+- If the game is `valid` and winners are provided, the SC will send the reward to the them, based on the input of the owner.
 
 ## Endpoints
 ### createGame
-```
+```rust
 #[payable("*")]
 #[endpoint(createGame)]
 fn create_game(
@@ -46,7 +46,7 @@ The SC calculates min and max from the parameters so you don't have to worry if 
 
 
 ### joinGame
-```
+```rust
 #[payable("*")]
 #[endpoint(joinGame)]
 fn join_game(&self, game_id: u64) 
@@ -55,7 +55,7 @@ Caller can join a game with an existing game id if the payment is right (payment
 
 
 ### sendReward
-```
+```rust
 #[only_owner]
 #[endpoint(sendReward)]
 fn send_reward(
@@ -71,7 +71,7 @@ Owner can send the rewards for the players through this endpoint.
 - the percentage of the reward pool the winner is entitled to * 100, (e.g: for 12.53%, the owner should send 1253 as parameter)
 
 ### claimBackWager
-```
+```rust
 #[endpoint(claimBackWager)]
 fn claim_back_wager(&self, game_id: u64)
 ```
