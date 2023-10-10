@@ -36,18 +36,18 @@ pub trait ForwardCall {
         match result {
             ManagedAsyncCallResult::Ok(return_values) => {
                 // Send the resulted tokens to the original caller
-                if !initial_payments.is_empty() {
+                if !callback_payments.is_empty() {
                     self.send()
-                        .direct_multi(&original_caller, &initial_payments);
+                        .direct_multi(&original_caller, &callback_payments);
                 }
 
                 return_values
             }
             ManagedAsyncCallResult::Err(err) => {
                 // Send the original input tokens back to the original caller
-                if !initial_payments.is_empty() {
+                if !callback_payments.is_empty() {
                     self.send()
-                        .direct_multi(&original_caller, &initial_payments);
+                        .direct_multi(&original_caller, &callback_payments);
                 }
 
                 let mut err_result = MultiValueEncoded::new();
