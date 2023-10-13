@@ -18,9 +18,13 @@ pub trait StorageModule {
     #[storage_mapper("enabled")]
     fn enabled(&self) -> SingleValueMapper<bool>;
 
-    #[view(getIsAddressAdmin)]
-    #[storage_mapper("isAddressAdmin")]
-    fn is_address_admin(&self, user: &ManagedAddress) -> SingleValueMapper<bool>;
+    #[storage_mapper("admins")]
+    fn admins(&self) -> WhitelistMapper<ManagedAddress>;
+
+    #[view(isUserAdmin)]
+    fn is_user_admin(&self, user: ManagedAddress) -> bool {
+        self.admins().contains(&user)
+    }
 
     //GAME
     #[view(getLastGameId)]

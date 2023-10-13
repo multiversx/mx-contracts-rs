@@ -28,7 +28,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         getTokenId => token_id
         getGameStartFee => game_start_fee
         getEnabled => enabled
-        getIsAddressAdmin => is_address_admin
+        isUserAdmin => is_user_admin
         getLastGameId => last_game_id
         getGameSettings => game_settings
         getPlayers => players

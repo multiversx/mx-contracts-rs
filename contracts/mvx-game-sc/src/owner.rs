@@ -18,7 +18,7 @@ pub trait OwnerModule: crate::private::PrivateModule + crate::storage::StorageMo
         self.require_enabled();
         
         let caller = self.blockchain().get_caller();
-        self.require_address_is_admin(&caller);
+        self.admins().require_whitelisted(&caller);
 
         let game_settings = self.validate_send_reward(game_id);
         let token_id = self.token_id().get();
@@ -82,12 +82,12 @@ pub trait OwnerModule: crate::private::PrivateModule + crate::storage::StorageMo
     #[only_owner]
     #[endpoint(setAdmin)]
     fn set_admin(&self, user: ManagedAddress) {
-        self.is_address_admin(&user).set(true)
+        self.admins().add(&user)
     }
 
     #[only_owner]
     #[endpoint(removeAdmin)]
     fn remove_admin(&self, user: ManagedAddress) {
-        self.is_address_admin(&user).clear()
+        self.admins().remove(&user)
     }
 }

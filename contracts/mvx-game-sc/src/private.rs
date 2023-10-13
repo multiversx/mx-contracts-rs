@@ -154,14 +154,6 @@ pub trait PrivateModule: crate::storage::StorageModule {
         require!(!self.enabled().is_empty(), "maintenance")
     }
 
-    fn require_address_is_admin(&self, user: &ManagedAddress) {
-        require!(
-            !self.is_address_admin(user).is_empty()
-                || user == &self.blockchain().get_owner_address(),
-            "caller not allowed"
-        )
-    }
-
     //helper
     fn get_new_game_id(&self) -> u64 {
         if self.last_game_id().is_empty() {
