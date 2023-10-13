@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           15
+// Endpoints:                           18
 // Async Callback (empty):               1
-// Total number of exported functions:  17
+// Total number of exported functions:  20
 
 #![no_std]
 
@@ -28,6 +28,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         getTokenId => token_id
         getGameStartFee => game_start_fee
         getEnabled => enabled
+        getIsAddressAdmin => is_address_admin
         getLastGameId => last_game_id
         getGameSettings => game_settings
         getPlayers => players
@@ -37,6 +38,8 @@ multiversx_sc_wasm_adapter::endpoints! {
         disableSC => disable_sc
         setTokenId => set_token_id
         setGameStartFee => set_game_start_fee
+        setAdmin => set_admin
+        removeAdmin => remove_admin
     )
 }
 

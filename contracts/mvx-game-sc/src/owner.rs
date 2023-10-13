@@ -8,8 +8,7 @@ const DENOM: u64 = 10_000u64;
 #[multiversx_sc::module]
 pub trait OwnerModule: crate::private::PrivateModule + crate::storage::StorageModule {
     //u64 is percentage * 100
-    //function called by the owner when the winners have been decided
-    #[only_owner]
+    //function called by the owner/admins when the winners have been decided
     #[endpoint(sendReward)]
     fn send_reward(
         &self,
@@ -17,6 +16,9 @@ pub trait OwnerModule: crate::private::PrivateModule + crate::storage::StorageMo
         winners: OptionalValue<MultiValueEncoded<(ManagedAddress, u64)>>,
     ) {
         self.require_enabled();
+        
+        let caller = self.blockchain().get_caller();
+        self.require_address_is_admin(&caller);
 
         let game_settings = self.validate_send_reward(game_id);
         let token_id = self.token_id().get();
@@ -75,5 +77,17 @@ pub trait OwnerModule: crate::private::PrivateModule + crate::storage::StorageMo
     #[endpoint(setGameStartFee)]
     fn set_game_start_fee(&self, amount: BigUint) {
         self.game_start_fee().set(amount)
+    }
+
+    #[only_owner]
+    #[endpoint(setAdmin)]
+    fn set_admin(&self, user: ManagedAddress) {
+        self.is_address_admin(&user).set(true)
+    }
+
+    #[only_owner]
+    #[endpoint(removeAdmin)]
+    fn remove_admin(&self, user: ManagedAddress) {
+        self.is_address_admin(&user).clear()
     }
 }
