@@ -1,7 +1,7 @@
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
-use crate::config::{self, Reward, RewardType, MAX_PERCENTAGE};
+use crate::config::{self, CooldownType, Reward, RewardCooldown, RewardType, MAX_PERCENTAGE};
 
 #[multiversx_sc::module]
 pub trait RewardsModule: config::ConfigModule {
@@ -29,7 +29,19 @@ pub trait RewardsModule: config::ConfigModule {
         winning_reward
     }
 
-    fn check_reward_validity(&self, reward: &Reward<Self::Api>) {
+    fn check_reward_validity(&self, reward: &Reward<Self::Api>, reward_cooldown: &RewardCooldown) {
+        if reward_cooldown.cooldown_type == CooldownType::ResetOnCooldown {
+            require!(
+                reward_cooldown.wins_per_cooldown > 0 && reward_cooldown.cooldown_epochs > 0,
+                "Invalid cooldown input for resettable cooldown type"
+            );
+        }
+        if reward_cooldown.cooldown_epochs > 0 {
+            require!(
+                reward_cooldown.wins_per_cooldown > 0,
+                "Wins per cooldown must be greater than 0 for rewards with cooldown"
+            );
+        }
         match reward.reward_type {
             RewardType::ExperiencePoints => {
                 require!(
@@ -68,17 +80,28 @@ pub trait RewardsModule: config::ConfigModule {
         }
     }
 
-    fn check_global_cooldown(&self, current_epoch: u64, reward: &Reward<Self::Api>) -> bool {
-        let global_cooldown_epoch = self.global_cooldown_epoch(&reward.reward_type).get();
+    fn check_reward_cooldown(&self, current_epoch: u64, reward: &Reward<Self::Api>) -> bool {
+        let mut reward_cooldown = self.reward_cooldown(reward.reward_id).get();
+        if reward_cooldown.cooldown_type == CooldownType::None {
+            return false;
+        };
 
-        if reward.epochs_cooldown == 0 {
-            false
-        } else if global_cooldown_epoch <= current_epoch {
-            self.global_cooldown_epoch(&reward.reward_type)
-                .set(current_epoch + reward.epochs_cooldown);
-            false
-        } else {
-            true
+        let mut cooldown_check = true;
+
+        if reward_cooldown.cooldown_type == CooldownType::ResetOnCooldown
+            && reward_cooldown.last_update_epoch + reward_cooldown.cooldown_epochs >= current_epoch
+        {
+            reward_cooldown.last_update_epoch = current_epoch;
+            reward_cooldown.remaining_epoch_wins = reward_cooldown.wins_per_cooldown;
         }
+
+        if reward_cooldown.remaining_epoch_wins > 0 {
+            reward_cooldown.remaining_epoch_wins -= 1;
+            cooldown_check = false;
+        }
+
+        self.reward_cooldown(reward.reward_id).set(reward_cooldown);
+
+        cooldown_check
     }
 }

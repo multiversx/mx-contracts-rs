@@ -2,7 +2,10 @@ use multiversx_sc::types::{Address, EgldOrEsdtTokenIdentifier, EsdtLocalRole, Mu
 use multiversx_sc_scenario::{
     managed_biguint, managed_buffer, managed_token_id, rust_biguint, whitebox::*, DebugApi,
 };
-use mystery_box::{config::RewardType, MysteryBox};
+use mystery_box::{
+    config::{CooldownType, RewardType},
+    MysteryBox,
+};
 
 pub const MYSTERY_BOX_WASM_PATH: &str = "mystery-box/output/mystery-box.wasm";
 pub const MB_TOKEN_ID: &[u8] = b"MBTOK-abcdef";
@@ -50,25 +53,7 @@ where
             &mb_token_roles[..],
         );
 
-        Self::internal_setup_mystery_box(
-            900,
-            5_999,
-            1,
-            3_000,
-            0,
-            1_500,
-            1_000,
-            0,
-            50,
-            1,
-            1,
-            1,
-            0,
-            0,
-            &owner_addr,
-            &mystery_box_wrapper,
-            &mut b_mock,
-        );
+        Self::internal_setup_mystery_box(&owner_addr, &mystery_box_wrapper, &mut b_mock);
 
         MysteryBoxSetup {
             b_mock,
@@ -79,20 +64,6 @@ where
 
     #[allow(clippy::too_many_arguments)]
     pub fn internal_setup_mystery_box(
-        experience_points_amount: u64,
-        experience_points_percentage: u64,
-        experience_points_cooldown: u64,
-        sft_reward_percentage: u64,
-        sft_reward_cooldown: u64,
-        percent_reward_amount: u64,
-        percent_reward_percentage: u64,
-        percent_reward_cooldown: u64,
-        fixed_value_reward_amount: u64,
-        fixed_value_reward_percentage: u64,
-        fixed_value_reward_cooldown: u64,
-        custom_reward_amount: u64,
-        custom_reward_percentage: u64,
-        custom_reward_cooldown: u64,
         owner_address: &Address,
         mb_wrapper: &ContractObjWrapper<mystery_box::ContractObj<DebugApi>, MysteryBoxObjBuilder>,
         b_mock: &mut BlockchainStateWrapper,
@@ -105,10 +76,12 @@ where
                 let mut reward = (
                     RewardType::ExperiencePoints,
                     EgldOrEsdtTokenIdentifier::egld(),
-                    managed_biguint!(experience_points_amount),
+                    managed_biguint!(10_000),
                     managed_buffer!(b"ExperiencePoints"),
-                    experience_points_percentage,
-                    experience_points_cooldown,
+                    5_000u64,
+                    CooldownType::None,
+                    0,
+                    0,
                 )
                     .into();
                 rewards_list.push(reward);
@@ -118,8 +91,10 @@ where
                     EgldOrEsdtTokenIdentifier::esdt(managed_token_id!(MB_TOKEN_ID)),
                     managed_biguint!(1),
                     managed_buffer!(b"MysteryBox"),
-                    sft_reward_percentage,
-                    sft_reward_cooldown,
+                    1_500u64,
+                    CooldownType::None,
+                    0,
+                    0,
                 )
                     .into();
                 rewards_list.push(reward);
@@ -127,10 +102,12 @@ where
                 reward = (
                     RewardType::PercentValue,
                     EgldOrEsdtTokenIdentifier::egld(),
-                    managed_biguint!(percent_reward_amount),
+                    managed_biguint!(1_500u64),
                     managed_buffer!(b"Percent"),
-                    percent_reward_percentage,
-                    percent_reward_cooldown,
+                    1_000u64,
+                    CooldownType::None,
+                    0,
+                    0,
                 )
                     .into();
                 rewards_list.push(reward);
@@ -138,10 +115,12 @@ where
                 reward = (
                     RewardType::FixedValue,
                     EgldOrEsdtTokenIdentifier::egld(),
-                    managed_biguint!(fixed_value_reward_amount),
+                    managed_biguint!(10u64),
                     managed_buffer!(b"FixedValue"),
-                    fixed_value_reward_percentage,
-                    fixed_value_reward_cooldown,
+                    2_400u64,
+                    CooldownType::ResetOnCooldown,
+                    5,
+                    2,
                 )
                     .into();
                 rewards_list.push(reward);
@@ -149,10 +128,12 @@ where
                 reward = (
                     RewardType::CustomReward,
                     EgldOrEsdtTokenIdentifier::egld(),
-                    managed_biguint!(custom_reward_amount),
+                    managed_biguint!(400u64),
                     managed_buffer!(b"CustomText"),
-                    custom_reward_percentage,
-                    custom_reward_cooldown,
+                    100u64,
+                    CooldownType::Lifetime,
+                    1,
+                    0,
                 )
                     .into();
                 rewards_list.push(reward);
@@ -202,38 +183,8 @@ where
     }
 
     #[allow(clippy::too_many_arguments)]
-    pub fn setup_mystery_box(
-        &mut self,
-        experience_points_amount: u64,
-        experience_points_percentage: u64,
-        experience_points_cooldown: u64,
-        sft_reward_percentage: u64,
-        sft_reward_cooldown: u64,
-        percent_reward_amount: u64,
-        percent_reward_percentage: u64,
-        percent_reward_cooldown: u64,
-        fixed_value_reward_amount: u64,
-        fixed_value_reward_percentage: u64,
-        fixed_value_reward_cooldown: u64,
-        custom_reward_amount: u64,
-        custom_reward_percentage: u64,
-        custom_reward_cooldown: u64,
-    ) {
+    pub fn setup_mystery_box(&mut self) {
         Self::internal_setup_mystery_box(
-            experience_points_amount,
-            experience_points_percentage,
-            experience_points_cooldown,
-            sft_reward_percentage,
-            sft_reward_cooldown,
-            percent_reward_amount,
-            percent_reward_percentage,
-            percent_reward_cooldown,
-            fixed_value_reward_amount,
-            fixed_value_reward_percentage,
-            fixed_value_reward_cooldown,
-            custom_reward_amount,
-            custom_reward_percentage,
-            custom_reward_cooldown,
             &self.owner_address,
             &self.mystery_box_wrapper,
             &mut self.b_mock,

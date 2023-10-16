@@ -19,9 +19,7 @@ fn test_mb_token_nonce_stacking() {
     mb_setup.b_mock.set_block_epoch(2);
     mb_setup.open_mystery_box(second_mb_token_nonce);
 
-    mb_setup.setup_mystery_box(
-        1_500, 5_999, 1, 3_000, 0, 1_500, 1_000, 0, 50, 1, 1, 0, 0, 0,
-    );
+    mb_setup.setup_mystery_box();
     let third_mb_token_nonce = mb_setup.create_mystery_box(1);
 
     // Should be different, as they were with different attributes
