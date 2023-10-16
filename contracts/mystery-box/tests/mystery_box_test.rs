@@ -34,22 +34,24 @@ fn test_open_multiple_mystery_box() {
     let mut mb_setup = MysteryBoxSetup::new(mystery_box::contract_obj);
 
     mb_setup.b_mock.set_block_epoch(1);
-    let mb_token_nonce = mb_setup.create_mystery_box(3);
+    let mb_token_nonce = mb_setup.create_mystery_box(4);
 
-    // We need to change the block random seed to properly test the RandomnessSource functionality
-    mb_setup.b_mock.set_block_epoch(2);
+    // We change the block random seed to properly test the RandomnessSource functionality
+    mb_setup.b_mock.set_block_epoch(3);
     mb_setup.b_mock.set_block_random_seed(Box::from([2u8; 48]));
     mb_setup.open_mystery_box(mb_token_nonce);
 
-    // We're still in epoch 2
-    // The first chosen reward (ExperiencePoints) is on global cooldown,
-    // So a MysteryBox reward is chosen next (which has no cooldown)
-    // The user receives directly a new MysteryBox, with a different nonce (new epoch)
+    // Change the block random seed
     mb_setup.b_mock.set_block_random_seed(Box::from([3u8; 48]));
     mb_setup.open_mystery_box(mb_token_nonce);
 
+    // Keep the block random seed the same for 3 mystery boxes
+    // This should select the same reward, which allows 2 wins per cooldown
     mb_setup.b_mock.set_block_epoch(4);
     mb_setup.b_mock.set_block_random_seed(Box::from([4u8; 48]));
     mb_setup.open_mystery_box(mb_token_nonce);
+    mb_setup.open_mystery_box(mb_token_nonce);
+
+    // Now a new prize is selected, as the initial one is on cooldown
     mb_setup.open_mystery_box(mb_token_nonce);
 }

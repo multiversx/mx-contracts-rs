@@ -78,7 +78,7 @@ where
                     EgldOrEsdtTokenIdentifier::egld(),
                     managed_biguint!(10_000),
                     managed_buffer!(b"ExperiencePoints"),
-                    5_000u64,
+                    3_000u64,
                     CooldownType::None,
                     0,
                     0,
@@ -117,9 +117,9 @@ where
                     EgldOrEsdtTokenIdentifier::egld(),
                     managed_biguint!(10u64),
                     managed_buffer!(b"FixedValue"),
-                    2_400u64,
+                    4_400u64,
                     CooldownType::ResetOnCooldown,
-                    5,
+                    2,
                     2,
                 )
                     .into();
