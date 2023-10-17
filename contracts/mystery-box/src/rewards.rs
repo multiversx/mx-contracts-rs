@@ -81,7 +81,12 @@ pub trait RewardsModule: config::ConfigModule {
     }
 
     fn check_reward_cooldown(&self, current_epoch: u64, reward: &Reward<Self::Api>) -> bool {
-        let mut reward_cooldown = self.reward_cooldown(reward.reward_id).get();
+        let reward_cooldown_mapper = self.reward_cooldown(reward.reward_id);
+        if reward_cooldown_mapper.is_empty() {
+            return false;
+        };
+
+        let mut reward_cooldown = reward_cooldown_mapper.get();
         if reward_cooldown.cooldown_type == CooldownType::None {
             return false;
         };
@@ -89,7 +94,7 @@ pub trait RewardsModule: config::ConfigModule {
         let mut cooldown_check = true;
 
         if reward_cooldown.cooldown_type == CooldownType::ResetOnCooldown
-            && reward_cooldown.last_update_epoch + reward_cooldown.cooldown_epochs >= current_epoch
+            && current_epoch >= reward_cooldown.last_update_epoch + reward_cooldown.cooldown_epochs
         {
             reward_cooldown.last_update_epoch = current_epoch;
             reward_cooldown.remaining_epoch_wins = reward_cooldown.wins_per_cooldown;
@@ -100,7 +105,7 @@ pub trait RewardsModule: config::ConfigModule {
             cooldown_check = false;
         }
 
-        self.reward_cooldown(reward.reward_id).set(reward_cooldown);
+        reward_cooldown_mapper.set(reward_cooldown);
 
         cooldown_check
     }
