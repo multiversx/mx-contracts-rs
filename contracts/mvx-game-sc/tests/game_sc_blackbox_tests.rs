@@ -143,6 +143,7 @@ impl GameContractState {
         wager: BigUint,
         caller: &str,
         game_sc: &mut ContractInfo<mvx_game_sc::Proxy<StaticApi>>,
+        expected_game_id: &str,
     ) -> &mut Self {
         self.world.sc_call(
             ScCallStep::new()
@@ -155,7 +156,7 @@ impl GameContractState {
                     number_of_players_max,
                     wager,
                 ))
-                .expect(TxExpect::ok().no_result()),
+                .expect(TxExpect::ok().result(expected_game_id)),
         );
 
         self
@@ -301,6 +302,7 @@ fn game_sc_simple_game_flow() {
         wager.clone(),
         OWNER_ADDR,
         &mut game_sc,
+        "1"
     );
 
     //check last game id, needs to be 1
@@ -397,6 +399,7 @@ fn game_sc_complex_flow() {
         wager.clone(),
         OWNER_ADDR,
         &mut game_sc,
+        "1"
     );
 
     //user1 joins
@@ -581,6 +584,7 @@ fn invalid_game_test() {
         wager.clone(),
         OWNER_ADDR,
         &mut game_sc,
+        "1"
     );
 
     //user1 joins

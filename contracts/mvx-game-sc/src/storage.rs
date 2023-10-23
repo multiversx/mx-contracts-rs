@@ -35,6 +35,10 @@ pub trait StorageModule {
     #[storage_mapper("gameSettings")]
     fn game_settings(&self, game_id: u64) -> SingleValueMapper<GameSettings<Self::Api>>;
 
+    #[view(getGameIdBySettings)]
+    #[storage_mapper("gameIdBySettings")]
+    fn game_id(&self, game_settings: &GameSettings<Self::Api>) -> SingleValueMapper<u64>;
+
     #[view(getPlayers)]
     #[storage_mapper("players")]
     fn players(&self, game_id: u64) -> UnorderedSetMapper<ManagedAddress>;

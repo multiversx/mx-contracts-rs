@@ -43,7 +43,7 @@ pub trait MvxGameSc: storage::StorageModule + owner::OwnerModule + private::Priv
         number_of_players_min: u64,
         number_of_players_max: u64,
         wager: BigUint,
-    ) {
+    ) -> u64 {
         self.require_enabled();
 
         let (token_id, amount) = self.call_value().single_fungible_esdt();
@@ -52,7 +52,8 @@ pub trait MvxGameSc: storage::StorageModule + owner::OwnerModule + private::Priv
         let (min, max) = self.get_min_max(number_of_players_min, number_of_players_max);
 
         let caller = self.blockchain().get_caller();
-        self.create_new_game(caller, waiting_time, min, max, wager);
+
+        self.create_new_game(caller, waiting_time, min, max, wager)
     }
 
     #[payable("*")]

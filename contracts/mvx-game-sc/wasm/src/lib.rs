@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           18
+// Endpoints:                           19
 // Async Callback (empty):               1
-// Total number of exported functions:  20
+// Total number of exported functions:  21
 
 #![no_std]
 
@@ -31,6 +31,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         isUserAdmin => is_user_admin
         getLastGameId => last_game_id
         getGameSettings => game_settings
+        getGameIdBySettings => game_id
         getPlayers => players
         getGamesPerUser => games_per_user
         sendReward => send_reward
