@@ -143,6 +143,7 @@ impl GameContractState {
         wager: BigUint,
         caller: &str,
         game_sc: &mut ContractInfo<mvx_game_sc::Proxy<StaticApi>>,
+        expected_game_id: &str,
     ) -> &mut Self {
         self.world.sc_call(
             ScCallStep::new()
@@ -155,7 +156,7 @@ impl GameContractState {
                     number_of_players_max,
                     wager,
                 ))
-                .expect(TxExpect::ok().no_result()),
+                .expect(TxExpect::ok().result(expected_game_id)),
         );
 
         self
@@ -301,6 +302,7 @@ fn game_sc_simple_game_flow() {
         wager.clone(),
         OWNER_ADDR,
         &mut game_sc,
+        "1"
     );
 
     //check last game id, needs to be 1
@@ -397,6 +399,7 @@ fn game_sc_complex_flow() {
         wager.clone(),
         OWNER_ADDR,
         &mut game_sc,
+        "1"
     );
 
     //user1 joins
@@ -518,6 +521,16 @@ fn game_sc_complex_flow() {
     winners.push((ManagedAddress::from(_user1), 8000u64)); //80%
     winners.push((ManagedAddress::from(_user2), 2000u64)); //20%
 
+    //make owner admin first
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(OWNER_ADDR)
+            .to(GAME_SC_ADDR)
+            .call(game_sc.set_admin(ManagedAddress::from(_owner)))
+            .expect(TxExpect::ok()),
+    );
+
+    //send reward
     state.send_reward(
         1u64,
         &mut game_sc,
@@ -553,6 +566,7 @@ fn invalid_game_test() {
     let number_of_players_min = 3u64;
     let number_of_players_max = 5u64;
     let wager = BigUint::from(100u64);
+    let _owner = state.owner.clone();
 
     //deploy
     state.deploy(&mut game_sc);
@@ -570,6 +584,7 @@ fn invalid_game_test() {
         wager.clone(),
         OWNER_ADDR,
         &mut game_sc,
+        "1"
     );
 
     //user1 joins
@@ -597,6 +612,15 @@ fn invalid_game_test() {
     state
         .world
         .set_state_step(SetStateStep::new().block_timestamp(102u64));
+
+    //make owner admin first
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(OWNER_ADDR)
+            .to(GAME_SC_ADDR)
+            .call(game_sc.set_admin(ManagedAddress::from(_owner)))
+            .expect(TxExpect::ok()),
+    );
 
     //send reward, invalid game => players should receive back wager, creator should receive the creation fee back
     state.send_reward(1u64, &mut game_sc, OptionalValue::None, OptionalValue::None);
