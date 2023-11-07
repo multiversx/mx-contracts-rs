@@ -13,4 +13,5 @@ add-labels = ["multisig-external-view"]
 [contracts.view]
 name = "multisig-view"
 external-view = true
+add-unlabelled = false
 add-labels = ["multisig-external-view"]
