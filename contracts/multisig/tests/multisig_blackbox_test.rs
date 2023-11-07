@@ -160,8 +160,8 @@ impl MultisigTestState {
                 self.multisig_contract.propose_transfer_execute(
                     to,
                     egld_amount,
-                    contract_call.endpoint_name,
-                    contract_call.arg_buffer.into_multi_value_encoded(),
+                    contract_call.function_call.function_name,
+                    contract_call.function_call.arg_buffer.into_multi_value_encoded(),
                 ),
             ))
     }
@@ -177,8 +177,8 @@ impl MultisigTestState {
                 self.multisig_contract.propose_async_call(
                     to,
                     egld_amount,
-                    contract_call.endpoint_name,
-                    contract_call.arg_buffer.into_multi_value_encoded(),
+                    contract_call.function_call.function_name,
+                    contract_call.function_call.arg_buffer.into_multi_value_encoded(),
                 ),
             ))
     }
