@@ -10,6 +10,9 @@ readme = "README.md"
 [lib]
 path = "src/paymaster.rs"
 
+[features]
+back-transfers = ["multiversx-sc/back-transfers"]
+
 [dev-dependencies]
 num-bigint = "0.4.2"
 

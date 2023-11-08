@@ -1,0 +1,10 @@
+[settings]
+main = "main"
+
+[contracts.main]
+name = "paymaster"
+
+[contracts.back-transfers]
+name = "paymaster-back-transfers"
+add-labels = ["back-transfers"]
+features = ["back-transfers"]

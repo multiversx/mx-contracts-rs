@@ -7,7 +7,8 @@
 // Init:                                 1
 // Endpoints:                            1
 // Async Callback (empty):               1
-// Total number of exported functions:   3
+// Promise callbacks:                    1
+// Total number of exported functions:   4
 
 #![no_std]
 
@@ -23,6 +24,7 @@ multiversx_sc_wasm_adapter::endpoints! {
     (
         init => init
         forwardExecution => forward_execution
+        transfer_callback => transfer_callback
     )
 }
 

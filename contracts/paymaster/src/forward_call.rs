@@ -24,7 +24,8 @@ pub trait ForwardCall {
             .call_and_exit();
     }
 
-    #[callback]
+    #[promises_callback]
+    #[label("back-transfers")]
     fn transfer_callback(
         &self,
         original_caller: ManagedAddress,
@@ -32,6 +33,7 @@ pub trait ForwardCall {
     ) -> MultiValueEncoded<ManagedBuffer> {
         // TODO: use ManagedGetBackTransfers once rc1.6 is activated
         let callback_payments = self.call_value().all_esdt_transfers().clone_value();
+        // let back_payments = self.blockchain().back
 
         match result {
             ManagedAsyncCallResult::Ok(return_values) => {
