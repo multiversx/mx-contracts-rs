@@ -14,10 +14,10 @@ path = "src/paymaster.rs"
 num-bigint = "0.4.2"
 
 [dependencies.multiversx-sc]
-version = "0.43.4"
+version = "0.44.0"
 
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.43.4"
+version = "0.44.0"
 
 [dev-dependencies.adder]
 path = "../adder"
