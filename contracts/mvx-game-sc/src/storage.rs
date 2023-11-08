@@ -18,6 +18,14 @@ pub trait StorageModule {
     #[storage_mapper("enabled")]
     fn enabled(&self) -> SingleValueMapper<bool>;
 
+    #[storage_mapper("admins")]
+    fn admins(&self) -> WhitelistMapper<ManagedAddress>;
+
+    #[view(isUserAdmin)]
+    fn is_user_admin(&self, user: ManagedAddress) -> bool {
+        self.admins().contains(&user)
+    }
+
     //GAME
     #[view(getLastGameId)]
     #[storage_mapper("lastGameId")]
@@ -26,6 +34,10 @@ pub trait StorageModule {
     #[view(getGameSettings)]
     #[storage_mapper("gameSettings")]
     fn game_settings(&self, game_id: u64) -> SingleValueMapper<GameSettings<Self::Api>>;
+
+    #[view(getGameIdBySettings)]
+    #[storage_mapper("gameIdBySettings")]
+    fn game_id(&self, game_settings: &GameSettings<Self::Api>) -> SingleValueMapper<u64>;
 
     #[view(getPlayers)]
     #[storage_mapper("players")]

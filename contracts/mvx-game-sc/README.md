@@ -17,6 +17,7 @@ and has to pay a fee for each new game.
 - set the `game starting fee` amount
 - set the `token id` for the currency of the SC (used for game starting fee, wager and reward)
 - `send rewards` or return the wager to the users who participated in a specific game
+- `set/remove admin` rights for a specific address 
 
 Each player has to pay the `wager` amount set by the game creator in the `token id` set by the owner in order to join the game.
 
@@ -40,6 +41,7 @@ fn create_game(
     number_of_players_min: u64,
     number_of_players_max: u64,
     wager: BigUint,
+    )
 ```
 Creates a game with a new id using the parameters sent by the caller if the payment is right (payment should be equal to `game starting fee`). 
 The SC calculates min and max from the parameters so you don't have to worry if you placed them wrong.
@@ -56,14 +58,14 @@ Caller can join a game with an existing game id if the payment is right (payment
 
 ### sendReward
 ```rust
-#[only_owner]
 #[endpoint(sendReward)]
 fn send_reward(
     &self,
     game_id: u64,
     winners: OptionalValue<MultiValueEncoded<(ManagedAddress, u64)>>,
+    )
 ```
-Owner can send the rewards for the players through this endpoint.
+Owner or admins can send the rewards for the players through this endpoint.
 
 
 **winners:**

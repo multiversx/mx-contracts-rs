@@ -13,7 +13,7 @@ pub trait PrivateModule: crate::storage::StorageModule {
         min: u64,
         max: u64,
         wager: BigUint,
-    ) {
+    ) -> u64 {
         let new_id = self.get_new_game_id();
         self.last_game_id().set(new_id);
         let now = self.blockchain().get_block_timestamp();
@@ -27,7 +27,11 @@ pub trait PrivateModule: crate::storage::StorageModule {
             creator: caller,
             status: Status::Invalid,
         };
+
+        self.game_id(&game_settings).set(new_id);
         self.game_settings(new_id).set(game_settings);
+
+        new_id
     }
 
     fn add_player(&self, caller: ManagedAddress, game_id: u64) {
