@@ -10,6 +10,7 @@ pub mod types;
 
 #[multiversx_sc::contract]
 pub trait MvxGameSc: storage::StorageModule + owner::OwnerModule + private::PrivateModule {
+    #[allow_multiple_var_args]
     #[init]
     fn init(
         &self,

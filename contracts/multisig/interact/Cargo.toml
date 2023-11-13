@@ -24,10 +24,10 @@ features = ["derive"]
 path = ".."
 
 [dependencies.multiversx-sc-modules]
-version = "0.43.4"
+version = "0.44.0"
 
 [dependencies.multiversx-sc-snippets]
-version = "0.43.3"
+version = "0.44.0"
 
 [dependencies.multiversx-sc-scenario]
-version = "=0.43.4"
+version = "=0.44.0"

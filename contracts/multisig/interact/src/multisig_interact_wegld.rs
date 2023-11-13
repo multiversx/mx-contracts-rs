@@ -99,8 +99,8 @@ impl MultisigInteract {
                     .call(self.state.multisig().propose_async_call(
                         contract_call.basic.to,
                         0u64,
-                        contract_call.basic.endpoint_name,
-                        contract_call.basic.arg_buffer.into_multi_value_encoded(),
+                        contract_call.basic.function_call.function_name,
+                        contract_call.basic.function_call.arg_buffer.into_multi_value_encoded(),
                     ))
                     .from(&self.wallet_address)
                     .gas_limit("10,000,000"),

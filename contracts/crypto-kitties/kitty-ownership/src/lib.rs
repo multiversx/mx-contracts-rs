@@ -10,6 +10,7 @@ use random::*;
 
 #[multiversx_sc::contract]
 pub trait KittyOwnership {
+    #[allow_multiple_var_args]
     #[init]
     fn init(
         &self,
@@ -569,11 +570,11 @@ pub trait KittyOwnership {
                 // send birth fee to caller
                 let fee = self.birth_fee().get();
                 self.send().direct_egld(&original_caller, &fee);
-            },
+            }
             ManagedAsyncCallResult::Err(_) => {
                 // this can only fail if the kitty_genes contract address is invalid
                 // in which case, the only thing we can do is call this again later
-            },
+            }
         }
     }
 

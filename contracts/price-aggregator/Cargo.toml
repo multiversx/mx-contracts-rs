@@ -1,6 +1,6 @@
 [package]
 name = "multiversx-price-aggregator-sc"
-version = "0.43.3"
+version = "0.44.0"
 authors = ["Claudiu-Marcel Bruda <claudiu.bruda@multiversx.com>", "MultiversX <contact@multiversx.com>"]
 license = "GPL-3.0-only"
 readme = "README.md"
@@ -15,13 +15,13 @@ edition = "2021"
 [lib]
 path = "src/lib.rs"
 [dependencies.multiversx-sc]
-version = "0.43.4"
+version = "0.44.0"
 
 [dependencies.multiversx-sc-modules]
-version = "0.43.4"
+version = "0.44.0"
 
 [dependencies.arrayvec]
 version = "0.7.1"
 default-features = false
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.43.4"
+version = "0.44.0"
