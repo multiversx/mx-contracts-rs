@@ -23,8 +23,8 @@ multiversx_sc_wasm_adapter::endpoints! {
     (
         init => init
         upgrade => upgrade
-        deployContract => deploy_contract
-        upgradeContract => upgrade_contract
+        contractDeploy => contract_deploy
+        contractUpgrade => contract_upgrade
         callContractEndpoint => call_contract_endpoint
         addContractTemplate => add_contract_template
         removeContractTemplate => remove_contract_template

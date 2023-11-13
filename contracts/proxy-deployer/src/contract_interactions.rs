@@ -5,8 +5,8 @@ use crate::config;
 
 #[multiversx_sc::module]
 pub trait ContractInteractionsModule: config::ConfigModule {
-    #[endpoint(deployContract)]
-    fn deploy_contract(
+    #[endpoint(contractDeploy)]
+    fn contract_deploy(
         &self,
         template_address_id: AddressId,
         args: MultiValueEncoded<ManagedBuffer>,
@@ -39,15 +39,19 @@ pub trait ContractInteractionsModule: config::ConfigModule {
         new_contract_address
     }
 
-    #[endpoint(upgradeContract)]
-    fn upgrade_contract(
+    #[endpoint(contractUpgrade)]
+    fn contract_upgrade(
         &self,
         contract_address: ManagedAddress,
         template_address_id: AddressId,
         args: MultiValueEncoded<ManagedBuffer>,
     ) {
         let caller = self.blockchain().get_caller();
-        require!(self.deployer_contract_addresses(&caller).contains(&contract_address), "Caller is not the deployer of the contract");
+        require!(
+            self.deployer_contract_addresses(&caller)
+                .contains(&contract_address),
+            "Caller is not the deployer of the contract"
+        );
 
         let mut arguments = ManagedArgBuffer::new();
         for arg in args {
@@ -78,7 +82,11 @@ pub trait ContractInteractionsModule: config::ConfigModule {
         args: MultiValueEncoded<ManagedBuffer>,
     ) {
         let caller = self.blockchain().get_caller();
-        require!(self.deployer_contract_addresses(&caller).contains(&contract_address), "Caller is not the deployer of the contract");
+        require!(
+            self.deployer_contract_addresses(&caller)
+                .contains(&contract_address),
+            "Caller is not the deployer of the contract"
+        );
 
         let gas_left = self.blockchain().get_gas_left();
         let mut contract_call = self

@@ -15,6 +15,11 @@ pub trait Adder {
         self.sum().set(initial_value);
     }
 
+    #[endpoint]
+    fn upgrade(&self, new_value: BigUint) {
+        self.sum().set(new_value);
+    }
+
     /// Add desired amount to the storage variable.
     #[payable("*")]
     #[endpoint]

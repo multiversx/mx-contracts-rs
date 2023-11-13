@@ -7,7 +7,9 @@ pub mod config;
 pub mod contract_interactions;
 
 #[multiversx_sc::contract]
-pub trait ProxyDeployer: contract_interactions::ContractInteractionsModule + config::ConfigModule {
+pub trait ProxyDeployer:
+    contract_interactions::ContractInteractionsModule + config::ConfigModule
+{
     #[init]
     fn init(&self) {}
 

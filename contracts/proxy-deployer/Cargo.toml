@@ -14,3 +14,6 @@ features = ["esdt-token-payment-legacy-decode"]
 
 [dev-dependencies.multiversx-sc-scenario]
 version = "=0.43.4"
+
+[dev-dependencies.adder]
+path = "../adder"
