@@ -19,9 +19,7 @@ fn test_mb_token_nonce_stacking() {
     mb_setup.b_mock.set_block_epoch(2);
     mb_setup.open_mystery_box(second_mb_token_nonce);
 
-    mb_setup.setup_mystery_box(
-        1_500, 5_999, 1, 3_000, 0, 1_500, 1_000, 0, 50, 1, 1, 0, 0, 0,
-    );
+    mb_setup.setup_mystery_box();
     let third_mb_token_nonce = mb_setup.create_mystery_box(1);
 
     // Should be different, as they were with different attributes
@@ -36,22 +34,39 @@ fn test_open_multiple_mystery_box() {
     let mut mb_setup = MysteryBoxSetup::new(mystery_box::contract_obj);
 
     mb_setup.b_mock.set_block_epoch(1);
-    let mb_token_nonce = mb_setup.create_mystery_box(3);
+    let mb_token_nonce = mb_setup.create_mystery_box(10);
 
-    // We need to change the block random seed to properly test the RandomnessSource functionality
-    mb_setup.b_mock.set_block_epoch(2);
+    // We change the block random seed to properly test the RandomnessSource functionality
+    mb_setup.b_mock.set_block_epoch(3);
     mb_setup.b_mock.set_block_random_seed(Box::from([2u8; 48]));
     mb_setup.open_mystery_box(mb_token_nonce);
 
-    // We're still in epoch 2
-    // The first chosen reward (ExperiencePoints) is on global cooldown,
-    // So a MysteryBox reward is chosen next (which has no cooldown)
-    // The user receives directly a new MysteryBox, with a different nonce (new epoch)
+    // Change the block random seed
     mb_setup.b_mock.set_block_random_seed(Box::from([3u8; 48]));
     mb_setup.open_mystery_box(mb_token_nonce);
 
+    // Keep the block random seed the same for 3 mystery boxes (ResetOnCooldown)
+    // This should select the same reward, which allows 2 wins per cooldown
     mb_setup.b_mock.set_block_epoch(4);
     mb_setup.b_mock.set_block_random_seed(Box::from([4u8; 48]));
     mb_setup.open_mystery_box(mb_token_nonce);
+    mb_setup.open_mystery_box(mb_token_nonce);
+
+    // Now a new prize is selected, as the initial one is on cooldown
+    // A lifetime prize is opened, so it should not be won again from now on
+    mb_setup.open_mystery_box(mb_token_nonce);
+
+    // The 2 epochs cooldown has passed, ResetOnCooldown prize can be won again
+    mb_setup.b_mock.set_block_epoch(6);
+    mb_setup.b_mock.set_block_random_seed(Box::from([6u8; 48]));
+    mb_setup.open_mystery_box(mb_token_nonce);
+    mb_setup.open_mystery_box(mb_token_nonce);
+
+    // The ResetOnCooldown prize cannot be won the third time during the cooldown, so a new one is selected
+    mb_setup.open_mystery_box(mb_token_nonce);
+
+    // The lifetime reward is selected again, but it can't be won again, so a new prize is selected
+    mb_setup.b_mock.set_block_epoch(7);
+    mb_setup.b_mock.set_block_random_seed(Box::from([7u8; 48]));
     mb_setup.open_mystery_box(mb_token_nonce);
 }

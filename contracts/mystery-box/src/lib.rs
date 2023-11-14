@@ -8,8 +8,8 @@ pub mod events;
 pub mod rewards;
 pub mod token_attributes;
 
-use crate::config::SFT_AMOUNT;
-use config::{Reward, RewardType, MAX_PERCENTAGE};
+use crate::config::{RewardCooldown, SFT_AMOUNT};
+use config::{CooldownType, Reward, RewardType, MAX_PERCENTAGE};
 use multiversx_sc_modules::only_admin;
 
 #[multiversx_sc::contract]
@@ -36,10 +36,21 @@ pub trait MysteryBox:
     fn setup_mystery_box(
         &self,
         winning_rates_list: MultiValueEncoded<
-            MultiValue6<RewardType, EgldOrEsdtTokenIdentifier, BigUint, ManagedBuffer, u64, u64>,
+            MultiValue8<
+                RewardType,
+                EgldOrEsdtTokenIdentifier,
+                BigUint,
+                ManagedBuffer,
+                u64,
+                CooldownType,
+                u64,
+                u64,
+            >,
         >,
     ) {
         self.require_caller_is_admin();
+        let current_epoch = self.blockchain().get_block_epoch();
+        let mut reward_id = self.last_reward_id().get();
         let mut accumulated_percentage = 0u64;
         let mut winning_rates = ManagedVec::new();
         for winning_rate in winning_rates_list.into_iter() {
@@ -49,25 +60,38 @@ pub trait MysteryBox:
                 value,
                 description,
                 percentage_chance,
-                epochs_cooldown,
+                cooldown_type,
+                wins_per_cooldown,
+                cooldown_epochs,
             ) = winning_rate.into_tuple();
             accumulated_percentage += percentage_chance;
+            reward_id += 1;
             let reward = Reward::new(
+                reward_id,
                 reward_type,
                 reward_token_id,
                 value,
                 description,
                 percentage_chance,
-                epochs_cooldown,
             );
-            self.check_reward_validity(&reward);
+            let reward_cooldown = RewardCooldown::new(
+                cooldown_type,
+                wins_per_cooldown,
+                cooldown_epochs,
+                wins_per_cooldown,
+                current_epoch,
+            );
+            self.check_reward_validity(&reward, &reward_cooldown);
             winning_rates.push(reward);
+
+            self.reward_cooldown(reward_id).set(reward_cooldown);
         }
         require!(
             accumulated_percentage == MAX_PERCENTAGE,
             "The total percentage must be 100%"
         );
 
+        self.last_reward_id().set(reward_id);
         self.winning_rates().set(winning_rates);
         self.mystery_box_uris().set_if_empty(ManagedVec::new());
     }
@@ -129,7 +153,7 @@ pub trait MysteryBox:
         let mut winning_reward = Reward::default();
         while active_cooldown {
             winning_reward = self.get_winning_reward(&attributes);
-            active_cooldown = self.check_global_cooldown(current_epoch, &winning_reward);
+            active_cooldown = self.check_reward_cooldown(current_epoch, &winning_reward);
         }
 
         // We send the mystery box rewards directly to the user
