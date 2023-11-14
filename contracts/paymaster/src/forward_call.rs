@@ -24,34 +24,31 @@ pub trait ForwardCall {
             .call_and_exit();
     }
 
-    #[promises_callback]
-    #[label("back-transfers")]
+    #[callback]
     fn transfer_callback(
         &self,
         original_caller: ManagedAddress,
         #[call_result] result: ManagedAsyncCallResult<MultiValueEncoded<ManagedBuffer>>,
     ) -> MultiValueEncoded<ManagedBuffer> {
         // TODO: use ManagedGetBackTransfers once rc1.6 is activated
-        let callback_payments = self.call_value().all_esdt_transfers().clone_value();
-        // let back_payments = self.blockchain().back
+        let back_transfers = self.blockchain().get_back_transfers();
+
+        // Send the original input tokens back to the original caller
+        if !back_transfers.esdt_payments.is_empty() {
+            self.send()
+                .direct_multi(&original_caller, &back_transfers.esdt_payments);
+        }
+        if back_transfers.total_egld_amount != BigUint::zero() {
+            self.send()
+                .direct_egld(&original_caller, &back_transfers.total_egld_amount)
+        }
 
         match result {
             ManagedAsyncCallResult::Ok(return_values) => {
                 // Send the resulted tokens to the original caller
-                if !callback_payments.is_empty() {
-                    self.send()
-                        .direct_multi(&original_caller, &callback_payments);
-                }
-
                 return_values
             }
             ManagedAsyncCallResult::Err(err) => {
-                // Send the original input tokens back to the original caller
-                if !callback_payments.is_empty() {
-                    self.send()
-                        .direct_multi(&original_caller, &callback_payments);
-                }
-
                 let mut err_result = MultiValueEncoded::new();
                 err_result.push(ManagedBuffer::new_from_bytes(ERR_CALLBACK_MSG));
                 err_result.push(err.err_msg);

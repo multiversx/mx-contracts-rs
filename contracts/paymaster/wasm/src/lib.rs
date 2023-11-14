@@ -6,7 +6,7 @@
 
 // Init:                                 1
 // Endpoints:                            1
-// Async Callback (empty):               1
+// Async Callback:                       1
 // Total number of exported functions:   3
 
 #![no_std]
@@ -26,4 +26,4 @@ multiversx_sc_wasm_adapter::endpoints! {
     )
 }
 
-multiversx_sc_wasm_adapter::async_callback_empty! {}
+multiversx_sc_wasm_adapter::async_callback! { paymaster }
