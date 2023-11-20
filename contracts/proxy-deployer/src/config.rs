@@ -1,33 +1,68 @@
 multiversx_sc::imports!();
+multiversx_sc::derive_imports!();
 
-use crate::address_to_id_mapper::{AddressId, AddressToIdMapper};
+#[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, TypeAbi)]
+pub struct OngoingUpgradeOperation<M: ManagedTypeApi> {
+    pub template_address: ManagedAddress<M>,
+    pub arguments: ManagedArgBuffer<M>,
+    pub contracts_remaining: ManagedVec<M, ManagedAddress<M>>,
+}
+
+impl<M: ManagedTypeApi> OngoingUpgradeOperation<M> {
+    #[inline]
+    pub fn new(
+        template_address: ManagedAddress<M>,
+        arguments: ManagedArgBuffer<M>,
+        contracts_remaining: ManagedVec<M, ManagedAddress<M>>,
+    ) -> Self {
+        OngoingUpgradeOperation {
+            template_address,
+            arguments,
+            contracts_remaining,
+        }
+    }
+}
 
 #[multiversx_sc::module]
 pub trait ConfigModule {
     #[only_owner]
-    #[endpoint(addContractTemplate)]
-    fn add_contract_template(&self, template_address: ManagedAddress) -> AddressId {
+    #[endpoint(addDeployerToBlacklist)]
+    fn add_deployer_to_blacklist(&self, blacklisted_address: ManagedAddress) {
         require!(
-            self.blockchain().is_smart_contract(&template_address),
-            "Invalid template address"
+            self.deployers_list().contains(&blacklisted_address),
+            "The address is not a deployer"
         );
-
-        self.address_ids().insert_new(&template_address)
+        require!(
+            !self
+                .blacklisted_deployers_list()
+                .contains(&blacklisted_address),
+            "Address already blacklisted"
+        );
+        self.blacklisted_deployers_list()
+            .insert(blacklisted_address);
     }
 
     #[only_owner]
-    #[endpoint(removeContractTemplate)]
-    fn remove_contract_template(&self, address_id: AddressId) {
+    #[endpoint(removeDeployerFromBlacklist)]
+    fn remove_deployer_from_blacklist(&self, address: ManagedAddress) {
         require!(
-            self.address_ids().contains_id(address_id),
-            "Invalid address id"
+            self.blacklisted_deployers_list().contains(&address),
+            "Address is not blacklisted"
         );
 
-        self.address_ids().remove_by_id(address_id);
+        self.blacklisted_deployers_list().swap_remove(&address);
     }
 
-    #[storage_mapper("addressIds")]
-    fn address_ids(&self) -> AddressToIdMapper<Self::Api>;
+    #[view(getAllDeployedContractsByTemplate)]
+    #[storage_mapper("deployedContractsByTemplate")]
+    fn deployed_contracts_list_by_template(
+        &self,
+        template_address: &ManagedAddress,
+    ) -> SingleValueMapper<ManagedVec<ManagedAddress>>;
+
+    #[view(getOngoingUpgradeOperations)]
+    #[storage_mapper("ongoingUpgradeOperation")]
+    fn ongoing_upgrade_operation(&self) -> SingleValueMapper<OngoingUpgradeOperation<Self::Api>>;
 
     #[view(getAllDeployers)]
     #[storage_mapper("deployersList")]
@@ -39,4 +74,8 @@ pub trait ConfigModule {
         &self,
         deployer_address: &ManagedAddress,
     ) -> UnorderedSetMapper<ManagedAddress>;
+
+    #[view(getAllBlacklistedDeployers)]
+    #[storage_mapper("blacklistedDeployersList")]
+    fn blacklisted_deployers_list(&self) -> UnorderedSetMapper<ManagedAddress>;
 }

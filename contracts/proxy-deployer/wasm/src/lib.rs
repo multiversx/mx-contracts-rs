@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                            8
+// Endpoints:                           15
 // Async Callback (empty):               1
-// Total number of exported functions:  10
+// Total number of exported functions:  17
 
 #![no_std]
 
@@ -25,11 +25,18 @@ multiversx_sc_wasm_adapter::endpoints! {
         upgrade => upgrade
         contractDeploy => contract_deploy
         contractUpgrade => contract_upgrade
-        callContractEndpoint => call_contract_endpoint
-        addContractTemplate => add_contract_template
-        removeContractTemplate => remove_contract_template
+        contractCallByAddress => contract_call_by_address
+        upgradeContractsByTemplate => upgrade_contracts_by_template
+        addDeployerToBlacklist => add_deployer_to_blacklist
+        removeDeployerFromBlacklist => remove_deployer_from_blacklist
+        getAllDeployedContractsByTemplate => deployed_contracts_list_by_template
+        getOngoingUpgradeOperations => ongoing_upgrade_operation
         getAllDeployers => deployers_list
         getDeployerContractAddresses => deployer_contract_addresses
+        getAllBlacklistedDeployers => blacklisted_deployers_list
+        pause => pause_endpoint
+        unpause => unpause_endpoint
+        isPaused => paused_status
     )
 }
 

@@ -6,9 +6,7 @@ use multiversx_sc::{
 use multiversx_sc_scenario::{api::StaticApi, num_bigint::BigUint, scenario_model::*, *};
 
 use adder::ProxyTrait as _;
-use proxy_deployer::{
-    config::ProxyTrait as _, contract_interactions::ProxyTrait as _, ProxyTrait as _,
-};
+use proxy_deployer::{contract_interactions::ProxyTrait as _, ProxyTrait as _};
 
 const PROXY_DEPLOYER_ADDRESS_EXPR: &str = "sc:proxy_deployer";
 const TEMPLATE_CONTRACT_ADDRESS_EXPR: &str = "sc:template_contract";
@@ -35,7 +33,7 @@ struct ProxyDeployerTestState {
     world: ScenarioWorld,
     proxy_deployer_contract: ProxyDeployerContract,
     template_contract: TemplateContract,
-    template_contracts_ids: Vec<u64>,
+    template_contract_address: Address,
     deployed_contracts: Vec<Address>,
 }
 
@@ -47,12 +45,13 @@ impl ProxyDeployerTestState {
         );
         let proxy_deployer_contract = ProxyDeployerContract::new(PROXY_DEPLOYER_ADDRESS_EXPR);
         let template_contract = TemplateContract::new(TEMPLATE_CONTRACT_ADDRESS_EXPR);
+        let template_contract_address = template_contract.to_address();
 
         Self {
             world,
             proxy_deployer_contract,
             template_contract,
-            template_contracts_ids: vec![],
+            template_contract_address,
             deployed_contracts: vec![],
         }
     }
@@ -83,16 +82,6 @@ impl ProxyDeployerTestState {
                     .from(OWNER_ADDRESS_EXPR)
                     .code(template_contract_code)
                     .call(self.template_contract.init(BigUint::from(0u64))),
-            )
-            .sc_call_use_result(
-                ScCallStep::new().from(OWNER_ADDRESS_EXPR).call(
-                    self.proxy_deployer_contract.add_contract_template(
-                        ManagedAddress::from_address(&self.template_contract.to_address()),
-                    ),
-                ),
-                |r: TypedResponse<u64>| {
-                    self.template_contracts_ids.push(r.result.unwrap());
-                },
             );
 
         self
@@ -100,7 +89,7 @@ impl ProxyDeployerTestState {
 
     fn deploy_contract(
         &mut self,
-        template_address_id: u64,
+        template_address: &Address,
         args: MultiValueEncoded<StaticApi, ManagedBuffer<StaticApi>>,
     ) -> &mut Self {
         self.world
@@ -115,7 +104,7 @@ impl ProxyDeployerTestState {
                     .to(PROXY_DEPLOYER_ADDRESS_EXPR)
                     .call(
                         self.proxy_deployer_contract
-                            .contract_deploy(template_address_id, args),
+                            .contract_deploy(ManagedAddress::from_address(template_address), args),
                     ),
                 |r: TypedResponse<ManagedAddress<StaticApi>>| {
                     self.deployed_contracts.push(r.result.unwrap().to_address());
@@ -128,7 +117,7 @@ impl ProxyDeployerTestState {
     fn upgrade_contract(
         &mut self,
         contract_address: &Address,
-        template_address_id: u64,
+        template_address: &Address,
         args: MultiValueEncoded<StaticApi, ManagedBuffer<StaticApi>>,
     ) -> &mut Self {
         self.world.sc_call(
@@ -137,7 +126,7 @@ impl ProxyDeployerTestState {
                 .to(PROXY_DEPLOYER_ADDRESS_EXPR)
                 .call(self.proxy_deployer_contract.contract_upgrade(
                     ManagedAddress::from_address(contract_address),
-                    template_address_id,
+                    ManagedAddress::from_address(template_address),
                     args,
                 )),
         );
@@ -156,7 +145,7 @@ impl ProxyDeployerTestState {
             ScCallStep::new()
                 .from(OWNER_ADDRESS_EXPR)
                 .to(PROXY_DEPLOYER_ADDRESS_EXPR)
-                .call(self.proxy_deployer_contract.call_contract_endpoint(
+                .call(self.proxy_deployer_contract.contract_call_by_address(
                     ManagedAddress::from_address(contract_address),
                     function,
                     args,
@@ -182,10 +171,12 @@ fn proxy_deployer_blackbox_test() {
     let mut state = ProxyDeployerTestState::new();
     state.deploy_proxy_deployer_contract();
 
+    let template_address = state.template_contract_address.clone();
+
     // Test contract deploy
     let mut deploy_args = MultiValueEncoded::new();
     deploy_args.push(ManagedBuffer::from(top_encode_to_vec_u8_or_panic(&1u64)));
-    state.deploy_contract(state.template_contracts_ids[0], deploy_args);
+    state.deploy_contract(&template_address, deploy_args);
     state.check_contract_storage(1u64);
     let contract_address = state.deployed_contracts[0].to_owned();
 
@@ -196,13 +187,8 @@ fn proxy_deployer_blackbox_test() {
     state.check_contract_storage(10u64);
 
     // Test contract upgrade
-    state.world.dump_state_step();
     let mut upgrade_args = MultiValueEncoded::new();
     upgrade_args.push(ManagedBuffer::from(top_encode_to_vec_u8_or_panic(&5u64)));
-    state.upgrade_contract(
-        &contract_address,
-        state.template_contracts_ids[0],
-        upgrade_args,
-    );
+    state.upgrade_contract(&contract_address, &template_address, upgrade_args);
     state.check_contract_storage(5u64);
 }

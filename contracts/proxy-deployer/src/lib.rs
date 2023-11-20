@@ -2,13 +2,14 @@
 
 multiversx_sc::imports!();
 
-pub mod address_to_id_mapper;
+use multiversx_sc_modules::pause;
+
 pub mod config;
 pub mod contract_interactions;
 
 #[multiversx_sc::contract]
 pub trait ProxyDeployer:
-    contract_interactions::ContractInteractionsModule + config::ConfigModule
+    contract_interactions::ContractInteractionsModule + config::ConfigModule + pause::PauseModule
 {
     #[init]
     fn init(&self) {}

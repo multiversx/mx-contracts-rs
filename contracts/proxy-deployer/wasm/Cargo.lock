@@ -114,6 +114,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "multiversx-sc-modules"
+version = "0.43.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "75dc2548fe5072cad37b5c816d2344d7cd12e8cafb1a0ff8bbf2bc1829054710"
+dependencies = [
+ "multiversx-sc",
+]
+
+[[package]]
 name = "multiversx-sc-wasm-adapter"
 version = "0.43.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -160,6 +169,7 @@ name = "proxy-deployer"
 version = "0.0.0"
 dependencies = [
  "multiversx-sc",
+ "multiversx-sc-modules",
 ]
 
 [[package]]
