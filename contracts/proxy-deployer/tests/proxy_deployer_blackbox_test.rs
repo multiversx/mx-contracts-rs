@@ -45,7 +45,8 @@ impl ProxyDeployerTestState {
         );
         let proxy_deployer_contract = ProxyDeployerContract::new(PROXY_DEPLOYER_ADDRESS_EXPR);
         let template_contract = TemplateContract::new(TEMPLATE_CONTRACT_ADDRESS_EXPR);
-        let template_contract_address = template_contract.to_address();
+        let template_contract_address =
+            AddressValue::from(TEMPLATE_CONTRACT_ADDRESS_EXPR).to_address();
 
         Self {
             world,

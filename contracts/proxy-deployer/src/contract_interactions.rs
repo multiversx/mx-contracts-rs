@@ -77,7 +77,7 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
         self.check_caller_can_call_endpoint(&contract_address);
 
         self.send()
-            .contract_call::<()>(contract_address, function_name.clone())
+            .contract_call::<()>(contract_address, function_name)
             .with_gas_limit(self.blockchain().get_gas_left())
             .with_raw_arguments(args.to_arg_buffer())
             .execute_on_dest_context()
@@ -94,7 +94,7 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
         let mut ongoing_upgrade_operation =
             self.get_ongoing_operation(opt_template_address, opt_args);
         while self.blockchain().get_gas_left() >= gas_per_action + DEFAULT_GAS_FOR_SAVE
-            && ongoing_upgrade_operation.contracts_remaining.len() > 0
+            && !ongoing_upgrade_operation.contracts_remaining.is_empty()
         {
             let contract_address = ongoing_upgrade_operation
                 .contracts_remaining
@@ -110,7 +110,7 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             );
             ongoing_upgrade_operation.contracts_remaining.remove(0);
         }
-        if ongoing_upgrade_operation.contracts_remaining.len() > 0 {
+        if !ongoing_upgrade_operation.contracts_remaining.is_empty() {
             self.ongoing_upgrade_operation()
                 .set(ongoing_upgrade_operation);
             return false;
@@ -148,7 +148,7 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             .deployed_contracts_list_by_template(&template_address)
             .get();
         require!(
-            contracts_by_template.len() > 0,
+            !contracts_by_template.is_empty(),
             "No contracts deployed with this template"
         );
         let args = opt_args
