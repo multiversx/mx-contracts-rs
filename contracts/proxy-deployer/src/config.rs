@@ -53,6 +53,13 @@ pub trait ConfigModule {
         self.blacklisted_deployers_list().swap_remove(&address);
     }
 
+    #[only_owner]
+    #[endpoint(setDefaultGasForSaveOperation)]
+    fn set_default_gas_for_save_operation(&self, default_gas_for_save_operation: u64) {
+        self.default_gas_for_save_operation()
+            .set(default_gas_for_save_operation);
+    }
+
     #[view(getAllDeployedContractsByTemplate)]
     #[storage_mapper("deployedContractsByTemplate")]
     fn deployed_contracts_list_by_template(
@@ -63,6 +70,10 @@ pub trait ConfigModule {
     #[view(getOngoingUpgradeOperations)]
     #[storage_mapper("ongoingUpgradeOperation")]
     fn ongoing_upgrade_operation(&self) -> SingleValueMapper<OngoingUpgradeOperation<Self::Api>>;
+
+    #[view(getDefaultGasForSaveOperation)]
+    #[storage_mapper("defaultGasForSaveOperation")]
+    fn default_gas_for_save_operation(&self) -> SingleValueMapper<u64>;
 
     #[view(getAllDeployers)]
     #[storage_mapper("deployersList")]

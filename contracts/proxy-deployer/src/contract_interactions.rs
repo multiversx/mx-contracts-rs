@@ -4,8 +4,6 @@ use multiversx_sc_modules::pause;
 
 use crate::config::{self, OngoingUpgradeOperation};
 
-const DEFAULT_GAS_FOR_SAVE: u64 = 1_000_000;
-
 #[multiversx_sc::module]
 pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule {
     #[endpoint(contractDeploy)]
@@ -98,7 +96,9 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
     ) -> bool {
         let mut ongoing_upgrade_operation =
             self.get_ongoing_operation(opt_template_address, opt_args);
-        while self.blockchain().get_gas_left() >= gas_per_action + DEFAULT_GAS_FOR_SAVE
+
+        let default_gas_for_save = self.default_gas_for_save_operation().get();
+        while self.blockchain().get_gas_left() >= gas_per_action + default_gas_for_save
             && !ongoing_upgrade_operation.contracts_remaining.is_empty()
         {
             let contract_address = ongoing_upgrade_operation
