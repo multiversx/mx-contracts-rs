@@ -14,7 +14,7 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
         template_address: ManagedAddress,
         args: MultiValueEncoded<ManagedBuffer>,
     ) -> ManagedAddress {
-        self.require_not_paused();
+        self.can_call_endpoint(None);
         require!(
             self.blockchain().is_smart_contract(&template_address),
             "Template address is not a SC"
@@ -47,14 +47,15 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
         template_address: ManagedAddress,
         args: MultiValueEncoded<ManagedBuffer>,
     ) {
-        self.require_not_paused();
-        self.check_caller_can_call_endpoint(&contract_address);
+        self.can_call_endpoint(Some(contract_address.clone()));
+        require!(
+            self.blockchain().is_smart_contract(&contract_address),
+            "Contract address is not a SC"
+        );
         require!(
             self.blockchain().is_smart_contract(&template_address),
             "Template address is not a SC"
         );
-
-        let arguments = args.to_arg_buffer();
 
         self.send_raw().upgrade_from_source_contract(
             &contract_address,
@@ -62,7 +63,7 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             &BigUint::zero(),
             &template_address,
             CodeMetadata::DEFAULT,
-            &arguments,
+            &args.to_arg_buffer(),
         );
     }
 
@@ -73,8 +74,11 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
         function_name: ManagedBuffer,
         args: MultiValueEncoded<ManagedBuffer>,
     ) {
-        self.require_not_paused();
-        self.check_caller_can_call_endpoint(&contract_address);
+        self.can_call_endpoint(Some(contract_address.clone()));
+        require!(
+            self.blockchain().is_smart_contract(&contract_address),
+            "Contract address is not a SC"
+        );
 
         self.send()
             .contract_call::<()>(contract_address, function_name)
@@ -84,6 +88,7 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
     }
 
     #[only_owner]
+    #[allow_multiple_var_args]
     #[endpoint(upgradeContractsByTemplate)]
     fn upgrade_contracts_by_template(
         &self,
@@ -125,16 +130,17 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
         opt_template_address: OptionalValue<ManagedAddress>,
         opt_args: OptionalValue<MultiValueEncoded<ManagedBuffer>>,
     ) -> OngoingUpgradeOperation<Self::Api> {
+        let ongoing_operation_mapper = self.ongoing_upgrade_operation();
         if opt_template_address.is_none() {
             require!(
-                !self.ongoing_upgrade_operation().is_empty(),
+                !ongoing_operation_mapper.is_empty(),
                 "There is no operation ongoing"
             );
-            return self.ongoing_upgrade_operation().get();
+            return ongoing_operation_mapper.get();
         }
 
         require!(
-            self.ongoing_upgrade_operation().is_empty(),
+            ongoing_operation_mapper.is_empty(),
             "Another operation is currently ongoing"
         );
         let template_address = opt_template_address
@@ -151,9 +157,10 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             !contracts_by_template.is_empty(),
             "No contracts deployed with this template"
         );
-        let args = opt_args
-            .into_option()
-            .unwrap_or_else(|| sc_panic!("Unable to decode the arguments"));
+        let args = match opt_args.into_option() {
+            Some(args) => args,
+            None => MultiValueEncoded::new(),
+        };
 
         OngoingUpgradeOperation::new(
             template_address,
@@ -162,19 +169,29 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
         )
     }
 
-    fn check_caller_can_call_endpoint(&self, contract_address: &ManagedAddress) {
+    fn can_call_endpoint(&self, opt_contract_address: Option<ManagedAddress>) {
         let caller = self.blockchain().get_caller();
         let owner = self.blockchain().get_owner_address();
 
+        if caller == owner {
+            return;
+        }
+
+        self.require_not_paused();
         require!(
             !self.blacklisted_deployers_list().contains(&caller),
             "User is blacklisted"
         );
+
+        if opt_contract_address.is_none() {
+            return;
+        }
+        let contract_address =
+            opt_contract_address.unwrap_or_else(|| sc_panic!("Cannot unwrap the contract address"));
         require!(
             self.deployer_contract_addresses(&caller)
-                .contains(contract_address)
-                || caller == owner,
-            "Only owner and deployer can call this function"
+                .contains(&contract_address),
+            "Only the deployer can call this function"
         );
     }
 }
