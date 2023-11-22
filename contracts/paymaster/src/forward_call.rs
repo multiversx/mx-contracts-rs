@@ -32,6 +32,9 @@ pub trait ForwardCall {
     ) -> MultiValueEncoded<ManagedBuffer> {
         // TODO: use ManagedGetBackTransfers once rc1.6 is activated
         let back_transfers = self.blockchain().get_back_transfers();
+        let payments = self.call_value().all_esdt_transfers();
+
+        self.send().direct_multi(&original_caller, &payments.clone_value());
 
         // Send the original input tokens back to the original caller
         if !back_transfers.esdt_payments.is_empty() {
