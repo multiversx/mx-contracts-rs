@@ -109,8 +109,7 @@
                 ],
                 "function": "fund",
                 "arguments": [],
-                "gasLimit": "18446744073709551615",
-                "gasPrice": "0"
+                "gasLimit": "18446744073709551615"
             },
             "expect": {
                 "out": [],

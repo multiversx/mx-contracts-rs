@@ -7,8 +7,9 @@ publish = false
 
 [lib]
 path = "src/lib.rs"
+
 [dependencies.multiversx-sc]
-version = "0.44.0"
+version = "0.45.1"
 
 [dependencies.random]
 version = "0.0.0"

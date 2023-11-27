@@ -7,7 +7,9 @@ publish = false
 
 [lib]
 path = "src/digital_cash.rs"
+
 [dependencies.multiversx-sc]
-version = "0.44.0"
+version = "0.45.1"
+
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.44.0"
+version = "0.45.1"

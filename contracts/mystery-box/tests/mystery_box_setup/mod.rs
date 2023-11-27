@@ -1,6 +1,6 @@
 use multiversx_sc::types::{Address, EgldOrEsdtTokenIdentifier, EsdtLocalRole, MultiValueEncoded};
 use multiversx_sc_scenario::{
-    managed_biguint, managed_buffer, managed_token_id, rust_biguint, whitebox::*, DebugApi,
+    managed_biguint, managed_buffer, managed_token_id, rust_biguint, whitebox_legacy::*, DebugApi,
 };
 use mystery_box::{config::RewardType, MysteryBox};
 

@@ -7,6 +7,7 @@ publish = false
 
 [lib]
 path = "src/lib.rs"
+
 [dependencies.kitty]
 version = "0.0.0"
 path = "../common/kitty"
@@ -20,6 +21,7 @@ version = "0.0.0"
 path = "../kitty-genetic-alg"
 
 [dependencies.multiversx-sc]
-version = "0.44.0"
+version = "0.45.1"
+
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.44.0"
+version = "0.45.1"

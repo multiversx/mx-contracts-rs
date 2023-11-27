@@ -5,8 +5,10 @@ edition = "2021"
 publish = false
 
 [dev-dependencies]
+
 [dependencies.token-release]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
-version = "0.44.0"
+version = "0.45.1"
+default-features = false

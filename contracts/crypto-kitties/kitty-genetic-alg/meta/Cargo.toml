@@ -3,8 +3,10 @@ name = "kitty-genetic-alg-meta"
 version = "0.0.0"
 edition = "2021"
 publish = false
+
 [dependencies.kitty-genetic-alg]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
-version = "0.44.0"
+version = "0.45.1"
+default-features = false

@@ -6,8 +6,10 @@ publish = false
 authors = ["you"]
 
 [dev-dependencies]
+
 [dependencies.proxy-pause]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
-version = "0.44.0"
+version = "0.45.1"
+default-features = false
