@@ -12,11 +12,15 @@ path = "src/paymaster.rs"
 [dev-dependencies]
 num-bigint = "0.4.2"
 
+[dependencies.multiversx-sc]
+version = "0.45.1"
+features = ["back-transfers"]
+
 [dev-dependencies.multiversx-sc-scenario]
 version = "0.45.1"
 
 [dev-dependencies.adder]
 path = "../adder"
 
-[dependencies.multiversx-sc]
-version = "0.45.1"
+[dev-dependencies.multiversx-wegld-swap-sc]
+path = "../wegld-swap"
