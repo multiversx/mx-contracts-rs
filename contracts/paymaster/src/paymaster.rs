@@ -33,6 +33,6 @@ pub trait PaymasterContract: forward_call::ForwardCall {
         let mut payments_without_fee = payments.clone_value();
         payments_without_fee.remove(FEE_PAYMENT);
 
-        self.forward_call(dest, endpoint_name, endpoint_args, payments_without_fee);
+        self.forward_call(dest, endpoint_name, payments_without_fee, endpoint_args);
     }
 }

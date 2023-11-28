@@ -10,8 +10,8 @@ pub trait ForwardCall {
         &self,
         dest: ManagedAddress,
         endpoint_name: ManagedBuffer,
-        endpoint_args: MultiValueEncoded<ManagedBuffer>,
         payments: PaymentsVec<Self::Api>,
+        endpoint_args: MultiValueEncoded<ManagedBuffer>,
     ) {
         let original_caller = self.blockchain().get_caller();
 
