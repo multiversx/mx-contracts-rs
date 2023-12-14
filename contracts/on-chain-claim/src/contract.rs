@@ -28,7 +28,7 @@ pub trait OnchainClaimContract:
                 last_epoch_claimed: current_epoch,
                 total_epochs_claimed: 1,
             };
-            self.address_info(&caller).set(&address_info);
+            self.address_info(&caller).set(address_info);
             return;
         }
 
