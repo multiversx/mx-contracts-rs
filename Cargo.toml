@@ -51,6 +51,8 @@ members = [
   "contracts/nft-minter/meta",
   "contracts/nft-storage-prepay",
   "contracts/nft-storage-prepay/meta",
+  "contracts/on-chain-claim",
+  "contracts/on-chain-claim/meta",
   "contracts/order-book/factory",
   "contracts/order-book/factory/meta",
   "contracts/order-book/pair",

@@ -1,0 +1,15 @@
+[package]
+name = "on-chain-claim"
+version = "0.0.0"
+authors = [ "Vlad Bucur <vlad.bucur@multiversx.com>"]
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/contract.rs"
+
+[dependencies.multiversx-sc]
+version = "0.45.1"
+
+[dev-dependencies.multiversx-sc-scenario]
+version = "0.45.1"
