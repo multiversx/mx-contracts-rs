@@ -19,12 +19,13 @@ pub trait OnchainClaimContract:
     #[endpoint(claim)]
     fn claim(&self) {
         let caller = self.blockchain().get_caller();
+        let current_epoch = self.blockchain().get_block_epoch();
 
         let address_info_mapper = self.address_info(&caller);
         if address_info_mapper.is_empty() {
             let address_info = AddressInfo {
                 current_streak: 1,
-                last_epoch_claimed: self.blockchain().get_block_epoch(),
+                last_epoch_claimed: current_epoch,
                 total_epochs_claimed: 1,
             };
             self.address_info(&caller).set(&address_info);
@@ -33,18 +34,18 @@ pub trait OnchainClaimContract:
 
         address_info_mapper.update(|address_info| {
             require!(
-                address_info.last_epoch_claimed < self.blockchain().get_block_epoch(),
+                address_info.last_epoch_claimed < current_epoch,
                 "epoch already claimed"
             );
 
-            if address_info.last_epoch_claimed + 1 == self.blockchain().get_block_epoch() {
+            if address_info.last_epoch_claimed + 1 == current_epoch {
                 address_info.current_streak += 1;
             } else {
                 address_info.current_streak = 1;
             }
 
             address_info.total_epochs_claimed += 1;
-            address_info.last_epoch_claimed = self.blockchain().get_block_epoch();
+            address_info.last_epoch_claimed = current_epoch;
         });
     }
 }
