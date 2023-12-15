@@ -36,11 +36,7 @@ pub trait OnChainClaimContract:
 
         let address_info_mapper = self.address_info(&caller);
         if address_info_mapper.is_empty() {
-            let address_info = AddressInfo {
-                current_streak: 1,
-                last_epoch_claimed: current_epoch,
-                total_epochs_claimed: 1,
-            };
+            let address_info = AddressInfo::new(1, current_epoch, 1);
             self.address_info(&caller).set(address_info);
             return;
         }
@@ -68,7 +64,7 @@ pub trait OnChainClaimContract:
         let caller = self.blockchain().get_caller();
         require!(
             !self.blockchain().is_smart_contract(&caller),
-            "Only user accounts can open mystery boxes"
+            "Only user accounts can perform claim and repair"
         );
         let payment = self.call_value().single_esdt();
         let repair_streak_token_identifier = self.repair_streak_token_identifier().get();

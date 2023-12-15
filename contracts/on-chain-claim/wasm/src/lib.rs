@@ -25,9 +25,9 @@ multiversx_sc_wasm_adapter::endpoints! {
         claim => claim
         claimAndRepair => claim_and_repair
         updateState => update_state
+        canBeRepaired => can_be_repaired
         getAddressInfo => address_info
         getRepairStreakTokenIdentifier => repair_streak_token_identifier
-        canBeRepaired => can_be_repaired
     )
 }
 
