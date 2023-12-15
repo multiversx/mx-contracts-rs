@@ -7,3 +7,18 @@ pub struct AddressInfo {
     pub last_epoch_claimed: u64,
     pub total_epochs_claimed: u64,
 }
+
+impl AddressInfo {
+    #[inline]
+    pub fn new(
+        current_streak: u64,
+        last_epoch_claimed: u64,
+        total_epochs_claimed: u64,
+    ) -> Self {
+        AddressInfo {
+            current_streak,
+            last_epoch_claimed,
+            total_epochs_claimed,
+        }
+    }
+}

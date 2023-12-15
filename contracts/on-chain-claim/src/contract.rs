@@ -1,23 +1,20 @@
 #![no_std]
 #![allow(unused_attributes)]
 
-use address_info::AddressInfo;
+pub use address_info::AddressInfo;
 
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
 pub mod address_info;
-mod storage;
-mod config;
-mod views;
+pub mod config;
 
-use crate::config::SFT_AMOUNT;
+use crate::config::{SFT_AMOUNT, MAX_REPAIR_GAP};
 
 /// An empty contract. To be used as a template when starting a new contract from scratch.
 #[multiversx_sc::contract]
 pub trait OnChainClaimContract:
-    storage::StorageModule
-    + views::ViewsModule {
+    config::ConfigModule {
     #[init]
     fn init(
         &self, 
@@ -32,7 +29,7 @@ pub trait OnChainClaimContract:
         let caller = self.blockchain().get_caller();
         require!(
             !self.blockchain().is_smart_contract(&caller),
-            "Only user accounts can open mystery boxes"
+            "Only user accounts can perform claim"
         );
 
         let current_epoch = self.blockchain().get_block_epoch();
@@ -87,18 +84,14 @@ pub trait OnChainClaimContract:
 
         require!(!address_info_mapper.is_empty(), "can't repair streak for address");
 
-        let address_info = address_info_mapper.get();
-
-        require!(address_info.last_epoch_claimed + 2 == current_epoch, "can't repair streak for current epoch");
-
         address_info_mapper.update(|address_info| {
             require!(
-                address_info.last_epoch_claimed + 2 == current_epoch, 
+                address_info.last_epoch_claimed + MAX_REPAIR_GAP == current_epoch, 
                 "can't repair streak for current epoch"
             );
 
-            address_info.current_streak += 2;
-            address_info.total_epochs_claimed += 2;
+            address_info.current_streak += MAX_REPAIR_GAP;
+            address_info.total_epochs_claimed += MAX_REPAIR_GAP;
             address_info.last_epoch_claimed = current_epoch;
         });
     }
@@ -112,22 +105,7 @@ pub trait OnChainClaimContract:
         last_epoch_claimed: u64,
         total_epochs_claimed: u64,
     ) {
-        let address_info_mapper = self.address_info(&address);
-
-        if address_info_mapper.is_empty() {
-            let address_info = AddressInfo {
-                current_streak: current_streak,
-                last_epoch_claimed: last_epoch_claimed,
-                total_epochs_claimed: total_epochs_claimed,
-            };
-            self.address_info(&address).set(address_info);
-            return;
-        }
-
-        address_info_mapper.update(|address_info| {
-            address_info.current_streak = current_streak;
-            address_info.last_epoch_claimed = last_epoch_claimed;
-            address_info.total_epochs_claimed = total_epochs_claimed;
-        });
+        let address_info = AddressInfo::new(current_streak, last_epoch_claimed, total_epochs_claimed);
+        self.address_info(&address).set(address_info);
     }
 }
