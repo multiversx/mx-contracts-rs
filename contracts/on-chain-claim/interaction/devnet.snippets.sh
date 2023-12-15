@@ -4,10 +4,11 @@ PROXY=https://devnet-gateway.multiversx.com
 CHAINID=D
 
 DEPLOY_GAS="25000000"
-
+SFT_IDENTIFIER=0x585354525245504149522d653162363733 #XSTRREPAIR-e1b673
 deploy() {
     mxpy --verbose contract deploy \
-          --bytecode="output/onchain-claim.wasm" \
+          --bytecode="output/on-chain-claim.wasm" \
+          --arguments ${SFT_IDENTIFIER} \
           --pem=${WALLET} \
           --gas-limit=${DEPLOY_GAS} \
           --proxy=${PROXY} \

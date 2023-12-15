@@ -8,4 +8,8 @@ pub trait StorageModule {
     #[view(getAddressInfo)]
     #[storage_mapper("address_info")]
     fn address_info(&self, address: &ManagedAddress) -> SingleValueMapper<AddressInfo>;
+
+    #[view(getRepairStreakTokenIdentifier)]
+    #[storage_mapper("repair_streak_token_identifier")]
+    fn repair_streak_token_identifier(&self) -> SingleValueMapper<TokenIdentifier>;
 }
