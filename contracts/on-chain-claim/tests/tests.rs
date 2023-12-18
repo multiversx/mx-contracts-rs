@@ -476,7 +476,7 @@ fn on_chain_claim_whitebox() {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address); 
             let can_be_repaired = sc.can_be_repaired(managed_address);
-            assert_eq!(can_be_repaired, false);
+            assert!(!can_be_repaired);
         })
         .set_state_step(
             SetStateStep::new()
@@ -486,7 +486,7 @@ fn on_chain_claim_whitebox() {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address); 
             let can_be_repaired = sc.can_be_repaired(managed_address);
-            assert_eq!(can_be_repaired, false);
+            assert!(!can_be_repaired);
         })
         .set_state_step(
             SetStateStep::new()
@@ -496,7 +496,7 @@ fn on_chain_claim_whitebox() {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address); 
             let can_be_repaired = sc.can_be_repaired(managed_address);
-            assert_eq!(can_be_repaired, true);
+            assert!(can_be_repaired);
         })
         .set_state_step(
             SetStateStep::new()
@@ -506,7 +506,7 @@ fn on_chain_claim_whitebox() {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address); 
             let can_be_repaired = sc.can_be_repaired(managed_address);
-            assert_eq!(can_be_repaired, false);
+            assert!(!can_be_repaired);
         })
         .whitebox_call_check(
             &on_chain_claim_whitebox,
@@ -548,7 +548,7 @@ fn on_chain_claim_whitebox() {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address); 
             let can_be_repaired = sc.can_be_repaired(managed_address);
-            assert_eq!(can_be_repaired, true);
+            assert!(can_be_repaired);
         })
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
