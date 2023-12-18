@@ -108,6 +108,6 @@ pub trait OnChainClaimContract:
         total_epochs_claimed: u64,
     ) {
         let address_info = AddressInfo::new(current_streak, last_epoch_claimed, total_epochs_claimed);
-        self.address_info(&address).set(address_info);
+        self.address_info(address).set(address_info);
     }
 }

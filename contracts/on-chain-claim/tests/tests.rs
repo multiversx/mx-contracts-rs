@@ -92,10 +92,10 @@ fn check_before_claim() {
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let address_info_mapper = sc.address_info(managed_address);
 
-            assert_eq!(address_info_mapper.is_empty(), true);
+            assert!(address_info_mapper.is_empty());
         });
 }
 
@@ -132,23 +132,23 @@ fn check_update_state() {
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let address_info_mapper = sc.address_info(managed_address);
 
-            assert_eq!(address_info_mapper.is_empty(), true);
+            assert!(address_info_mapper.is_empty());
         })
         .whitebox_call(
             &on_chain_claim_whitebox,
             ScCallStep::new().from(OWNER_ADDR),
             |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             sc.update_state(managed_address, 5u64, 21u64, 7u64);
             }
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let address_info = sc.address_info(managed_address).get();
 
             assert_eq!(address_info.current_streak, 5);
@@ -195,7 +195,7 @@ fn check_after_claim() {
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let address_info = sc.address_info(managed_address).get();
 
             assert_eq!(address_info.current_streak, 1);
@@ -213,7 +213,7 @@ fn check_after_claim() {
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let address_info = sc.address_info(managed_address).get();
 
             assert_eq!(address_info.current_streak, 2);
@@ -231,7 +231,7 @@ fn check_after_claim() {
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let address_info = sc.address_info(managed_address).get();
 
             assert_eq!(address_info.current_streak, 1);
@@ -280,10 +280,10 @@ fn check_claim_and_repair() {
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let address_info_mapper = sc.address_info(managed_address);
 
-            assert_eq!(address_info_mapper.is_empty(), true);
+            assert!(address_info_mapper.is_empty());
         })
         .whitebox_call_check(
             &on_chain_claim_whitebox,
@@ -301,10 +301,10 @@ fn check_claim_and_repair() {
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let address_info_mapper = sc.address_info(managed_address);
 
-            assert_eq!(address_info_mapper.is_empty(), true);
+            assert!(address_info_mapper.is_empty());
         })
         .whitebox_call(
             &on_chain_claim_whitebox,
@@ -313,7 +313,7 @@ fn check_claim_and_repair() {
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let address_info = sc.address_info(managed_address).get();
 
             assert_eq!(address_info.current_streak, 1);
@@ -340,7 +340,7 @@ fn check_claim_and_repair() {
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let address_info = sc.address_info(managed_address).get();
 
             assert_eq!(address_info.current_streak, 1);
@@ -391,7 +391,7 @@ fn check_claim_and_repair() {
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let address_info = sc.address_info(managed_address).get();
             assert_eq!(address_info.current_streak, 3);
             assert_eq!(address_info.total_epochs_claimed, 3);
@@ -466,7 +466,7 @@ fn on_chain_claim_whitebox() {
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let address_info = sc.address_info(managed_address).get();
             assert_eq!(address_info.current_streak, 1);
             assert_eq!(address_info.total_epochs_claimed, 1);
@@ -474,7 +474,7 @@ fn on_chain_claim_whitebox() {
         })
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let can_be_repaired = sc.can_be_repaired(managed_address);
             assert_eq!(can_be_repaired, false);
         })
@@ -484,7 +484,7 @@ fn on_chain_claim_whitebox() {
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let can_be_repaired = sc.can_be_repaired(managed_address);
             assert_eq!(can_be_repaired, false);
         })
@@ -494,7 +494,7 @@ fn on_chain_claim_whitebox() {
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let can_be_repaired = sc.can_be_repaired(managed_address);
             assert_eq!(can_be_repaired, true);
         })
@@ -504,7 +504,7 @@ fn on_chain_claim_whitebox() {
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let can_be_repaired = sc.can_be_repaired(managed_address);
             assert_eq!(can_be_repaired, false);
         })
@@ -529,7 +529,7 @@ fn on_chain_claim_whitebox() {
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let address_info = sc.address_info(managed_address).get();
             assert_eq!(address_info.current_streak, 1);
             assert_eq!(address_info.total_epochs_claimed, 2);
@@ -540,19 +540,19 @@ fn on_chain_claim_whitebox() {
             ScCallStep::new().from(OWNER_ADDR),
             |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             sc.update_state(managed_address, 5u64, 21u64, 7u64);
             }
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let can_be_repaired = sc.can_be_repaired(managed_address);
             assert_eq!(can_be_repaired, true);
         })
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let address_info = sc.address_info(managed_address).get();
             assert_eq!(address_info.current_streak, 5);
             assert_eq!(address_info.total_epochs_claimed, 7);
@@ -570,7 +570,7 @@ fn on_chain_claim_whitebox() {
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address.clone()); 
+            let managed_address = &ManagedAddress::from(address); 
             let address_info = sc.address_info(managed_address).get();
             assert_eq!(address_info.current_streak, 7);
             assert_eq!(address_info.total_epochs_claimed, 9);
