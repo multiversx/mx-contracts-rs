@@ -90,6 +90,12 @@ pub trait OnChainClaimContract:
             address_info.total_epochs_claimed += MAX_REPAIR_GAP;
             address_info.last_epoch_claimed = current_epoch;
         });
+
+        self.send().esdt_local_burn(
+            &payment.token_identifier,
+            payment.token_nonce,
+            &payment.amount,
+        );
     }
 
     #[only_owner]
