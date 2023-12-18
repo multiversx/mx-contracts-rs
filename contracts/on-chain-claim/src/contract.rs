@@ -102,7 +102,7 @@ pub trait OnChainClaimContract:
     #[endpoint(updateState)]
     fn update_state(
         &self, 
-        address: ManagedAddress,
+        address: &ManagedAddress,
         current_streak: u64,
         last_epoch_claimed: u64,
         total_epochs_claimed: u64,
