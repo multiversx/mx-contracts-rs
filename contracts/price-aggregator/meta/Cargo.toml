@@ -8,8 +8,8 @@ publish = false
 path = ".."
 
 [dependencies.multiversx-sc]
-version = "0.45.1"
+version = "0.45.2"
 
 [dependencies.multiversx-sc-meta]
-version = "0.45.1"
+version = "0.45.2"
 default-features = false
