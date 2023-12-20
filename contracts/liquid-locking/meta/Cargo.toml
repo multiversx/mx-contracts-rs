@@ -6,8 +6,10 @@ publish = false
 authors = ["you"]
 
 [dev-dependencies]
+
 [dependencies.liquid-locking]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
-version = "0.41.3"
+version = "0.45.2"
+default-features = false

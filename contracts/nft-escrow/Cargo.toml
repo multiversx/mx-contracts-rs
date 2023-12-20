@@ -1,7 +1,7 @@
 [package]
 name = "nft-escrow"
 version = "0.0.0"
-authors = [ "you",]
+authors = ["you"]
 edition = "2018"
 publish = false
 
@@ -9,7 +9,7 @@ publish = false
 path = "src/lib.rs"
 
 [dependencies.multiversx-sc]
-version = "0.44.0"
+version = "0.45.2"
 
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.44.0"
+version = "0.45.2"

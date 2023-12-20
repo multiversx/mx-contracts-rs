@@ -13,7 +13,8 @@ use multiversx_sc::{
     codec::multi_types::OptionalValue,
     storage::mappers::SingleValue,
     types::{
-        Address, BigUint, BoxedBytes, CodeMetadata, ManagedAddress, ManagedBuffer, ManagedVec,
+        Address, BigUint, BoxedBytes, CodeMetadata, FunctionCall, ManagedAddress, ManagedBuffer,
+        ManagedVec,
     },
 };
 use multiversx_sc_scenario::{
@@ -69,7 +70,7 @@ pub struct CallActionDataRaw {
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
-    blockchain.set_current_dir_from_workspace("contracts/multisig");
+    blockchain.set_current_dir_from_workspace("contracts/examples/multisig");
 
     blockchain.register_contract(MULTISIG_PATH_EXPR, multisig::ContractBuilder);
     blockchain
@@ -151,42 +152,26 @@ fn call_propose(
                 ActionRaw::_Nothing => panic!("Invalid action"),
                 ActionRaw::AddBoardMember(addr) => {
                     sc.propose_add_board_member(managed_address!(&addr))
-                }
+                },
                 ActionRaw::AddProposer(addr) => sc.propose_add_proposer(managed_address!(&addr)),
                 ActionRaw::RemoveUser(addr) => sc.propose_remove_user(managed_address!(&addr)),
                 ActionRaw::ChangeQuorum(new_size) => sc.propose_change_quorum(new_size),
-                ActionRaw::SendTransferExecute(call_data) => {
-                    let opt_endpoint = if call_data.endpoint_name.is_empty() {
-                        OptionalValue::None
-                    } else {
-                        OptionalValue::Some(ManagedBuffer::new_from_bytes(
-                            call_data.endpoint_name.as_slice(),
-                        ))
-                    };
-
-                    sc.propose_transfer_execute(
-                        managed_address!(&call_data.to),
-                        BigUint::from_bytes_be(&call_data.egld_amount.to_bytes_be()),
-                        opt_endpoint,
-                        boxed_bytes_vec_to_managed(call_data.arguments).into(),
-                    )
-                }
-                ActionRaw::SendAsyncCall(call_data) => {
-                    let opt_endpoint = if call_data.endpoint_name.is_empty() {
-                        OptionalValue::None
-                    } else {
-                        OptionalValue::Some(ManagedBuffer::new_from_bytes(
-                            call_data.endpoint_name.as_slice(),
-                        ))
-                    };
-
-                    sc.propose_async_call(
-                        managed_address!(&call_data.to),
-                        BigUint::from_bytes_be(&call_data.egld_amount.to_bytes_be()),
-                        opt_endpoint,
-                        boxed_bytes_vec_to_managed(call_data.arguments).into(),
-                    )
-                }
+                ActionRaw::SendTransferExecute(call_data) => sc.propose_transfer_execute(
+                    managed_address!(&call_data.to),
+                    BigUint::from_bytes_be(&call_data.egld_amount.to_bytes_be()),
+                    FunctionCall {
+                        function_name: call_data.endpoint_name.into(),
+                        arg_buffer: call_data.arguments.into(),
+                    },
+                ),
+                ActionRaw::SendAsyncCall(call_data) => sc.propose_async_call(
+                    managed_address!(&call_data.to),
+                    BigUint::from_bytes_be(&call_data.egld_amount.to_bytes_be()),
+                    FunctionCall {
+                        function_name: call_data.endpoint_name.into(),
+                        arg_buffer: call_data.arguments.into(),
+                    },
+                ),
                 ActionRaw::SCDeployFromSource {
                     amount,
                     source,

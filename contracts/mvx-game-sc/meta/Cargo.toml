@@ -3,7 +3,7 @@ name = "mvx-game-sc-meta"
 version = "0.0.0"
 edition = "2018"
 publish = false
-authors = [ "you",]
+authors = ["you"]
 
 [dev-dependencies]
 
@@ -11,4 +11,5 @@ authors = [ "you",]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
-version = "0.44.0"
+version = "0.45.2"
+default-features = false

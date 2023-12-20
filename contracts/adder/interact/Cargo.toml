@@ -14,7 +14,10 @@ toml = "0.7.2"
 
 [dependencies.clap]
 version = "4.1.0"
-features = ["derive", "cargo"]
+features = [
+    "derive",
+    "cargo",
+]
 
 [dependencies.serde]
 version = "1.0"
@@ -24,4 +27,4 @@ features = ["derive"]
 path = ".."
 
 [dependencies.multiversx-sc-snippets]
-version = "0.44.0"
+version = "0.45.2"

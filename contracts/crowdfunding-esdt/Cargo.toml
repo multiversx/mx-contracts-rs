@@ -7,8 +7,9 @@ publish = false
 
 [lib]
 path = "src/crowdfunding_esdt.rs"
+
 [dependencies.multiversx-sc]
-version = "0.44.0"
+version = "0.45.2"
 
 [dev-dependencies]
 num-bigint = "0.4.2"
@@ -16,4 +17,4 @@ num-traits = "0.2"
 hex = "0.4"
 
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.44.0"
+version = "0.45.2"
