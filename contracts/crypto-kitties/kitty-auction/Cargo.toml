@@ -17,7 +17,7 @@ version = "0.0.0"
 path = "../kitty-ownership"
 
 [dependencies.multiversx-sc]
-version = "0.45.1"
+version = "0.45.2"
 
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.45.1"
+version = "0.45.2"

@@ -43,10 +43,7 @@
                     {
                         "address": "sc:crypto_bubbles",
                         "endpoint": "str:transferValueOnly",
-                        "topics": [
-                            "0x10",
-                            "address:acc1"
-                        ],
+                        "topics": "*",
                         "data": "*"
                     },
                     {
