@@ -27,13 +27,23 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
         );
 
         let caller = self.blockchain().get_caller();
-        self.deployer_contract_addresses(&caller)
-            .insert(new_contract_address.clone());
-        self.deployers_list().insert(caller);
+        let mut deployed_addresses = match self
+            .deployer_template_addresses(&caller)
+            .get(&template_address)
+        {
+            Some(addresses) => addresses,
+            None => ManagedVec::new(),
+        };
+        deployed_addresses.push(new_contract_address.clone());
+
+        self.deployer_contracts(&caller).add(&new_contract_address);
         self.deployed_contracts_list_by_template(&template_address)
             .update(|deployed_contracts| {
                 deployed_contracts.push(new_contract_address.clone());
             });
+        self.deployer_template_addresses(&caller)
+            .insert(template_address, deployed_addresses);
+        self.deployers_list().insert(caller);
 
         new_contract_address
     }
@@ -189,8 +199,7 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
         let contract_address =
             opt_contract_address.unwrap_or_else(|| sc_panic!("Cannot unwrap the contract address"));
         require!(
-            self.deployer_contract_addresses(&caller)
-                .contains(&contract_address),
+            self.deployer_contracts(&caller).contains(&contract_address),
             "Only the deployer can call this function"
         );
     }

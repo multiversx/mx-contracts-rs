@@ -17,6 +17,6 @@ pub trait ProxyDeployer:
             .set(default_gas_for_save);
     }
 
-    #[endpoint]
+    #[upgrade]
     fn upgrade(&self) {}
 }

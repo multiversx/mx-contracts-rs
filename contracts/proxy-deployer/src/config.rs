@@ -60,6 +60,28 @@ pub trait ConfigModule {
             .set(default_gas_for_save_operation);
     }
 
+    #[view(getDeployerContractsByTemplate)]
+    fn get_deployer_contracts_by_template(
+        &self,
+        user: ManagedAddress,
+        template_address: ManagedAddress,
+    ) -> ManagedVec<ManagedAddress> {
+        let opt_deployer_template_addresses = self
+            .deployer_template_addresses(&user)
+            .get(&template_address);
+        opt_deployer_template_addresses.unwrap_or_default()
+    }
+
+    #[view(getAllDeployerContracts)]
+    fn get_all_deployer_contracts(&self, user: ManagedAddress) -> ManagedVec<ManagedAddress> {
+        let mut deployed_addresses = ManagedVec::new();
+        for value in self.deployer_template_addresses(&user).values() {
+            deployed_addresses.append_vec(value)
+        }
+
+        deployed_addresses
+    }
+
     #[view(getAllDeployedContractsByTemplate)]
     #[storage_mapper("deployedContractsByTemplate")]
     fn deployed_contracts_list_by_template(
@@ -79,12 +101,15 @@ pub trait ConfigModule {
     #[storage_mapper("deployersList")]
     fn deployers_list(&self) -> UnorderedSetMapper<ManagedAddress>;
 
-    #[view(getDeployerContractAddresses)]
-    #[storage_mapper("deployerContractAddresses")]
-    fn deployer_contract_addresses(
+    #[storage_mapper("deployerContracts")]
+    fn deployer_contracts(&self, user: &ManagedAddress) -> WhitelistMapper<ManagedAddress>;
+
+    // (K, V) - (TemplateAddress, Vec<DeployedAddress>)
+    #[storage_mapper("deployerTemplateAddresses")]
+    fn deployer_template_addresses(
         &self,
         deployer_address: &ManagedAddress,
-    ) -> UnorderedSetMapper<ManagedAddress>;
+    ) -> MapMapper<ManagedAddress, ManagedVec<ManagedAddress>>;
 
     #[view(getAllBlacklistedDeployers)]
     #[storage_mapper("blacklistedDeployersList")]
