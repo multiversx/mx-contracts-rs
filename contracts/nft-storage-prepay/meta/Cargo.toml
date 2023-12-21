@@ -6,8 +6,10 @@ edition = "2021"
 publish = false
 
 [dev-dependencies]
+
 [dependencies.nft-storage-prepay]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
-version = "0.44.0"
+version = "0.45.2"
+default-features = false

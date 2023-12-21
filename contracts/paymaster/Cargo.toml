@@ -1,11 +1,10 @@
 [package]
 name = "paymaster"
 version = "0.0.0"
-authors = [ "MultiversX <contact@multiversx.com>" ]
+authors = ["MultiversX <contact@multiversx.com>"]
 edition = "2018"
 publish = false
 readme = "README.md"
-
 
 [lib]
 path = "src/paymaster.rs"
@@ -14,10 +13,14 @@ path = "src/paymaster.rs"
 num-bigint = "0.4.2"
 
 [dependencies.multiversx-sc]
-version = "0.44.0"
+version = "0.45.2"
+features = ["back-transfers"]
 
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.44.0"
+version = "0.45.2"
 
 [dev-dependencies.adder]
 path = "../adder"
+
+[dev-dependencies.multiversx-wegld-swap-sc]
+path = "../wegld-swap"

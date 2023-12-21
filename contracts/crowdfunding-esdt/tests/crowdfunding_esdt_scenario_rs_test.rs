@@ -41,6 +41,7 @@ fn crowdfunding_claim_successful_rs() {
     world().run("scenarios/crowdfunding-claim-successful.scen.json");
 }
 
+
 #[test]
 fn crowdfunding_claim_too_early_rs() {
     world().run("scenarios/crowdfunding-claim-too-early.scen.json");

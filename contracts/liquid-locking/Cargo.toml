@@ -12,6 +12,7 @@ path = "src/lib.rs"
 num-bigint = "0.4.2"
 
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.41.3"
+version = "0.45.2"
+
 [dependencies.multiversx-sc]
-version = "0.41.3"
+version = "0.45.2"

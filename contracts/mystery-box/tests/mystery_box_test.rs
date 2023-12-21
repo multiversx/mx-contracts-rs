@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 mod mystery_box_setup;
 use mystery_box_setup::*;
 
@@ -40,18 +42,18 @@ fn test_open_multiple_mystery_box() {
 
     // We need to change the block random seed to properly test the RandomnessSource functionality
     mb_setup.b_mock.set_block_epoch(2);
-    mb_setup.b_mock.set_block_random_seed(Box::from([2u8; 48]));
+    mb_setup.b_mock.set_block_random_seed(&Box::from([2u8; 48]));
     mb_setup.open_mystery_box(mb_token_nonce);
 
     // We're still in epoch 2
     // The first chosen reward (ExperiencePoints) is on global cooldown,
     // So a MysteryBox reward is chosen next (which has no cooldown)
     // The user receives directly a new MysteryBox, with a different nonce (new epoch)
-    mb_setup.b_mock.set_block_random_seed(Box::from([3u8; 48]));
+    mb_setup.b_mock.set_block_random_seed(&Box::from([3u8; 48]));
     mb_setup.open_mystery_box(mb_token_nonce);
 
     mb_setup.b_mock.set_block_epoch(4);
-    mb_setup.b_mock.set_block_random_seed(Box::from([4u8; 48]));
+    mb_setup.b_mock.set_block_random_seed(&Box::from([4u8; 48]));
     mb_setup.open_mystery_box(mb_token_nonce);
     mb_setup.open_mystery_box(mb_token_nonce);
 }
