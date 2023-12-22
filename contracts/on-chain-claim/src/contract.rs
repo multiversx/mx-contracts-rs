@@ -9,17 +9,12 @@ multiversx_sc::derive_imports!();
 pub mod address_info;
 pub mod config;
 
-use crate::config::{SFT_AMOUNT, MAX_REPAIR_GAP};
+use crate::config::{MAX_REPAIR_GAP, SFT_AMOUNT};
 
-/// An empty contract. To be used as a template when starting a new contract from scratch.
 #[multiversx_sc::contract]
-pub trait OnChainClaimContract:
-    config::ConfigModule {
+pub trait OnChainClaimContract: config::ConfigModule {
     #[init]
-    fn init(
-        &self, 
-        repair_streak_token_id: TokenIdentifier, 
-    ) {
+    fn init(&self, repair_streak_token_id: TokenIdentifier) {
         self.repair_streak_token_identifier()
             .set(repair_streak_token_id);
     }
@@ -78,11 +73,14 @@ pub trait OnChainClaimContract:
 
         let address_info_mapper = self.address_info(&caller);
 
-        require!(!address_info_mapper.is_empty(), "can't repair streak for address");
+        require!(
+            !address_info_mapper.is_empty(),
+            "can't repair streak for address"
+        );
 
         address_info_mapper.update(|address_info| {
             require!(
-                address_info.last_epoch_claimed + MAX_REPAIR_GAP == current_epoch, 
+                address_info.last_epoch_claimed + MAX_REPAIR_GAP == current_epoch,
                 "can't repair streak for current epoch"
             );
 
@@ -101,13 +99,14 @@ pub trait OnChainClaimContract:
     #[only_owner]
     #[endpoint(updateState)]
     fn update_state(
-        &self, 
+        &self,
         address: &ManagedAddress,
         current_streak: u64,
         last_epoch_claimed: u64,
         total_epochs_claimed: u64,
     ) {
-        let address_info = AddressInfo::new(current_streak, last_epoch_claimed, total_epochs_claimed);
+        let address_info =
+            AddressInfo::new(current_streak, last_epoch_claimed, total_epochs_claimed);
         self.address_info(address).set(address_info);
     }
 }

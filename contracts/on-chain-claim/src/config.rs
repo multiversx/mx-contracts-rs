@@ -17,13 +17,13 @@ pub trait ConfigModule {
 
         let address_info = address_info_mapper.get();
 
-        address_info.last_epoch_claimed + 2 == self.blockchain().get_block_epoch()
+        address_info.last_epoch_claimed + MAX_REPAIR_GAP == self.blockchain().get_block_epoch()
     }
-    
+
     #[view(getAddressInfo)]
     #[storage_mapper("address_info")]
     fn address_info(&self, address: &ManagedAddress) -> SingleValueMapper<AddressInfo>;
-  
+
     #[view(getRepairStreakTokenIdentifier)]
     #[storage_mapper("repair_streak_token_identifier")]
     fn repair_streak_token_identifier(&self) -> SingleValueMapper<TokenIdentifier>;
