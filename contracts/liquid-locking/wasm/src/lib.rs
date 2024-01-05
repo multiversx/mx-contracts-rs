@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           12
+// Endpoints:                           13
 // Async Callback (empty):               1
-// Total number of exported functions:  14
+// Total number of exported functions:  15
 
 #![no_std]
 
@@ -22,6 +22,7 @@ multiversx_sc_wasm_adapter::endpoints! {
     liquid_locking
     (
         init => init
+        upgrade => upgrade
         set_unbond_period => set_unbond_period
         whitelist_token => whitelist_token
         blacklist_token => blacklist_token
