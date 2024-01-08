@@ -31,7 +31,7 @@ pub trait OnChainClaimContract: config::ConfigModule {
 
         let address_info_mapper = self.address_info(&caller);
         if address_info_mapper.is_empty() {
-            let address_info = AddressInfo::new(1, current_epoch, 1);
+            let address_info = AddressInfo::new(1, current_epoch, 1, 1);
             self.address_info(&caller).set(address_info);
             return;
         }
@@ -50,6 +50,10 @@ pub trait OnChainClaimContract: config::ConfigModule {
 
             address_info.total_epochs_claimed += 1;
             address_info.last_epoch_claimed = current_epoch;
+
+            if address_info.best_streak < address_info.current_streak {
+                address_info.best_streak = address_info.current_streak;
+            }
         });
     }
 
@@ -79,14 +83,20 @@ pub trait OnChainClaimContract: config::ConfigModule {
         );
 
         address_info_mapper.update(|address_info| {
+            let missed_epochs =
+                self.get_missed_epochs(current_epoch, address_info.last_epoch_claimed);
+
             require!(
-                address_info.last_epoch_claimed + MAX_REPAIR_GAP == current_epoch,
+                missed_epochs > 0 && missed_epochs <= MAX_REPAIR_GAP,
                 "can't repair streak for current epoch"
             );
 
-            address_info.current_streak += MAX_REPAIR_GAP;
-            address_info.total_epochs_claimed += MAX_REPAIR_GAP;
+            address_info.current_streak += missed_epochs + 1;
+            address_info.total_epochs_claimed += missed_epochs + 1;
             address_info.last_epoch_claimed = current_epoch;
+            if address_info.best_streak < address_info.current_streak {
+                address_info.best_streak = address_info.current_streak;
+            }
         });
 
         self.send().esdt_local_burn(
@@ -104,9 +114,14 @@ pub trait OnChainClaimContract: config::ConfigModule {
         current_streak: u64,
         last_epoch_claimed: u64,
         total_epochs_claimed: u64,
+        best_streak: u64,
     ) {
-        let address_info =
-            AddressInfo::new(current_streak, last_epoch_claimed, total_epochs_claimed);
+        let address_info = AddressInfo::new(
+            current_streak,
+            last_epoch_claimed,
+            total_epochs_claimed,
+            best_streak,
+        );
         self.address_info(address).set(address_info);
     }
 }
