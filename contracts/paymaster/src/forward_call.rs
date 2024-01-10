@@ -30,7 +30,6 @@ pub trait ForwardCall {
         original_caller: ManagedAddress,
         #[call_result] result: ManagedAsyncCallResult<MultiValueEncoded<ManagedBuffer>>,
     ) -> MultiValueEncoded<ManagedBuffer> {
-        // TODO: use ManagedGetBackTransfers once rc1.6 is activated
         let back_transfers = self.blockchain().get_back_transfers();
 
         // Send the original input tokens back to the original caller

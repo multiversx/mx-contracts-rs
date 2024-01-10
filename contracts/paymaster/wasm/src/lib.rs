@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                            1
+// Endpoints:                            2
 // Async Callback:                       1
-// Total number of exported functions:   3
+// Total number of exported functions:   4
 
 #![no_std]
 
@@ -22,6 +22,7 @@ multiversx_sc_wasm_adapter::endpoints! {
     paymaster
     (
         init => init
+        upgrade => upgrade
         forwardExecution => forward_execution
     )
 }
