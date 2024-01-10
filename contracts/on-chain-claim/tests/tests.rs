@@ -1,5 +1,6 @@
 use config::ConfigModule;
 use multiversx_sc::types::{ManagedAddress, TokenIdentifier};
+use multiversx_sc_modules::only_admin::OnlyAdminModule;
 use multiversx_sc_scenario::{scenario_model::*, *};
 use on_chain_claim::*;
 
@@ -145,6 +146,16 @@ fn check_update_state() {
 
             assert!(address_info_mapper.is_empty());
         })
+        .whitebox_call(
+            &on_chain_claim_whitebox,
+            ScCallStep::new().from(SC_ADDR),
+            |sc| {
+                let address = AddressValue::from(OWNER_ADDR).to_address();
+                let managed_address = ManagedAddress::from(address);
+
+                sc.add_admin(managed_address);
+            },
+        )
         .whitebox_call(
             &on_chain_claim_whitebox,
             ScCallStep::new().from(OWNER_ADDR),
@@ -482,6 +493,16 @@ fn best_streak() {
                     .set(TokenIdentifier::from(TOKEN_IDENTIFIER));
             },
         )
+        .whitebox_call(
+            &on_chain_claim_whitebox,
+            ScCallStep::new().from(SC_ADDR),
+            |sc| {
+                let address = AddressValue::from(OWNER_ADDR).to_address();
+                let managed_address = ManagedAddress::from(address);
+
+                sc.add_admin(managed_address);
+            },
+        )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let repair_streak_token_identifier = sc.repair_streak_token_identifier().get();
             let identifier = TokenIdentifier::from(TOKEN_IDENTIFIER);
@@ -601,6 +622,16 @@ fn on_chain_claim_whitebox() {
             |sc| {
                 sc.repair_streak_token_identifier()
                     .set(TokenIdentifier::from(TOKEN_IDENTIFIER));
+            },
+        )
+        .whitebox_call(
+            &on_chain_claim_whitebox,
+            ScCallStep::new().from(SC_ADDR),
+            |sc| {
+                let address = AddressValue::from(OWNER_ADDR).to_address();
+                let managed_address = ManagedAddress::from(address);
+
+                sc.add_admin(managed_address);
             },
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {

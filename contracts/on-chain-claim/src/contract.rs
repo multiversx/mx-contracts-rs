@@ -2,7 +2,6 @@
 #![allow(unused_attributes)]
 
 pub use address_info::AddressInfo;
-
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
@@ -10,13 +9,20 @@ pub mod address_info;
 pub mod config;
 
 use crate::config::{MAX_REPAIR_GAP, SFT_AMOUNT};
+use multiversx_sc_modules::only_admin;
 
 #[multiversx_sc::contract]
-pub trait OnChainClaimContract: config::ConfigModule {
+pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModule {
     #[init]
     fn init(&self, repair_streak_token_id: TokenIdentifier) {
+        require!(
+            repair_streak_token_id.is_valid_esdt_identifier(),
+            "Invalid token ID"
+        );
         self.repair_streak_token_identifier()
             .set(repair_streak_token_id);
+        let caller = self.blockchain().get_caller();
+        self.add_admin(caller);
     }
 
     #[endpoint(claim)]
@@ -106,7 +112,6 @@ pub trait OnChainClaimContract: config::ConfigModule {
         );
     }
 
-    #[only_owner]
     #[endpoint(updateState)]
     fn update_state(
         &self,
@@ -116,6 +121,8 @@ pub trait OnChainClaimContract: config::ConfigModule {
         total_epochs_claimed: u64,
         best_streak: u64,
     ) {
+        self.require_caller_is_admin();
+
         let address_info = AddressInfo::new(
             current_streak,
             last_epoch_claimed,
