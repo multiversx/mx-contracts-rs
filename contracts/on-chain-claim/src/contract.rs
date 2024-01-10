@@ -25,6 +25,9 @@ pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModu
         self.add_admin(caller);
     }
 
+    #[upgrade]
+    fn upgrade(&self) {}
+
     #[endpoint(claim)]
     fn claim(&self) {
         let caller = self.blockchain().get_caller();

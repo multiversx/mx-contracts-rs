@@ -33,7 +33,6 @@ deploy() {
 upgrade() {
     mxpy --verbose contract upgrade ${CONTRACT_ADDRESS} \
           --bytecode="output/on-chain-claim.wasm" \
-          --arguments ${SFT_IDENTIFIER} \
           --pem=${WALLET} \
           --gas-limit=${DEPLOY_GAS} \
           --proxy=${PROXY} \
