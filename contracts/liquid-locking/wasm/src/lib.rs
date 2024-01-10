@@ -5,14 +5,12 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           12
+// Endpoints:                           13
 // Async Callback (empty):               1
-// Total number of exported functions:  14
+// Total number of exported functions:  15
 
 #![no_std]
-
-// Configuration that works with rustc < 1.73.0.
-// TODO: Recommended rustc version: 1.73.0 or newer.
+#![allow(internal_features)]
 #![feature(lang_items)]
 
 multiversx_sc_wasm_adapter::allocator!();
@@ -22,6 +20,7 @@ multiversx_sc_wasm_adapter::endpoints! {
     liquid_locking
     (
         init => init
+        upgrade => upgrade
         set_unbond_period => set_unbond_period
         whitelist_token => whitelist_token
         blacklist_token => blacklist_token
