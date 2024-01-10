@@ -16,6 +16,17 @@ pub trait ConfigModule {
         current_epoch - last_epoch_claimed - 1
     }
 
+    #[view(getAddressInfo)]
+    fn get_address_info(&self, address: &ManagedAddress) -> AddressInfo {
+        let address_info_mapper = self.address_info(address);
+
+        if address_info_mapper.is_empty() {
+            return AddressInfo::new(0, 0, 0, 0);
+        }
+
+        address_info_mapper.get()
+    }
+
     #[view(canBeRepaired)]
     fn can_be_repaired(&self, address: &ManagedAddress) -> bool {
         let address_info_mapper = self.address_info(address);
@@ -30,7 +41,6 @@ pub trait ConfigModule {
         missed_epochs > 0 && missed_epochs <= MAX_REPAIR_GAP
     }
 
-    #[view(getAddressInfo)]
     #[storage_mapper("address_info")]
     fn address_info(&self, address: &ManagedAddress) -> SingleValueMapper<AddressInfo>;
 
