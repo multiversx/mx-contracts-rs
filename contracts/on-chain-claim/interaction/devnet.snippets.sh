@@ -46,7 +46,7 @@ upgrade() {
     ADDRESS=$(mxpy data parse --file="upgrade-devnet.interaction.json" --expression="data['contractAddress']")
 
     mxpy data store --key=address-devnet --value=${ADDRESS}
-    mxpy data store --key=deployTransaction-devnet --value=${TRANSACTION}
+    mxpy data store --key=upgradeTransaction-devnet --value=${TRANSACTION}
 
     echo ""
     echo "Smart contract address: ${ADDRESS}"
