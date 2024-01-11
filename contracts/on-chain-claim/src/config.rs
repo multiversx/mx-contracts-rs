@@ -15,7 +15,7 @@ pub trait ConfigModule {
 
         require!(address_shard == sc_shard, "wrong shard");
     }
-    
+
     fn get_missed_epochs(&self, current_epoch: u64, last_epoch_claimed: u64) -> u64 {
         if current_epoch - last_epoch_claimed <= 1 {
             return 0;
