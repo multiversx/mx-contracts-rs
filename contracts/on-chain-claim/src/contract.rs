@@ -35,6 +35,7 @@ pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModu
             !self.blockchain().is_smart_contract(&caller),
             "Only user accounts can perform claim"
         );
+        self.require_same_shard(&caller);
 
         let current_epoch = self.blockchain().get_block_epoch();
 
@@ -74,6 +75,8 @@ pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModu
             !self.blockchain().is_smart_contract(&caller),
             "Only user accounts can perform claim and repair"
         );
+        self.require_same_shard(&caller);
+
         let payment = self.call_value().single_esdt();
         let repair_streak_token_identifier = self.repair_streak_token_identifier().get();
         require!(
@@ -125,6 +128,7 @@ pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModu
         best_streak: u64,
     ) {
         self.require_caller_is_admin();
+        self.require_same_shard(address);
 
         let address_info = AddressInfo::new(
             current_streak,

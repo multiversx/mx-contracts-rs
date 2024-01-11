@@ -8,6 +8,14 @@ pub const MAX_REPAIR_GAP: u64 = 5;
 
 #[multiversx_sc::module]
 pub trait ConfigModule {
+    fn require_same_shard(&self, address: &ManagedAddress) {
+        let address_shard = self.blockchain().get_shard_of_address(address);
+        let sc_address = self.blockchain().get_sc_address();
+        let sc_shard = self.blockchain().get_shard_of_address(&sc_address);
+
+        require!(address_shard == sc_shard, "wrong shard");
+    }
+    
     fn get_missed_epochs(&self, current_epoch: u64, last_epoch_claimed: u64) -> u64 {
         if current_epoch - last_epoch_claimed <= 1 {
             return 0;
