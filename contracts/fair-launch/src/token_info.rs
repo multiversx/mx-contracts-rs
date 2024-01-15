@@ -43,6 +43,12 @@ pub trait TokenInfoModule {
             .set_local_roles(&[EsdtLocalRole::Transfer], None);
     }
 
+    fn get_token_id(&self) -> TokenIdentifier {
+        self.non_fungible_token().get_token_id()
+    }
+
+    // Both storage mappers must use the same key!
+
     #[storage_mapper("tokenId")]
     fn fungible_token(&self) -> FungibleTokenMapper<Self::Api>;
 
