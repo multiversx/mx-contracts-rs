@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           11
+// Endpoints:                           12
 // Async Callback:                       1
-// Total number of exported functions:  13
+// Total number of exported functions:  14
 
 #![no_std]
 #![allow(internal_features)]
@@ -25,6 +25,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         addExchangeEndpoint => add_exchange_endpoint
         removeExchangeEndpoint => remove_exchange_endpoint
         forwardExecuteOnDest => forward_execute_on_dest
+        forwardAsyncCall => forward_async_call
         issueToken => issue_token
         setTransferRole => set_transfer_role
         setTokenFees => set_token_fees

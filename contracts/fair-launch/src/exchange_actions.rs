@@ -1,4 +1,4 @@
-use crate::common::{self, MAX_FEE_PERCENTAGE};
+use crate::common::{TakeFeesResult, MAX_FEE_PERCENTAGE};
 
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
@@ -13,7 +13,7 @@ pub struct EndpointInfo<M: ManagedTypeApi> {
 }
 
 #[multiversx_sc::module]
-pub trait ExchangeActionsModule: common::CommonModule {
+pub trait ExchangeActionsModule: crate::common::CommonModule {
     /// Arguments: endpoint_name,
     /// input_fee_percentage: between 0 and 10_000,
     /// burn_input: bool, burn input tokens taken as fee,
@@ -150,6 +150,103 @@ pub trait ExchangeActionsModule: common::CommonModule {
                 &take_fees_from_results.original_caller,
                 &take_fees_from_results.transfers,
             );
+        }
+    }
+
+    /// forward an async call on an exchange SC. In case of failure, all tokens are returned to the user.
+    #[payable("*")]
+    #[endpoint(forwardAsyncCall)]
+    fn forward_async_call(
+        &self,
+        dest: ManagedAddress,
+        endpoint_name: ManagedBuffer,
+        extra_args: MultiValueEncoded<ManagedBuffer>,
+    ) {
+        let egld_value = self.call_value().egld_value().clone_value();
+        require!(egld_value == 0, "Invalid payment");
+
+        let caller = self.blockchain().get_caller();
+        let payments = self.call_value().all_esdt_transfers().clone_value();
+        let endpoint_info = self.find_endpoint_info(&dest, &endpoint_name);
+
+        let mut input_fees_percentage = ManagedVec::new();
+        for _ in 0..payments.len() {
+            input_fees_percentage.push(endpoint_info.input_fee_percentage);
+        }
+
+        let take_fees_result =
+            self.take_fees(caller.clone(), payments.clone(), input_fees_percentage);
+
+        if !payments.is_empty() {
+            ContractCallNoPayment::<_, MultiValueEncoded<ManagedBuffer>>::new(dest, endpoint_name)
+                .with_multi_token_transfer(take_fees_result.transfers.clone())
+                .with_raw_arguments(ManagedArgBuffer::from(extra_args.into_vec_of_buffers()))
+                .async_call()
+                .with_callback(self.callbacks().call_exchange_async_callback(
+                    take_fees_result,
+                    endpoint_info.burn_input,
+                    endpoint_info.output_fee_percentage,
+                    endpoint_info.burn_output,
+                ))
+                .call_and_exit();
+        } else {
+            ContractCallNoPayment::<_, MultiValueEncoded<ManagedBuffer>>::new(dest, endpoint_name)
+                .with_raw_arguments(ManagedArgBuffer::from(extra_args.into_vec_of_buffers()))
+                .async_call()
+                .with_callback(self.callbacks().call_exchange_async_callback(
+                    take_fees_result,
+                    endpoint_info.burn_input,
+                    endpoint_info.output_fee_percentage,
+                    endpoint_info.burn_output,
+                ))
+                .call_and_exit();
+        }
+    }
+
+    #[callback]
+    fn call_exchange_async_callback(
+        &self,
+        input_take_fees_result: TakeFeesResult<Self::Api>,
+        burn_input: bool,
+        output_fee_percentage: u32,
+        burn_output: bool,
+        #[call_result] call_result: ManagedAsyncCallResult<MultiValueEncoded<ManagedBuffer>>,
+    ) {
+        match call_result {
+            ManagedAsyncCallResult::Ok(_) => {
+                if !input_take_fees_result.fees.is_empty() && burn_input {
+                    self.burn_tokens(&input_take_fees_result.fees);
+                }
+
+                let back_transfers = self.blockchain().get_back_transfers();
+                if !back_transfers.esdt_payments.is_empty() {
+                    let mut output_fees_percentage = ManagedVec::new();
+                    for _ in 0..back_transfers.esdt_payments.len() {
+                        output_fees_percentage.push(output_fee_percentage);
+                    }
+
+                    let take_fees_from_results = self.take_fees(
+                        input_take_fees_result.original_caller,
+                        back_transfers.esdt_payments,
+                        output_fees_percentage,
+                    );
+
+                    if burn_output {
+                        self.burn_tokens(&take_fees_from_results.fees);
+                    }
+
+                    self.send().direct_multi(
+                        &take_fees_from_results.original_caller,
+                        &take_fees_from_results.transfers,
+                    );
+                }
+            }
+            ManagedAsyncCallResult::Err(_) => {
+                self.send().direct_multi(
+                    &input_take_fees_result.original_caller,
+                    &input_take_fees_result.original_payments,
+                );
+            }
         }
     }
 
