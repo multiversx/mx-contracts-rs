@@ -255,7 +255,7 @@ pub trait ExchangeActionsModule: crate::common::CommonModule {
         dest: &ManagedAddress,
         endpoint_name: &ManagedBuffer,
     ) -> EndpointInfo<Self::Api> {
-        let known_sc_mapper = self.known_contracts(&dest);
+        let known_sc_mapper = self.known_contracts(dest);
         require!(
             !known_sc_mapper.is_empty(),
             "Unknown SC, use forwardTransfer endpoint"
