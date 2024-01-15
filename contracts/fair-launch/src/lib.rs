@@ -1,9 +1,14 @@
 #![no_std]
 
+use initial_launch::InitialLaunchBlocks;
+
+use crate::{common::MAX_FEE_PERCENTAGE, initial_launch::InitialLaunchInfo};
+
 multiversx_sc::imports!();
 
 pub mod common;
 pub mod exchange_actions;
+pub mod initial_launch;
 pub mod token_info;
 pub mod transfer;
 
@@ -11,11 +16,54 @@ pub mod transfer;
 pub trait FairLaunch:
     common::CommonModule
     + exchange_actions::ExchangeActionsModule
+    + initial_launch::InitialLaunchModule
     + token_info::TokenInfoModule
     + transfer::TransferModule
 {
     #[init]
-    fn init(&self) {}
+    fn init(
+        &self,
+        initial_launch_duration_blocks: u64,
+        account_buy_limit: BigUint,
+        tx_buy_limit: BigUint,
+        buy_fee_percentage_start: u32,
+        buy_fee_percentage_end: u32,
+        sell_fee_percentage_start: u32,
+        sell_fee_percentage_end: u32,
+    ) {
+        require!(
+            initial_launch_duration_blocks > 0,
+            "Invalid launch duration blocks"
+        );
+        require!(tx_buy_limit <= account_buy_limit, "Invalid limits");
+        require!(
+            buy_fee_percentage_start < buy_fee_percentage_end
+                && buy_fee_percentage_end <= MAX_FEE_PERCENTAGE,
+            "Invalid percentage"
+        );
+        require!(
+            sell_fee_percentage_start < sell_fee_percentage_end
+                && sell_fee_percentage_end <= MAX_FEE_PERCENTAGE,
+            "Invalid percentage"
+        );
+
+        let start_block = self.blockchain().get_block_nonce();
+        let end_block = start_block + initial_launch_duration_blocks;
+        self.initial_launch_blocks().set(InitialLaunchBlocks {
+            start: start_block,
+            end: end_block,
+        });
+
+        let launch_info = InitialLaunchInfo {
+            account_buy_limit,
+            tx_buy_limit,
+            buy_fee_percentage_start,
+            buy_fee_percentage_end,
+            sell_fee_percentage_start,
+            sell_fee_percentage_end,
+        };
+        self.initial_launch_info().set(launch_info);
+    }
 
     #[endpoint]
     fn upgrade(&self) {}

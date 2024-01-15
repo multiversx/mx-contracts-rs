@@ -1,15 +1,17 @@
-use crate::common::{PaymentsVec, TakeFeesResult, MAX_FEE_PERCENTAGE};
+use crate::common::{PaymentsVec, Percentage, TakeFeesResult, MAX_FEE_PERCENTAGE};
 
 multiversx_sc::imports!();
 
 #[multiversx_sc::module]
 pub trait TransferModule:
-    crate::exchange_actions::ExchangeActionsModule + crate::common::CommonModule
+    crate::exchange_actions::ExchangeActionsModule
+    + crate::initial_launch::InitialLaunchModule
+    + crate::common::CommonModule
 {
     /// Percentage should be between 0 and 10_000
     #[only_owner]
     #[endpoint(setTokenFees)]
-    fn set_token_fees(&self, token_id: TokenIdentifier, fees_percentage: u32) {
+    fn set_token_fees(&self, token_id: TokenIdentifier, fees_percentage: Percentage) {
         require!(
             fees_percentage > 0 && fees_percentage <= MAX_FEE_PERCENTAGE,
             "Invalid fees percentage"

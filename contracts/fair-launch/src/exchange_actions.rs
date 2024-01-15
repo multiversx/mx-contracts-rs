@@ -1,4 +1,4 @@
-use crate::common::{TakeFeesResult, MAX_FEE_PERCENTAGE};
+use crate::common::{Percentage, TakeFeesResult, MAX_FEE_PERCENTAGE};
 
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
@@ -6,14 +6,16 @@ multiversx_sc::derive_imports!();
 #[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode, ManagedVecItem)]
 pub struct EndpointInfo<M: ManagedTypeApi> {
     pub endpoint_name: ManagedBuffer<M>,
-    pub input_fee_percentage: u32,
+    pub input_fee_percentage: Percentage,
     pub burn_input: bool,
-    pub output_fee_percentage: u32,
+    pub output_fee_percentage: Percentage,
     pub burn_output: bool,
 }
 
 #[multiversx_sc::module]
-pub trait ExchangeActionsModule: crate::common::CommonModule {
+pub trait ExchangeActionsModule:
+    crate::common::CommonModule + crate::initial_launch::InitialLaunchModule
+{
     /// Arguments: endpoint_name,
     /// input_fee_percentage: between 0 and 10_000,
     /// burn_input: bool, burn input tokens taken as fee,
@@ -25,7 +27,7 @@ pub trait ExchangeActionsModule: crate::common::CommonModule {
         &self,
         sc_addr: ManagedAddress,
         endpoint_name_fee_percentage_pairs: MultiValueEncoded<
-            MultiValue5<ManagedBuffer, u32, bool, u32, bool>,
+            MultiValue5<ManagedBuffer, Percentage, bool, Percentage, bool>,
         >,
     ) {
         let mut new_endpoints = ManagedVec::<Self::Api, EndpointInfo<Self::Api>>::new();
@@ -103,6 +105,8 @@ pub trait ExchangeActionsModule: crate::common::CommonModule {
         endpoint_name: ManagedBuffer,
         extra_args: MultiValueEncoded<ManagedBuffer>,
     ) {
+        self.require_not_initial_launch();
+
         let egld_value = self.call_value().egld_value().clone_value();
         require!(egld_value == 0, "Invalid payment");
 
@@ -162,6 +166,8 @@ pub trait ExchangeActionsModule: crate::common::CommonModule {
         endpoint_name: ManagedBuffer,
         extra_args: MultiValueEncoded<ManagedBuffer>,
     ) {
+        self.require_not_initial_launch();
+
         let egld_value = self.call_value().egld_value().clone_value();
         require!(egld_value == 0, "Invalid payment");
 
@@ -208,7 +214,7 @@ pub trait ExchangeActionsModule: crate::common::CommonModule {
         &self,
         input_take_fees_result: TakeFeesResult<Self::Api>,
         burn_input: bool,
-        output_fee_percentage: u32,
+        output_fee_percentage: Percentage,
         burn_output: bool,
         #[call_result] call_result: ManagedAsyncCallResult<MultiValueEncoded<ManagedBuffer>>,
     ) {

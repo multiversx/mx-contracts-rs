@@ -2,6 +2,7 @@ multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
 pub type PaymentsVec<M> = ManagedVec<M, EsdtTokenPayment<M>>;
+pub type Percentage = u32;
 
 pub const MAX_FEE_PERCENTAGE: u32 = 10_000; // 100%
 
@@ -26,7 +27,7 @@ pub trait CommonModule {
         &self,
         caller: ManagedAddress,
         payments: PaymentsVec<Self::Api>,
-        fees_percentage: ManagedVec<u32>,
+        fees_percentage: ManagedVec<Percentage>,
     ) -> TakeFeesResult<Self::Api> {
         if self.user_whitelist().contains(&caller) {
             return TakeFeesResult {
@@ -77,7 +78,7 @@ pub trait CommonModule {
         }
     }
 
-    fn calculate_fee_rounded_up(&self, payment_amount: &BigUint, fees_percentage: u32) -> BigUint {
+    fn calculate_fee_rounded_up(&self, payment_amount: &BigUint, fees_percentage: Percentage) -> BigUint {
         (payment_amount * fees_percentage + MAX_FEE_PERCENTAGE - 1u32) / MAX_FEE_PERCENTAGE
     }
 
@@ -95,7 +96,7 @@ pub trait CommonModule {
 
     #[view(getTokenFees)]
     #[storage_mapper("tokenFees")]
-    fn token_fees(&self, token_id: &TokenIdentifier) -> SingleValueMapper<u32>;
+    fn token_fees(&self, token_id: &TokenIdentifier) -> SingleValueMapper<Percentage>;
 
     #[storage_mapper("userWhitelist")]
     fn user_whitelist(&self) -> WhitelistMapper<Self::Api, ManagedAddress>;
