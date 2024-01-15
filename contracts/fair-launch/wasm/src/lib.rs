@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                            7
+// Endpoints:                           10
 // Async Callback:                       1
-// Total number of exported functions:   9
+// Total number of exported functions:  12
 
 #![no_std]
 #![allow(internal_features)]
@@ -20,13 +20,16 @@ multiversx_sc_wasm_adapter::endpoints! {
     fair_launch
     (
         init => init
+        getTokenFees => token_fees
+        addExchangeEndpoint => add_exchange_endpoint
+        removeExchangeEndpoint => remove_exchange_endpoint
+        forwardExecuteOnDest => forward_execute_on_dest
         issueToken => issue_token
         setTransferRole => set_transfer_role
         setTokenFees => set_token_fees
         addUsersToWhitelist => add_users_to_whitelist
         removeUsersFromWhitelist => remove_users_from_whitelist
         forwardTransfer => forward_transfer
-        getTokenFees => token_fees
     )
 }
 

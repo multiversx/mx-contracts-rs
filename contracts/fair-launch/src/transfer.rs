@@ -1,18 +1,11 @@
+use crate::common::{PaymentsVec, TakeFeesResult, MAX_FEE_PERCENTAGE};
+
 multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
-
-const MAX_FEE_PERCENTAGE: u32 = 10_000; // 100%
-
-#[derive(TypeAbi, TopEncode, TopDecode)]
-pub struct TakeFeesResult<M: ManagedTypeApi> {
-    pub original_caller: ManagedAddress<M>,
-    pub original_payments: ManagedVec<M, EsdtTokenPayment<M>>,
-    pub fees: ManagedVec<M, EsdtTokenPayment<M>>,
-    pub transfers: ManagedVec<M, EsdtTokenPayment<M>>,
-}
 
 #[multiversx_sc::module]
-pub trait TransferModule {
+pub trait TransferModule:
+    crate::exchange_actions::ExchangeActionsModule + crate::common::CommonModule
+{
     /// Percentage should be between 0 and 10_000
     #[only_owner]
     #[endpoint(setTokenFees)]
@@ -50,13 +43,24 @@ pub trait TransferModule {
     #[payable("*")]
     #[endpoint(forwardTransfer)]
     fn forward_transfer(&self, dest: ManagedAddress, extra_args: MultiValueEncoded<ManagedBuffer>) {
+        require!(
+            self.known_contracts(&dest).is_empty(),
+            "Cannot transfer to this SC. Use forwardExecuteOnDest or forwardAsyncCall instead."
+        );
+
         let payments = self.call_value().all_esdt_transfers().clone_value();
         require!(!payments.is_empty(), "Empty payments");
 
         self.check_transfer_allowed(&dest, &payments);
 
         let caller = self.blockchain().get_caller();
-        let take_fees_result = self.take_fees(caller, payments);
+        let mut fees_percentage = ManagedVec::new();
+        for payment in &payments {
+            let percentage = self.token_fees(&payment.token_identifier).get();
+            fees_percentage.push(percentage);
+        }
+
+        let take_fees_result = self.take_fees(caller, payments, fees_percentage);
 
         if !self.blockchain().is_smart_contract(&dest) {
             let owner = self.blockchain().get_owner_address();
@@ -78,71 +82,8 @@ pub trait TransferModule {
         self.transfer_to_sc(dest, take_fees_result, endpoint_name, func_args);
     }
 
-    fn check_transfer_allowed(
-        &self,
-        _dest: &ManagedAddress,
-        _payments: &ManagedVec<EsdtTokenPayment>,
-    ) {
+    fn check_transfer_allowed(&self, _dest: &ManagedAddress, _payments: &PaymentsVec<Self::Api>) {
         // custom user logic
-    }
-
-    fn take_fees(
-        &self,
-        caller: ManagedAddress,
-        payments: ManagedVec<EsdtTokenPayment>,
-    ) -> TakeFeesResult<Self::Api> {
-        if self.user_whitelist().contains(&caller) {
-            return TakeFeesResult {
-                original_caller: caller,
-                original_payments: payments.clone(),
-                fees: ManagedVec::new(),
-                transfers: payments,
-            };
-        }
-
-        let original_payments = payments.clone();
-        let mut final_payments = ManagedVec::new();
-        let mut fees_payments = ManagedVec::new();
-
-        for payment in &payments {
-            let token_fees_percentage = self.token_fees(&payment.token_identifier).get();
-            if token_fees_percentage == 0 {
-                final_payments.push(payment);
-
-                continue;
-            }
-
-            let fee_amount = self.calculate_fee_rounded_up(&payment.amount, token_fees_percentage);
-            let user_payment = EsdtTokenPayment::new(
-                payment.token_identifier.clone(),
-                payment.token_nonce,
-                &payment.amount - &fee_amount,
-            );
-
-            if fee_amount > 0 {
-                let fee_payment = EsdtTokenPayment::new(
-                    payment.token_identifier.clone(),
-                    payment.token_nonce,
-                    fee_amount,
-                );
-                fees_payments.push(fee_payment);
-            }
-
-            if user_payment.amount > 0 {
-                final_payments.push(user_payment);
-            }
-        }
-
-        TakeFeesResult {
-            original_caller: caller,
-            original_payments,
-            fees: fees_payments,
-            transfers: final_payments,
-        }
-    }
-
-    fn calculate_fee_rounded_up(&self, payment_amount: &BigUint, fees_percentage: u32) -> BigUint {
-        (payment_amount * fees_percentage + MAX_FEE_PERCENTAGE - 1u32) / MAX_FEE_PERCENTAGE
     }
 
     fn transfer_to_sc(
@@ -181,11 +122,4 @@ pub trait TransferModule {
             }
         }
     }
-
-    #[view(getTokenFees)]
-    #[storage_mapper("tokenFees")]
-    fn token_fees(&self, token_id: &TokenIdentifier) -> SingleValueMapper<u32>;
-
-    #[storage_mapper("userWhitelist")]
-    fn user_whitelist(&self) -> WhitelistMapper<Self::Api, ManagedAddress>;
 }
