@@ -16,4 +16,7 @@ pub trait FairLaunch:
 {
     #[init]
     fn init(&self) {}
+
+    #[endpoint]
+    fn upgrade(&self) {}
 }

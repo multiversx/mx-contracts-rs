@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           10
+// Endpoints:                           11
 // Async Callback:                       1
-// Total number of exported functions:  12
+// Total number of exported functions:  13
 
 #![no_std]
 #![allow(internal_features)]
@@ -20,6 +20,7 @@ multiversx_sc_wasm_adapter::endpoints! {
     fair_launch
     (
         init => init
+        upgrade => upgrade
         getTokenFees => token_fees
         addExchangeEndpoint => add_exchange_endpoint
         removeExchangeEndpoint => remove_exchange_endpoint
