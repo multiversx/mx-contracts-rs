@@ -683,6 +683,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "fair-launch"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc",
+ "multiversx-sc-scenario",
+ "num-bigint",
+]
+
+[[package]]
+name = "fair-launch-meta"
+version = "0.0.0"
+dependencies = [
+ "fair-launch",
+ "multiversx-sc-meta",
+]
+
+[[package]]
 name = "fastrand"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
