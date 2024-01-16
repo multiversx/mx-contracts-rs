@@ -1,5 +1,6 @@
 #![no_std]
 
+use common::Percentage;
 use initial_launch::InitialLaunchBlocks;
 
 use crate::{common::MAX_FEE_PERCENTAGE, initial_launch::InitialLaunchInfo};
@@ -20,16 +21,18 @@ pub trait FairLaunch:
     + token_info::TokenInfoModule
     + transfer::TransferModule
 {
+    /// Percentages have to be between 0 and 10_000
+    /// Start percentage >= End percentage
     #[init]
     fn init(
         &self,
         initial_launch_duration_blocks: u64,
         account_buy_limit: BigUint,
         tx_buy_limit: BigUint,
-        buy_fee_percentage_start: u32,
-        buy_fee_percentage_end: u32,
-        sell_fee_percentage_start: u32,
-        sell_fee_percentage_end: u32,
+        buy_fee_percentage_start: Percentage,
+        buy_fee_percentage_end: Percentage,
+        sell_fee_percentage_start: Percentage,
+        sell_fee_percentage_end: Percentage,
     ) {
         require!(
             initial_launch_duration_blocks > 0,
@@ -37,13 +40,13 @@ pub trait FairLaunch:
         );
         require!(tx_buy_limit <= account_buy_limit, "Invalid limits");
         require!(
-            buy_fee_percentage_start < buy_fee_percentage_end
-                && buy_fee_percentage_end <= MAX_FEE_PERCENTAGE,
+            buy_fee_percentage_start >= buy_fee_percentage_end
+                && buy_fee_percentage_start <= MAX_FEE_PERCENTAGE,
             "Invalid percentage"
         );
         require!(
-            sell_fee_percentage_start < sell_fee_percentage_end
-                && sell_fee_percentage_end <= MAX_FEE_PERCENTAGE,
+            sell_fee_percentage_start >= sell_fee_percentage_end
+                && sell_fee_percentage_start <= MAX_FEE_PERCENTAGE,
             "Invalid percentage"
         );
 

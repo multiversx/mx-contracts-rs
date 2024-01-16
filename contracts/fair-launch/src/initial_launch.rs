@@ -156,12 +156,12 @@ pub trait InitialLaunchModule:
 
         let blocks_passed_in_penalty_phase = current_block - initial_launch_blocks.start;
         let blocks_diff = initial_launch_blocks.end - initial_launch_blocks.start;
-        let percentage_diff = fee_percentage_end - fee_percentage_start;
+        let percentage_diff = fee_percentage_start - fee_percentage_end;
 
-        let penalty_percentage_increase =
+        let penalty_percentage_decrease =
             percentage_diff as u64 * blocks_passed_in_penalty_phase / (blocks_diff - 1);
 
-        fee_percentage_start + penalty_percentage_increase as u32
+        fee_percentage_start - penalty_percentage_decrease as u32
     }
 
     fn require_not_initial_launch(&self) {
