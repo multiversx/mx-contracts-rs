@@ -21,6 +21,7 @@ pub trait FairLaunch:
     + token_info::TokenInfoModule
     + transfer::TransferModule
     + multiversx_sc_modules::default_issue_callbacks::DefaultIssueCallbacksModule
+    + multiversx_sc_modules::pause::PauseModule
 {
     /// Percentages have to be between 0 and 10_000
     /// Start percentage >= End percentage
@@ -67,6 +68,8 @@ pub trait FairLaunch:
             sell_fee_percentage_end,
         };
         self.initial_launch_info().set(launch_info);
+
+        self.set_paused(true);
     }
 
     #[endpoint]

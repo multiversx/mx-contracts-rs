@@ -8,6 +8,7 @@ use multiversx_sc::{
     storage::mappers::StorageTokenWrapper,
     types::{Address, MultiValueEncoded},
 };
+use multiversx_sc_modules::pause::PauseModule;
 use multiversx_sc_scenario::{
     managed_address, managed_biguint, managed_buffer, managed_token_id, rust_biguint,
     testing_framework::{BlockchainStateWrapper, ContractObjWrapper},
@@ -98,6 +99,7 @@ where
                         .into(),
                 );
                 sc.add_exchange_endpoint(managed_address!(pair_wrapper.address_ref()), pairs);
+                sc.set_paused(false);
             })
             .assert_ok();
 

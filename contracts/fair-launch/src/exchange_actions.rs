@@ -18,6 +18,7 @@ pub trait ExchangeActionsModule:
     + crate::initial_launch::InitialLaunchModule
     + crate::token_info::TokenInfoModule
     + multiversx_sc_modules::default_issue_callbacks::DefaultIssueCallbacksModule
+    + multiversx_sc_modules::pause::PauseModule
 {
     /// Arguments: endpoint_name,
     /// input_fee_percentage: between 0 and 10_000,
@@ -108,6 +109,7 @@ pub trait ExchangeActionsModule:
         endpoint_name: ManagedBuffer,
         extra_args: MultiValueEncoded<ManagedBuffer>,
     ) {
+        self.require_not_paused();
         self.require_not_initial_launch();
 
         let egld_value = self.call_value().egld_value().clone_value();
@@ -169,6 +171,7 @@ pub trait ExchangeActionsModule:
         endpoint_name: ManagedBuffer,
         extra_args: MultiValueEncoded<ManagedBuffer>,
     ) {
+        self.require_not_paused();
         self.require_not_initial_launch();
 
         let egld_value = self.call_value().egld_value().clone_value();

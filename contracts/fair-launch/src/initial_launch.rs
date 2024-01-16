@@ -39,6 +39,7 @@ pub trait InitialLaunchModule:
     crate::common::CommonModule
     + crate::token_info::TokenInfoModule
     + multiversx_sc_modules::default_issue_callbacks::DefaultIssueCallbacksModule
+    + multiversx_sc_modules::pause::PauseModule
 {
     #[payable("*")]
     #[endpoint(buyToken)]
@@ -47,6 +48,7 @@ pub trait InitialLaunchModule:
         pair_adddress: ManagedAddress,
         amount_out_min: BigUint,
     ) -> EsdtTokenPayment {
+        self.require_not_paused();
         self.require_initial_launch();
         require!(
             !self.known_contracts(&pair_adddress).is_empty(),
@@ -112,6 +114,7 @@ pub trait InitialLaunchModule:
         out_token_id: TokenIdentifier,
         amount_out_min: BigUint,
     ) -> EsdtTokenPayment {
+        self.require_not_paused();
         self.require_initial_launch();
         require!(
             !self.known_contracts(&pair_adddress).is_empty(),

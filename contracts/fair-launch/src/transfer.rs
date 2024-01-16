@@ -9,6 +9,7 @@ pub trait TransferModule:
     + crate::common::CommonModule
     + crate::token_info::TokenInfoModule
     + multiversx_sc_modules::default_issue_callbacks::DefaultIssueCallbacksModule
+    + multiversx_sc_modules::pause::PauseModule
 {
     /// Percentage should be between 0 and 10_000
     #[only_owner]
@@ -47,6 +48,7 @@ pub trait TransferModule:
     #[payable("*")]
     #[endpoint(forwardTransfer)]
     fn forward_transfer(&self, dest: ManagedAddress, extra_args: MultiValueEncoded<ManagedBuffer>) {
+        self.require_not_paused();
         require!(
             self.known_contracts(&dest).is_empty(),
             "Cannot transfer to this SC. Use forwardExecuteOnDest or forwardAsyncCall instead."
