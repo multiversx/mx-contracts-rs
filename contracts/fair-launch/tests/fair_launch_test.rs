@@ -178,3 +178,78 @@ fn transfer_sc_ok_test() {
         .b_mock
         .check_esdt_balance(&fl_setup.owner_address, TOKEN_ID, &rust_biguint!(400));
 }
+
+#[test]
+fn transfer_sc_fail_test() {
+    let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj);
+    fl_setup
+        .b_mock
+        .execute_tx(
+            &fl_setup.owner_address,
+            &fl_setup.fl_wrapper,
+            &rust_biguint!(0),
+            |sc| {
+                sc.set_token_fees(managed_token_id!(TOKEN_ID), 4_000);
+            },
+        )
+        .assert_ok();
+
+    fl_setup.b_mock.set_esdt_balance(
+        &fl_setup.first_user_address,
+        TOKEN_ID,
+        &rust_biguint!(1_000),
+    );
+
+    let cf_wrapper = fl_setup.b_mock.create_sc_account(
+        &rust_biguint!(0),
+        Some(&fl_setup.owner_address),
+        crowdfunding_esdt::contract_obj,
+        "cf wasm path",
+    );
+    fl_setup
+        .b_mock
+        .execute_tx(
+            &fl_setup.owner_address,
+            &cf_wrapper,
+            &rust_biguint!(0),
+            |sc| {
+                sc.init(
+                    managed_biguint!(2_000),
+                    1_000,
+                    managed_token_id_wrapped!(TOKEN_ID),
+                );
+            },
+        )
+        .assert_ok();
+
+    fl_setup
+        .b_mock
+        .execute_esdt_transfer(
+            &fl_setup.first_user_address,
+            &fl_setup.fl_wrapper,
+            TOKEN_ID,
+            0,
+            &rust_biguint!(1_000),
+            |sc| {
+                let mut args = MultiValueEncoded::new();
+                args.push(ManagedBuffer::from(b"claim"));
+
+                sc.forward_transfer(managed_address!(cf_wrapper.address_ref()), args);
+            },
+        )
+        .assert_ok();
+
+    fl_setup.b_mock.check_esdt_balance(
+        &fl_setup.first_user_address,
+        TOKEN_ID,
+        &rust_biguint!(1_000),
+    );
+
+    fl_setup
+        .b_mock
+        .check_esdt_balance(cf_wrapper.address_ref(), TOKEN_ID, &rust_biguint!(0));
+
+    fl_setup
+        .b_mock
+        .check_esdt_balance(&fl_setup.owner_address, TOKEN_ID, &rust_biguint!(0));
+}
