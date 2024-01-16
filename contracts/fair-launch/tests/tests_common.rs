@@ -1,9 +1,9 @@
 #![allow(deprecated)]
 
-use fair_launch::{common::Percentage, FairLaunch};
-use multiversx_sc::types::Address;
+use fair_launch::{common::Percentage, token_info::TokenInfoModule, FairLaunch};
+use multiversx_sc::{storage::mappers::StorageTokenWrapper, types::Address};
 use multiversx_sc_scenario::{
-    managed_biguint, rust_biguint,
+    managed_biguint, managed_token_id, rust_biguint,
     testing_framework::{BlockchainStateWrapper, ContractObjWrapper},
     DebugApi,
 };
@@ -56,6 +56,8 @@ where
                     SELL_FEE_PERCENTAGE_START,
                     SELL_FEE_PERCENTAGE_END,
                 );
+                sc.non_fungible_token()
+                    .set_token_id(managed_token_id!(TOKEN_ID));
             })
             .assert_ok();
 
