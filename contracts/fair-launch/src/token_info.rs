@@ -1,7 +1,9 @@
 multiversx_sc::imports!();
 
 #[multiversx_sc::module]
-pub trait TokenInfoModule {
+pub trait TokenInfoModule:
+    multiversx_sc_modules::default_issue_callbacks::DefaultIssueCallbacksModule
+{
     #[only_owner]
     #[payable("EGLD")]
     #[endpoint(issueToken)]
@@ -12,8 +14,6 @@ pub trait TokenInfoModule {
         token_ticker: ManagedBuffer,
         num_decimals: usize,
     ) {
-        require!(token_type != EsdtTokenType::Invalid, "Invalid token type");
-
         let payment_amount = self.call_value().egld_value().clone_value();
         match token_type {
             EsdtTokenType::Fungible => {

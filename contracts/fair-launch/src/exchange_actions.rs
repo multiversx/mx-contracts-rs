@@ -17,6 +17,7 @@ pub trait ExchangeActionsModule:
     crate::common::CommonModule
     + crate::initial_launch::InitialLaunchModule
     + crate::token_info::TokenInfoModule
+    + multiversx_sc_modules::default_issue_callbacks::DefaultIssueCallbacksModule
 {
     /// Arguments: endpoint_name,
     /// input_fee_percentage: between 0 and 10_000,
@@ -190,23 +191,27 @@ pub trait ExchangeActionsModule:
                 .with_multi_token_transfer(take_fees_result.transfers.clone())
                 .with_raw_arguments(ManagedArgBuffer::from(extra_args.into_vec_of_buffers()))
                 .async_call()
-                .with_callback(self.callbacks().call_exchange_async_callback(
-                    take_fees_result,
-                    endpoint_info.burn_input,
-                    endpoint_info.output_fee_percentage,
-                    endpoint_info.burn_output,
-                ))
+                .with_callback(
+                    <Self as ExchangeActionsModule>::callbacks(self).call_exchange_async_callback(
+                        take_fees_result,
+                        endpoint_info.burn_input,
+                        endpoint_info.output_fee_percentage,
+                        endpoint_info.burn_output,
+                    ),
+                )
                 .call_and_exit();
         } else {
             ContractCallNoPayment::<_, MultiValueEncoded<ManagedBuffer>>::new(dest, endpoint_name)
                 .with_raw_arguments(ManagedArgBuffer::from(extra_args.into_vec_of_buffers()))
                 .async_call()
-                .with_callback(self.callbacks().call_exchange_async_callback(
-                    take_fees_result,
-                    endpoint_info.burn_input,
-                    endpoint_info.output_fee_percentage,
-                    endpoint_info.burn_output,
-                ))
+                .with_callback(
+                    <Self as ExchangeActionsModule>::callbacks(self).call_exchange_async_callback(
+                        take_fees_result,
+                        endpoint_info.burn_input,
+                        endpoint_info.output_fee_percentage,
+                        endpoint_info.burn_output,
+                    ),
+                )
                 .call_and_exit();
         }
     }

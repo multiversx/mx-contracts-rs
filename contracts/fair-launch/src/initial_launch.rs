@@ -36,7 +36,9 @@ pub struct InitialLaunchInfo<M: ManagedTypeApi> {
 
 #[multiversx_sc::module]
 pub trait InitialLaunchModule:
-    crate::common::CommonModule + crate::token_info::TokenInfoModule
+    crate::common::CommonModule
+    + crate::token_info::TokenInfoModule
+    + multiversx_sc_modules::default_issue_callbacks::DefaultIssueCallbacksModule
 {
     #[payable("*")]
     #[endpoint(buyToken)]

@@ -20,6 +20,7 @@ pub trait FairLaunch:
     + initial_launch::InitialLaunchModule
     + token_info::TokenInfoModule
     + transfer::TransferModule
+    + multiversx_sc_modules::default_issue_callbacks::DefaultIssueCallbacksModule
 {
     /// Percentages have to be between 0 and 10_000
     /// Start percentage >= End percentage
