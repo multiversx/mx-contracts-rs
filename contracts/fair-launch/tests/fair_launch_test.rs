@@ -2,11 +2,14 @@
 
 mod tests_common;
 
+use crowdfunding_esdt::Crowdfunding;
 use fair_launch::{
     common::CommonModule, initial_launch::InitialLaunchModule, transfer::TransferModule,
 };
-use multiversx_sc::types::MultiValueEncoded;
-use multiversx_sc_scenario::{managed_address, managed_biguint, managed_token_id, rust_biguint};
+use multiversx_sc::types::{ManagedBuffer, MultiValueEncoded};
+use multiversx_sc_scenario::{
+    managed_address, managed_biguint, managed_token_id, managed_token_id_wrapped, rust_biguint,
+};
 use tests_common::*;
 
 #[test]
@@ -51,7 +54,7 @@ fn calculate_fee_test() {
 }
 
 #[test]
-fn transfer_test() {
+fn transfer_user_test() {
     let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj);
     fl_setup
         .b_mock
@@ -97,6 +100,79 @@ fn transfer_test() {
         TOKEN_ID,
         &rust_biguint!(600),
     );
+
+    fl_setup
+        .b_mock
+        .check_esdt_balance(&fl_setup.owner_address, TOKEN_ID, &rust_biguint!(400));
+}
+
+#[test]
+fn transfer_sc_ok_test() {
+    let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj);
+    fl_setup
+        .b_mock
+        .execute_tx(
+            &fl_setup.owner_address,
+            &fl_setup.fl_wrapper,
+            &rust_biguint!(0),
+            |sc| {
+                sc.set_token_fees(managed_token_id!(TOKEN_ID), 4_000);
+            },
+        )
+        .assert_ok();
+
+    fl_setup.b_mock.set_esdt_balance(
+        &fl_setup.first_user_address,
+        TOKEN_ID,
+        &rust_biguint!(1_000),
+    );
+
+    let cf_wrapper = fl_setup.b_mock.create_sc_account(
+        &rust_biguint!(0),
+        Some(&fl_setup.owner_address),
+        crowdfunding_esdt::contract_obj,
+        "cf wasm path",
+    );
+    fl_setup
+        .b_mock
+        .execute_tx(
+            &fl_setup.owner_address,
+            &cf_wrapper,
+            &rust_biguint!(0),
+            |sc| {
+                sc.init(
+                    managed_biguint!(2_000),
+                    1_000,
+                    managed_token_id_wrapped!(TOKEN_ID),
+                );
+            },
+        )
+        .assert_ok();
+
+    fl_setup
+        .b_mock
+        .execute_esdt_transfer(
+            &fl_setup.first_user_address,
+            &fl_setup.fl_wrapper,
+            TOKEN_ID,
+            0,
+            &rust_biguint!(1_000),
+            |sc| {
+                let mut args = MultiValueEncoded::new();
+                args.push(ManagedBuffer::from(b"fund"));
+
+                sc.forward_transfer(managed_address!(cf_wrapper.address_ref()), args);
+            },
+        )
+        .assert_ok();
+
+    fl_setup
+        .b_mock
+        .check_esdt_balance(&fl_setup.first_user_address, TOKEN_ID, &rust_biguint!(0));
+
+    fl_setup
+        .b_mock
+        .check_esdt_balance(cf_wrapper.address_ref(), TOKEN_ID, &rust_biguint!(600));
 
     fl_setup
         .b_mock

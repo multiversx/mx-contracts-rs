@@ -18,6 +18,9 @@ version = "0.46.0"
 [dev-dependencies.multiversx-sc-scenario]
 version = "0.46.0"
 
+[dev-dependencies.crowdfunding-esdt]
+path = "../crowdfunding-esdt"
+
 [dev-dependencies]
 num-bigint = "0.4.2"
 num-traits = "0.2"

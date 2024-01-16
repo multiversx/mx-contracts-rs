@@ -686,8 +686,10 @@ dependencies = [
 name = "fair-launch"
 version = "0.0.0"
 dependencies = [
+ "crowdfunding-esdt",
  "hex",
  "multiversx-sc",
+ "multiversx-sc-modules",
  "multiversx-sc-scenario",
  "num-bigint",
  "num-traits",
