@@ -42,7 +42,11 @@ pub trait InitialLaunchModule:
 {
     #[payable("*")]
     #[endpoint(buyToken)]
-    fn buy_token(&self, pair_adddress: ManagedAddress, amount_out_min: BigUint) {
+    fn buy_token(
+        &self,
+        pair_adddress: ManagedAddress,
+        amount_out_min: BigUint,
+    ) -> EsdtTokenPayment {
         self.require_initial_launch();
         require!(
             !self.known_contracts(&pair_adddress).is_empty(),
@@ -67,11 +71,12 @@ pub trait InitialLaunchModule:
         );
 
         let out_token_id = self.get_token_id();
-        let received_tokens: EsdtTokenPayment = self
+        let (_, all_transfers): (EsdtTokenPayment, _) = self
             .pair_proxy(pair_adddress)
             .swap_tokens_fixed_input(out_token_id, amount_out_min)
             .with_esdt_transfer(take_fee_result.transfers.get(0))
-            .execute_on_dest_context();
+            .execute_on_dest_context_with_back_transfers();
+        let received_tokens = all_transfers.esdt_payments.get(0);
 
         require!(
             received_tokens.amount <= launch_info.tx_buy_limit,
@@ -94,6 +99,8 @@ pub trait InitialLaunchModule:
             &received_tokens.amount,
         );
 
+        received_tokens
+
         // Fee remains in SC or sent to owner?
     }
 
@@ -104,7 +111,7 @@ pub trait InitialLaunchModule:
         pair_adddress: ManagedAddress,
         out_token_id: TokenIdentifier,
         amount_out_min: BigUint,
-    ) {
+    ) -> EsdtTokenPayment {
         self.require_initial_launch();
         require!(
             !self.known_contracts(&pair_adddress).is_empty(),
@@ -128,11 +135,12 @@ pub trait InitialLaunchModule:
             "Payment amount too small to cover fees"
         );
 
-        let received_tokens: EsdtTokenPayment = self
+        let (_, all_transfers): (EsdtTokenPayment, _) = self
             .pair_proxy(pair_adddress)
             .swap_tokens_fixed_input(out_token_id, amount_out_min)
             .with_esdt_transfer(take_fee_result.transfers.get(0))
-            .execute_on_dest_context();
+            .execute_on_dest_context_with_back_transfers();
+        let received_tokens = all_transfers.esdt_payments.get(0);
 
         self.send().direct_esdt(
             &take_fee_result.original_caller,
@@ -140,6 +148,8 @@ pub trait InitialLaunchModule:
             received_tokens.token_nonce,
             &received_tokens.amount,
         );
+
+        received_tokens
 
         // Fee remains in SC or sent to owner?
     }

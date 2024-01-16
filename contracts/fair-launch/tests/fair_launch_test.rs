@@ -14,12 +14,12 @@ use tests_common::*;
 
 #[test]
 fn init_test() {
-    let _ = FairLaunchSetup::new(fair_launch::contract_obj);
+    let _ = FairLaunchSetup::new(fair_launch::contract_obj, pair_mock::contract_obj);
 }
 
 #[test]
 fn percentage_test() {
-    let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj);
+    let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj, pair_mock::contract_obj);
     fl_setup.b_mock.set_block_nonce(10);
     fl_setup
         .b_mock
@@ -34,7 +34,7 @@ fn percentage_test() {
 
 #[test]
 fn calculate_fee_test() {
-    let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj);
+    let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj, pair_mock::contract_obj);
     fl_setup
         .b_mock
         .execute_query(&fl_setup.fl_wrapper, |sc| {
@@ -55,7 +55,7 @@ fn calculate_fee_test() {
 
 #[test]
 fn transfer_user_test() {
-    let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj);
+    let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj, pair_mock::contract_obj);
     fl_setup
         .b_mock
         .execute_tx(
@@ -108,7 +108,7 @@ fn transfer_user_test() {
 
 #[test]
 fn transfer_sc_ok_test() {
-    let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj);
+    let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj, pair_mock::contract_obj);
     fl_setup
         .b_mock
         .execute_tx(
@@ -181,7 +181,7 @@ fn transfer_sc_ok_test() {
 
 #[test]
 fn transfer_sc_fail_test() {
-    let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj);
+    let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj, pair_mock::contract_obj);
     fl_setup
         .b_mock
         .execute_tx(
@@ -256,7 +256,7 @@ fn transfer_sc_fail_test() {
 
 #[test]
 fn transfer_whitelist_test() {
-    let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj);
+    let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj, pair_mock::contract_obj);
     fl_setup
         .b_mock
         .execute_tx(
@@ -319,4 +319,143 @@ fn transfer_whitelist_test() {
     fl_setup
         .b_mock
         .check_esdt_balance(&fl_setup.owner_address, TOKEN_ID, &rust_biguint!(0));
+}
+
+#[test]
+fn buy_token_test() {
+    let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj, pair_mock::contract_obj);
+    fl_setup.b_mock.set_esdt_balance(
+        &fl_setup.first_user_address,
+        OTHER_TOKEN_ID,
+        &rust_biguint!(1_000),
+    );
+    fl_setup.b_mock.set_esdt_balance(
+        fl_setup.pair_wrapper.address_ref(),
+        TOKEN_ID,
+        &rust_biguint!(50),
+    );
+
+    // 90% of the initial value is kept as fee
+    fl_setup
+        .b_mock
+        .execute_esdt_transfer(
+            &fl_setup.first_user_address,
+            &fl_setup.fl_wrapper,
+            OTHER_TOKEN_ID,
+            0,
+            &rust_biguint!(1_000),
+            |sc| {
+                sc.buy_token(
+                    managed_address!(fl_setup.pair_wrapper.address_ref()),
+                    managed_biguint!(1u32),
+                );
+            },
+        )
+        .assert_ok();
+
+    fl_setup
+        .b_mock
+        .check_esdt_balance(&fl_setup.first_user_address, TOKEN_ID, &rust_biguint!(50));
+
+    fl_setup.b_mock.check_esdt_balance(
+        fl_setup.fl_wrapper.address_ref(),
+        OTHER_TOKEN_ID,
+        &rust_biguint!(900),
+    );
+
+    fl_setup.b_mock.check_esdt_balance(
+        fl_setup.pair_wrapper.address_ref(),
+        OTHER_TOKEN_ID,
+        &rust_biguint!(100),
+    );
+}
+
+#[test]
+fn sell_token_test() {
+    let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj, pair_mock::contract_obj);
+    fl_setup.b_mock.set_block_nonce(50);
+    fl_setup.b_mock.set_esdt_balance(
+        &fl_setup.first_user_address,
+        TOKEN_ID,
+        &rust_biguint!(1_000),
+    );
+    fl_setup.b_mock.set_esdt_balance(
+        fl_setup.pair_wrapper.address_ref(),
+        OTHER_TOKEN_ID,
+        &rust_biguint!(5000),
+    );
+
+    // 75% of the initial value is kept as fee
+    fl_setup
+        .b_mock
+        .execute_esdt_transfer(
+            &fl_setup.first_user_address,
+            &fl_setup.fl_wrapper,
+            TOKEN_ID,
+            0,
+            &rust_biguint!(1_000),
+            |sc| {
+                sc.sell_token(
+                    managed_address!(fl_setup.pair_wrapper.address_ref()),
+                    managed_token_id!(OTHER_TOKEN_ID),
+                    managed_biguint!(1u32),
+                );
+            },
+        )
+        .assert_ok();
+
+    // values slightly differ due to biguint division errors
+
+    fl_setup.b_mock.check_esdt_balance(
+        &fl_setup.first_user_address,
+        OTHER_TOKEN_ID,
+        &rust_biguint!(504),
+    );
+
+    fl_setup.b_mock.check_esdt_balance(
+        fl_setup.fl_wrapper.address_ref(),
+        TOKEN_ID,
+        &rust_biguint!(748),
+    );
+
+    fl_setup.b_mock.check_esdt_balance(
+        fl_setup.pair_wrapper.address_ref(),
+        TOKEN_ID,
+        &rust_biguint!(252),
+    );
+}
+
+#[test]
+fn try_buy_after_deadline() {
+    let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj, pair_mock::contract_obj);
+    fl_setup.b_mock.set_esdt_balance(
+        &fl_setup.first_user_address,
+        OTHER_TOKEN_ID,
+        &rust_biguint!(1_000),
+    );
+    fl_setup.b_mock.set_esdt_balance(
+        fl_setup.pair_wrapper.address_ref(),
+        TOKEN_ID,
+        &rust_biguint!(50),
+    );
+
+    fl_setup.b_mock.set_block_nonce(120);
+
+    // 90% of the initial value is kept as fee
+    fl_setup
+        .b_mock
+        .execute_esdt_transfer(
+            &fl_setup.first_user_address,
+            &fl_setup.fl_wrapper,
+            OTHER_TOKEN_ID,
+            0,
+            &rust_biguint!(1_000),
+            |sc| {
+                sc.buy_token(
+                    managed_address!(fl_setup.pair_wrapper.address_ref()),
+                    managed_biguint!(1u32),
+                );
+            },
+        )
+        .assert_user_error("Cannot call this endpoint, initial launch period passed");
 }

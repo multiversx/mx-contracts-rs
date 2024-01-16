@@ -57,6 +57,8 @@ members = [
   "contracts/order-book/factory/meta",
   "contracts/order-book/pair",
   "contracts/order-book/pair/meta",
+  "contracts/pair-mock",
+  "contracts/pair-mock/meta",
   "contracts/paymaster",
   "contracts/paymaster/meta",
   "contracts/ping-pong-egld",

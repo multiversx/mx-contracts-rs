@@ -693,6 +693,7 @@ dependencies = [
  "multiversx-sc-scenario",
  "num-bigint",
  "num-traits",
+ "pair-mock",
 ]
 
 [[package]]
@@ -1791,6 +1792,23 @@ version = "0.0.0"
 dependencies = [
  "multiversx-sc-meta",
  "order-book-pair",
+]
+
+[[package]]
+name = "pair-mock"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc",
+ "multiversx-sc-scenario",
+ "num-bigint",
+]
+
+[[package]]
+name = "pair-mock-meta"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc-meta",
+ "pair-mock",
 ]
 
 [[package]]
