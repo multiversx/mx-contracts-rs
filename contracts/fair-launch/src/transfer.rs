@@ -7,6 +7,7 @@ pub trait TransferModule:
     crate::exchange_actions::ExchangeActionsModule
     + crate::initial_launch::InitialLaunchModule
     + crate::common::CommonModule
+    + crate::token_info::TokenInfoModule
 {
     /// Percentage should be between 0 and 10_000
     #[only_owner]

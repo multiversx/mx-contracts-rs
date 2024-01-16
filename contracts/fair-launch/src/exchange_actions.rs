@@ -14,7 +14,9 @@ pub struct EndpointInfo<M: ManagedTypeApi> {
 
 #[multiversx_sc::module]
 pub trait ExchangeActionsModule:
-    crate::common::CommonModule + crate::initial_launch::InitialLaunchModule
+    crate::common::CommonModule
+    + crate::initial_launch::InitialLaunchModule
+    + crate::token_info::TokenInfoModule
 {
     /// Arguments: endpoint_name,
     /// input_fee_percentage: between 0 and 10_000,
@@ -281,10 +283,4 @@ pub trait ExchangeActionsModule:
             None => sc_panic!("Unknown endpoint"),
         }
     }
-
-    #[storage_mapper("knownContracts")]
-    fn known_contracts(
-        &self,
-        sc_addr: &ManagedAddress,
-    ) -> SingleValueMapper<ManagedVec<EndpointInfo<Self::Api>>>;
 }
