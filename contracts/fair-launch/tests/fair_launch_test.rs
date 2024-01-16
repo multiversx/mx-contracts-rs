@@ -253,3 +253,70 @@ fn transfer_sc_fail_test() {
         .b_mock
         .check_esdt_balance(&fl_setup.owner_address, TOKEN_ID, &rust_biguint!(0));
 }
+
+#[test]
+fn transfer_whitelist_test() {
+    let mut fl_setup = FairLaunchSetup::new(fair_launch::contract_obj);
+    fl_setup
+        .b_mock
+        .execute_tx(
+            &fl_setup.owner_address,
+            &fl_setup.fl_wrapper,
+            &rust_biguint!(0),
+            |sc| {
+                sc.set_token_fees(managed_token_id!(TOKEN_ID), 4_000);
+            },
+        )
+        .assert_ok();
+
+    fl_setup.b_mock.set_esdt_balance(
+        &fl_setup.first_user_address,
+        TOKEN_ID,
+        &rust_biguint!(1_000),
+    );
+
+    fl_setup
+        .b_mock
+        .execute_tx(
+            &fl_setup.first_user_address,
+            &fl_setup.fl_wrapper,
+            &rust_biguint!(0),
+            |sc| {
+                let mut users = MultiValueEncoded::new();
+                users.push(managed_address!(&fl_setup.first_user_address));
+                sc.add_users_to_whitelist(users);
+            },
+        )
+        .assert_ok();
+
+    fl_setup
+        .b_mock
+        .execute_esdt_transfer(
+            &fl_setup.first_user_address,
+            &fl_setup.fl_wrapper,
+            TOKEN_ID,
+            0,
+            &rust_biguint!(1_000),
+            |sc| {
+                sc.forward_transfer(
+                    managed_address!(&fl_setup.second_user_address),
+                    MultiValueEncoded::new(),
+                );
+            },
+        )
+        .assert_ok();
+
+    fl_setup
+        .b_mock
+        .check_esdt_balance(&fl_setup.first_user_address, TOKEN_ID, &rust_biguint!(0));
+
+    fl_setup.b_mock.check_esdt_balance(
+        &fl_setup.second_user_address,
+        TOKEN_ID,
+        &rust_biguint!(1_000),
+    );
+
+    fl_setup
+        .b_mock
+        .check_esdt_balance(&fl_setup.owner_address, TOKEN_ID, &rust_biguint!(0));
+}
