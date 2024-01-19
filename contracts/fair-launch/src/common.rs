@@ -82,7 +82,7 @@ pub trait CommonModule {
         (payment_amount * fees_percentage + MAX_FEE_PERCENTAGE - 1u32) / MAX_FEE_PERCENTAGE
     }
 
-    fn burn_tokens(&self, tokens: &PaymentsVec<Self::Api>) {
+    fn burn_all_tokens(&self, tokens: &PaymentsVec<Self::Api>) {
         for token in tokens {
             if token.amount > 0 {
                 self.send().esdt_local_burn(

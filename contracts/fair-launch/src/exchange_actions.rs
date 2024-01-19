@@ -129,7 +129,7 @@ pub trait ExchangeActionsModule:
                 self.take_fees(caller.clone(), payments.clone(), input_fees_percentage);
 
             if endpoint_info.burn_input {
-                self.burn_tokens(&take_fees_result.fees);
+                self.burn_all_tokens(&take_fees_result.fees);
             }
 
             ContractCallNoPayment::<_, MultiValueEncoded<ManagedBuffer>>::new(dest, endpoint_name)
@@ -152,7 +152,7 @@ pub trait ExchangeActionsModule:
                 self.take_fees(caller, back_transfers.esdt_payments, output_fees_percentage);
 
             if endpoint_info.burn_output {
-                self.burn_tokens(&take_fees_from_results.fees);
+                self.burn_all_tokens(&take_fees_from_results.fees);
             }
 
             self.send().direct_multi(

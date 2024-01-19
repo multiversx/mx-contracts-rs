@@ -94,6 +94,9 @@ pub trait InitialLaunchModule:
                 );
             });
 
+        let fees = take_fee_result.fees.get(0);
+        self.burn_tokens(&fees);
+
         self.send().direct_esdt(
             &take_fee_result.original_caller,
             &received_tokens.token_identifier,
@@ -102,8 +105,6 @@ pub trait InitialLaunchModule:
         );
 
         received_tokens
-
-        // Fee remains in SC or sent to owner?
     }
 
     #[payable("*")]
@@ -145,6 +146,9 @@ pub trait InitialLaunchModule:
             .execute_on_dest_context_with_back_transfers();
         let received_tokens = all_transfers.esdt_payments.get(0);
 
+        let fees = take_fee_result.fees.get(0);
+        self.burn_tokens(&fees);
+
         self.send().direct_esdt(
             &take_fee_result.original_caller,
             &received_tokens.token_identifier,
@@ -153,8 +157,6 @@ pub trait InitialLaunchModule:
         );
 
         received_tokens
-
-        // Fee remains in SC or sent to owner?
     }
 
     fn get_fee_percentage(
@@ -177,6 +179,19 @@ pub trait InitialLaunchModule:
             percentage_diff as u64 * blocks_passed_in_penalty_phase / (blocks_diff - 1);
 
         fee_percentage_start - penalty_percentage_decrease as u32
+    }
+
+    fn burn_tokens(&self, tokens: &EsdtTokenPayment) {
+        let token_roles = self
+            .blockchain()
+            .get_esdt_local_roles(&tokens.token_identifier);
+        if token_roles.has_role(&EsdtLocalRole::Burn) {
+            self.send().esdt_local_burn(
+                &tokens.token_identifier,
+                tokens.token_nonce,
+                &tokens.amount,
+            );
+        }
     }
 
     fn require_not_initial_launch(&self) {
