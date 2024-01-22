@@ -1,7 +1,7 @@
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
-#[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, TypeAbi)]
+#[derive(Default, NestedEncode, NestedDecode, TopEncode, TopDecode, TypeAbi)]
 pub struct AddressInfo {
     pub current_streak: u64,
     pub last_epoch_claimed: u64,
@@ -21,15 +21,6 @@ impl AddressInfo {
             last_epoch_claimed,
             total_epochs_claimed,
             best_streak,
-        }
-    }
-
-    pub fn default() -> Self {
-        AddressInfo {
-            current_streak: 0,
-            last_epoch_claimed: 0,
-            total_epochs_claimed: 0,
-            best_streak: 0,
         }
     }
 
