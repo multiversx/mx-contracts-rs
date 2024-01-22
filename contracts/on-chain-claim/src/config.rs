@@ -17,7 +17,7 @@ pub trait ConfigModule {
     }
 
     fn get_missed_epochs(&self, current_epoch: u64, last_epoch_claimed: u64) -> u64 {
-        if current_epoch - last_epoch_claimed <= 1 {
+        if current_epoch <= last_epoch_claimed {
             return 0;
         }
 
@@ -29,7 +29,7 @@ pub trait ConfigModule {
         let address_info_mapper = self.address_info(address);
 
         if address_info_mapper.is_empty() {
-            return AddressInfo::new(0, 0, 0, 0);
+            return AddressInfo::default();
         }
 
         address_info_mapper.get()
