@@ -9,10 +9,10 @@ publish = false
 path = "src/proxy_pause.rs"
 
 [dependencies.multiversx-sc]
-version = "0.45.2"
+version = "0.46.1"
 
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.45.2"
+version = "0.46.1"
 
 [dev-dependencies.check-pause]
 path = "../check-pause"

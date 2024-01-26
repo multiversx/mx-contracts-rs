@@ -8,6 +8,7 @@ permissions:
 
 jobs:
   build:
-    uses: multiversx/mx-sc-actions/.github/workflows/reproducible-build.yml@v2.3.1
+    uses: multiversx/mx-sc-actions/.github/workflows/reproducible-build.yml@v2.3.5
     with:
-      image_tag: v5.3.0
+      image_tag: v5.4.1
+      package_whole_project_src: true

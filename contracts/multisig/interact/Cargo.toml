@@ -10,7 +10,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-toml = "0.7.2"
+toml = "0.8.8"
 
 [dependencies.clap]
 version = "4.1.0"
@@ -27,10 +27,10 @@ features = ["derive"]
 path = ".."
 
 [dependencies.multiversx-sc-modules]
-version = "0.45.2"
+version = "0.46.1"
 
 [dependencies.multiversx-sc-snippets]
-version = "0.45.2"
+version = "0.46.0"
 
 [dependencies.multiversx-sc-scenario]
-version = "=0.45.2"
+version = "=0.46.1"

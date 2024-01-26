@@ -1,0 +1,12 @@
+[package]
+name = "pair-mock-meta"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies.pair-mock]
+path = ".."
+
+[dependencies.multiversx-sc-meta]
+version = "0.46.0"
+default-features = false

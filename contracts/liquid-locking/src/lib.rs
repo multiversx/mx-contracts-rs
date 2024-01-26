@@ -12,6 +12,11 @@ pub trait LiquidLocking {
         self.unbond_period().set_if_empty(unbond_period);
     }
 
+    #[upgrade]
+    fn upgrade(&self, unbond_period: u64) {
+        self.unbond_period().set_if_empty(unbond_period);
+    }
+
     #[only_owner]
     #[endpoint]
     fn set_unbond_period(&self, unbond_period: u64) {
@@ -126,6 +131,7 @@ pub trait LiquidLocking {
         }
 
         require!(!unbond_tokens.is_empty(), "nothing to unbond");
+        self.unbond_event(&caller, &unbond_tokens);
         self.send().direct_multi(&caller, &unbond_tokens);
     }
 
@@ -134,6 +140,9 @@ pub trait LiquidLocking {
 
     #[event("unlock")]
     fn unlock_event(&self, #[indexed] user: &ManagedAddress, tokens: &ManagedVec<EsdtTokenPayment>);
+
+    #[event("unbond")]
+    fn unbond_event(&self, #[indexed] user: &ManagedAddress, tokens: &ManagedVec<EsdtTokenPayment>);
 
     #[view(lockedTokenAmounts)]
     fn locked_token_amounts_by_address(
