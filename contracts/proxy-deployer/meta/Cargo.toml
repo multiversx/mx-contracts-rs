@@ -6,8 +6,9 @@ publish = false
 authors = ["MultiversX <contact@multiversx.com>"]
 
 [dev-dependencies]
+
 [dependencies.proxy-deployer]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
-version = "0.45.2"
+version = "0.47.0"

@@ -11,8 +11,8 @@ publish = false
 path = ".."
 
 [dependencies.multiversx-sc]
-version = "0.46.1"
+version = "0.47.0"
 
 [dependencies.multiversx-sc-meta]
-version = "0.46.1"
+version = "0.47.0"
 default-features = false
