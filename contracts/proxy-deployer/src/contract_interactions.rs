@@ -22,7 +22,7 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             self.blockchain().get_gas_left(),
             &BigUint::zero(),
             &template_address,
-            CodeMetadata::DEFAULT,
+            self.blockchain().get_code_metadata(&template_address),
             &args.to_arg_buffer(),
         );
 
@@ -70,7 +70,7 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             self.blockchain().get_gas_left(),
             &BigUint::zero(),
             &template_address,
-            CodeMetadata::DEFAULT,
+            self.blockchain().get_code_metadata(&template_address),
             &args.to_arg_buffer(),
         );
     }

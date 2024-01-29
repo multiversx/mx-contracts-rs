@@ -5,14 +5,12 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           18
+// Endpoints:                           19
 // Async Callback (empty):               1
-// Total number of exported functions:  20
+// Total number of exported functions:  21
 
 #![no_std]
-
-// Configuration that works with rustc < 1.73.0.
-// TODO: Recommended rustc version: 1.73.0 or newer.
+#![allow(internal_features)]
 #![feature(lang_items)]
 
 multiversx_sc_wasm_adapter::allocator!();
@@ -32,6 +30,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         setDefaultGasForSaveOperation => set_default_gas_for_save_operation
         getDeployerContractsByTemplate => get_deployer_contracts_by_template
         getAllDeployerContracts => get_all_deployer_contracts
+        getMetadataFromContractAddress => get_metadata_from_contract_address
         getAllDeployedContractsByTemplate => deployed_contracts_list_by_template
         getOngoingUpgradeOperations => ongoing_upgrade_operation
         getDefaultGasForSaveOperation => default_gas_for_save_operation

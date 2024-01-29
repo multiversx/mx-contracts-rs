@@ -1,13 +1,15 @@
 use multiversx_sc::{
     codec::{multi_types::OptionalValue, top_encode_to_vec_u8_or_panic},
     storage::mappers::SingleValue,
-    types::{Address, ManagedAddress, ManagedBuffer, MultiValueEncoded},
+    types::{Address, CodeMetadata, ManagedAddress, ManagedBuffer, MultiValueEncoded},
 };
 
 use multiversx_sc_scenario::{api::StaticApi, num_bigint::BigUint, scenario_model::*, *};
 
 use adder::ProxyTrait as _;
-use proxy_deployer::{contract_interactions::ProxyTrait as _, ProxyTrait as _};
+use proxy_deployer::{
+    contract_interactions::ProxyTrait as _, ProxyTrait as _,
+};
 
 const PROXY_DEPLOYER_ADDRESS_EXPR: &str = "sc:proxy_deployer";
 const TEMPLATE_CONTRACT_ADDRESS_EXPR: &str = "sc:template_contract";
@@ -196,6 +198,14 @@ impl ProxyDeployerTestState {
                 .expect_value(SingleValue::from(BigUint::from(expected_value))),
         );
     }
+
+    fn _check_contract_metadata(&mut self, _deployed_address: &str, _expected_value: CodeMetadata) {
+        // self.world
+        //     .check_state_step(CheckStateStep::new().put_account(
+        //         deployed_address,
+        //         CheckAccount::new().code_metadata(expected_value),
+        //     ));
+    }
 }
 
 #[test]
@@ -285,4 +295,42 @@ fn proxy_deployer_owner_bulk_upgrade() {
     state.upgrade_by_template(&template_address, upgrade_args);
     state.check_contract_storage(DEPLOYED_CONTRACT_ADDRESS_EXPR1, 5u64);
     // state.check_contract_storage(DEPLOYED_CONTRACT_ADDRESS_EXPR2, 5u64);
+}
+
+#[test]
+fn proxy_deployer_check_metadata_test() {
+    let mut state = ProxyDeployerTestState::new();
+    state.deploy_proxy_deployer_contract();
+
+    let template_address = state.template_contract_address.clone();
+
+    // Test contract deploy
+    let mut deploy_args = MultiValueEncoded::new();
+    deploy_args.push(ManagedBuffer::from(top_encode_to_vec_u8_or_panic(&1u64)));
+    state.deploy_contract(
+        USER_ADDRESS_EXPR,
+        0,
+        DEPLOYED_CONTRACT_ADDRESS_EXPR1,
+        &template_address,
+        deploy_args,
+    );
+    state.check_contract_storage(DEPLOYED_CONTRACT_ADDRESS_EXPR1, 1u64);
+    let contract_address = state.deployed_contracts[0].to_owned();
+
+    // Test endpoint call
+    let mut call_args = MultiValueEncoded::new();
+    call_args.push(ManagedBuffer::from(top_encode_to_vec_u8_or_panic(&9u64)));
+    state.call_endpoint(USER_ADDRESS_EXPR, &contract_address, "add", call_args);
+    state.check_contract_storage(DEPLOYED_CONTRACT_ADDRESS_EXPR1, 10u64);
+
+    // Test contract upgrade
+    let mut upgrade_args = MultiValueEncoded::new();
+    upgrade_args.push(ManagedBuffer::from(top_encode_to_vec_u8_or_panic(&5u64)));
+    state.upgrade_contract(
+        USER_ADDRESS_EXPR,
+        &contract_address,
+        &template_address,
+        upgrade_args,
+    );
+    state.check_contract_storage(DEPLOYED_CONTRACT_ADDRESS_EXPR1, 5u64);
 }
