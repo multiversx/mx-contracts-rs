@@ -19,7 +19,7 @@ overflow-checks = false
 path = ".."
 
 [dependencies.multiversx-sc-wasm-adapter]
-version = "0.47.0"
+version = "0.47.1"
 
 [workspace]
 members = ["."]
