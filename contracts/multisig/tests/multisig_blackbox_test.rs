@@ -1,7 +1,7 @@
 use adder::ProxyTrait as _;
 use multisig::{
-    multisig_perform::ProxyTrait as _, multisig_propose::ProxyTrait as _, user_role::UserRole,
-    ProxyTrait as _,
+    action::GasLimit, multisig_perform::ProxyTrait as _, multisig_propose::ProxyTrait as _,
+    user_role::UserRole, ProxyTrait as _,
 };
 use multiversx_sc::{
     codec::{
@@ -153,6 +153,7 @@ impl MultisigTestState {
         &mut self,
         to: Address,
         egld_amount: u64,
+        opt_gas_limit: Option<GasLimit>,
         contract_call: ContractCallNoPayment<StaticApi, ()>,
     ) -> usize {
         self.world
@@ -160,6 +161,7 @@ impl MultisigTestState {
                 self.multisig_contract.propose_transfer_execute(
                     to,
                     egld_amount,
+                    opt_gas_limit,
                     contract_call.into_function_call(),
                 ),
             ))
@@ -169,6 +171,7 @@ impl MultisigTestState {
         &mut self,
         to: Address,
         egld_amount: u64,
+        opt_gas_limit: Option<GasLimit>,
         contract_call: ContractCallNoPayment<StaticApi, ()>,
     ) -> usize {
         self.world
@@ -176,6 +179,7 @@ impl MultisigTestState {
                 self.multisig_contract.propose_async_call(
                     to,
                     egld_amount,
+                    opt_gas_limit,
                     contract_call.into_function_call(),
                 ),
             ))
@@ -441,6 +445,7 @@ fn test_transfer_execute_to_user() {
             .call(state.multisig_contract.propose_transfer_execute(
                 new_user_address.clone(),
                 0u64,
+                Option::<GasLimit>::None,
                 FunctionCall::empty(),
             ))
             .expect(TxExpect::user_error("str:proposed action has no effect")),
@@ -454,6 +459,7 @@ fn test_transfer_execute_to_user() {
                 state.multisig_contract.propose_transfer_execute(
                     new_user_address,
                     AMOUNT.parse::<u64>().unwrap(),
+                    Option::<GasLimit>::None,
                     FunctionCall::empty(),
                 ),
             ));
@@ -473,7 +479,12 @@ fn test_transfer_execute_sc_all() {
 
     let adder_call = state.adder_contract.add(5u64);
 
-    let action_id = state.propose_transfer_execute(state.adder_address.clone(), 0u64, adder_call);
+    let action_id = state.propose_transfer_execute(
+        state.adder_address.clone(),
+        0u64,
+        Option::<GasLimit>::None,
+        adder_call,
+    );
     state.sign(action_id);
     state.perform(action_id);
 
@@ -491,7 +502,12 @@ fn test_async_call_to_sc() {
 
     let adder_call = state.adder_contract.add(5u64);
 
-    let action_id = state.propose_async_call(state.adder_address.clone(), 0u64, adder_call);
+    let action_id = state.propose_async_call(
+        state.adder_address.clone(),
+        0u64,
+        Option::<GasLimit>::None,
+        adder_call,
+    );
     state.sign(action_id);
     state.perform(action_id);
 
@@ -532,7 +548,12 @@ fn test_deploy_and_upgrade_from_source() {
 
     let adder_call = state.adder_contract.add(5u64);
 
-    let action_id = state.propose_transfer_execute(new_adder_address, 0u64, adder_call);
+    let action_id = state.propose_transfer_execute(
+        new_adder_address,
+        0u64,
+        Option::<GasLimit>::None,
+        adder_call,
+    );
     state.sign(action_id);
     state.perform(action_id);
 

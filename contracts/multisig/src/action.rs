@@ -5,10 +5,13 @@ use multiversx_sc::{
 
 multiversx_sc::derive_imports!();
 
+pub type GasLimit = u64;
+
 #[derive(NestedEncode, NestedDecode, TypeAbi, Clone)]
 pub struct CallActionData<M: ManagedTypeApi> {
     pub to: ManagedAddress<M>,
     pub egld_amount: BigUint<M>,
+    pub opt_gas_limit: Option<GasLimit>,
     pub endpoint_name: ManagedBuffer<M>,
     pub arguments: ManagedVec<M, ManagedBuffer<M>>,
 }

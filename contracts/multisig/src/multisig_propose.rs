@@ -1,4 +1,4 @@
-use crate::action::{Action, CallActionData};
+use crate::action::{Action, CallActionData, GasLimit};
 
 multiversx_sc::imports!();
 
@@ -51,6 +51,7 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
         &self,
         to: ManagedAddress,
         egld_amount: BigUint,
+        opt_gas_limit: Option<GasLimit>,
         function_call: FunctionCall,
     ) -> CallActionData<Self::Api> {
         require!(
@@ -61,6 +62,7 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
         CallActionData {
             to,
             egld_amount,
+            opt_gas_limit,
             endpoint_name: function_call.function_name,
             arguments: function_call.arg_buffer.into_vec_of_buffers(),
         }
@@ -75,9 +77,10 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
         &self,
         to: ManagedAddress,
         egld_amount: BigUint,
+        opt_gas_limit: Option<GasLimit>,
         function_call: FunctionCall,
     ) -> usize {
-        let call_data = self.prepare_call_data(to, egld_amount, function_call);
+        let call_data = self.prepare_call_data(to, egld_amount, opt_gas_limit, function_call);
         self.propose_action(Action::SendTransferExecute(call_data))
     }
 
@@ -91,9 +94,10 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
         &self,
         to: ManagedAddress,
         egld_amount: BigUint,
+        opt_gas_limit: Option<GasLimit>,
         function_call: FunctionCall,
     ) -> usize {
-        let call_data = self.prepare_call_data(to, egld_amount, function_call);
+        let call_data = self.prepare_call_data(to, egld_amount, opt_gas_limit, function_call);
         self.propose_action(Action::SendAsyncCall(call_data))
     }
 
