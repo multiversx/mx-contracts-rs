@@ -1,7 +1,7 @@
 use adder::ProxyTrait as _;
 use multisig::{
     action::GasLimit, multisig_perform::ProxyTrait as _, multisig_propose::ProxyTrait as _,
-    user_role::UserRole, ProxyTrait as _,
+    multisig_sign::ProxyTrait, user_role::UserRole, ProxyTrait as _,
 };
 use multiversx_sc::{
     codec::{

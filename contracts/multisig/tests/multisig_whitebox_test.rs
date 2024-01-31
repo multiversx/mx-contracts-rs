@@ -6,7 +6,8 @@ use adder::Adder;
 use factorial::Factorial;
 use multisig::{
     action::GasLimit, multisig_perform::MultisigPerformModule,
-    multisig_propose::MultisigProposeModule, user_role::UserRole, Multisig,
+    multisig_propose::MultisigProposeModule, multisig_sign::MultisigSignModule,
+    user_role::UserRole, Multisig,
 };
 use multiversx_sc::{
     api::ManagedTypeApi,
