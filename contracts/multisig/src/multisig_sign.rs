@@ -37,6 +37,21 @@ pub trait MultisigSignModule:
         }
     }
 
+    #[endpoint(signAndPerform)]
+    fn sign_and_perform(&self, action_id: usize) -> OptionalValue<ManagedAddress> {
+        self.sign(action_id);
+        self.perform_action_endpoint(action_id)
+    }
+
+    #[endpoint(signBatchAndPerform)]
+    fn sign_batch_and_perform(&self, action_ids: MultiValueEncoded<usize>) {
+        self.sign_batch(action_ids.clone());
+
+        for action_id in action_ids {
+            let _ = self.perform_action_endpoint(action_id);
+        }
+    }
+
     /// Board members can withdraw their signatures if they no longer desire for the action to be executed.
     /// Actions that are left with no valid signatures can be then deleted to free up storage.
     #[endpoint]

@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           22
+// Endpoints:                           24
 // Async Callback:                       1
-// Total number of exported functions:  24
+// Total number of exported functions:  26
 
 #![no_std]
 #![allow(internal_features)]
@@ -37,6 +37,8 @@ multiversx_sc_wasm_adapter::endpoints! {
         proposeSCUpgradeFromSource => propose_sc_upgrade_from_source
         sign => sign
         signBatch => sign_batch
+        signAndPerform => sign_and_perform
+        signBatchAndPerform => sign_batch_and_perform
         unsign => unsign
         signed => signed
         quorumReached => quorum_reached
