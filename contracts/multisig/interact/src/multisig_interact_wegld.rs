@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use multisig::action::GasLimit;
+use multisig::{action::GasLimit, multisig_state::GroupId};
 use multiversx_sc_scenario::multiversx_sc::types::FunctionCall;
 #[allow(unused_imports)]
 use multiversx_sc_snippets::multiversx_sc::types::{
@@ -69,6 +69,7 @@ impl MultisigInteract {
                         bech32::decode(WEGLD_SWAP_SC_BECH32),
                         WRAP_AMOUNT,
                         Option::<GasLimit>::None,
+                        Option::<GroupId>::None,
                         FunctionCall::new("wrapEgld"),
                     ))
                     .from(&self.wallet_address)
@@ -102,6 +103,7 @@ impl MultisigInteract {
                         contract_call.basic.to,
                         0u64,
                         Option::<GasLimit>::None,
+                        Option::<GroupId>::None,
                         contract_call.basic.function_call,
                     ))
                     .from(&self.wallet_address)

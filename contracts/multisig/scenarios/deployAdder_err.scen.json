@@ -27,7 +27,8 @@
                 "arguments": [
                     "0",
                     "sc:adder-code",
-                    "0x0000"
+                    "0x0000",
+                    "0x"
                 ],
                 "gasLimit": "200,000,000",
                 "gasPrice": "0"

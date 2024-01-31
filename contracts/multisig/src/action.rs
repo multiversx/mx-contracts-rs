@@ -3,6 +3,8 @@ use multiversx_sc::{
     types::{BigUint, CodeMetadata, ManagedAddress, ManagedBuffer, ManagedVec},
 };
 
+use crate::multisig_state::ActionId;
+
 multiversx_sc::derive_imports!();
 
 pub type GasLimit = u64;
@@ -52,7 +54,7 @@ impl<M: ManagedTypeApi> Action<M> {
 /// Not used internally, just to retrieve results via endpoint.
 #[derive(TopEncode, TypeAbi)]
 pub struct ActionFullInfo<M: ManagedTypeApi> {
-    pub action_id: usize,
+    pub action_id: ActionId,
     pub action_data: Action<M>,
     pub signers: ManagedVec<M, ManagedAddress<M>>,
 }

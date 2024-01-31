@@ -9,6 +9,7 @@ pub mod multisig_state;
 pub mod user_role;
 
 use action::ActionFullInfo;
+use multisig_state::ActionId;
 use user_role::UserRole;
 
 multiversx_sc::imports!();
@@ -123,7 +124,7 @@ pub trait Multisig:
     /// Any signatures that the action received must first be removed, via `unsign`.
     /// Otherwise this endpoint would be prone to abuse.
     #[endpoint(discardAction)]
-    fn discard_action(&self, action_id: usize) {
+    fn discard_action(&self, action_id: ActionId) {
         let (_, caller_role) = self.get_caller_id_and_role();
         require!(
             caller_role.can_discard_action(),

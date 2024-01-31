@@ -35,6 +35,7 @@
                 "arguments": [
                     "sc:other-shard-1",
                     "10",
+                    "0x",
                     "0x"
                 ],
                 "gasLimit": "100,000,000",

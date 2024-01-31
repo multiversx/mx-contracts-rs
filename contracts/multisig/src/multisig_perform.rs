@@ -1,5 +1,6 @@
 use crate::{
-    action::{Action, ActionFullInfo},
+    action::{Action, ActionFullInfo, GasLimit},
+    multisig_state::ActionId,
     user_role::UserRole,
 };
 
@@ -17,7 +18,7 @@ fn usize_add_isize(value: &mut usize, delta: isize) {
 pub trait MultisigPerformModule:
     crate::multisig_state::MultisigStateModule + crate::multisig_events::MultisigEventsModule
 {
-    fn gas_for_transfer_exec(&self) -> u64 {
+    fn gas_for_transfer_exec(&self) -> GasLimit {
         let gas_left = self.blockchain().get_gas_left();
         if gas_left <= PERFORM_ACTION_FINISH_GAS {
             sc_panic!("insufficient gas for call");
@@ -31,7 +32,12 @@ pub trait MultisigPerformModule:
     /// - reactivate removed user
     /// - convert between board member and proposer
     /// Will keep the board size and proposer count in sync.
-    fn change_user_role(&self, action_id: usize, user_address: ManagedAddress, new_role: UserRole) {
+    fn change_user_role(
+        &self,
+        action_id: ActionId,
+        user_address: ManagedAddress,
+        new_role: UserRole,
+    ) {
         let user_id = if new_role == UserRole::None {
             // avoid creating a new user just to delete it
             let user_id = self.user_mapper().get_user_id(&user_address);
@@ -77,20 +83,20 @@ pub trait MultisigPerformModule:
 
     /// Returns `true` (`1`) if `getActionValidSignerCount >= getQuorum`.
     #[view(quorumReached)]
-    fn quorum_reached(&self, action_id: usize) -> bool {
+    fn quorum_reached(&self, action_id: ActionId) -> bool {
         let quorum = self.quorum().get();
         let valid_signers_count = self.get_action_valid_signer_count(action_id);
         valid_signers_count >= quorum
     }
 
-    fn clear_action(&self, action_id: usize) {
+    fn clear_action(&self, action_id: ActionId) {
         self.action_mapper().clear_entry_unchecked(action_id);
         self.action_signer_ids(action_id).clear();
     }
 
     /// Proposers and board members use this to launch signed actions.
     #[endpoint(performAction)]
-    fn perform_action_endpoint(&self, action_id: usize) -> OptionalValue<ManagedAddress> {
+    fn perform_action_endpoint(&self, action_id: ActionId) -> OptionalValue<ManagedAddress> {
         let (_, caller_role) = self.get_caller_id_and_role();
         require!(
             caller_role.can_perform_action(),
@@ -104,7 +110,7 @@ pub trait MultisigPerformModule:
         self.perform_action(action_id)
     }
 
-    fn perform_action(&self, action_id: usize) -> OptionalValue<ManagedAddress> {
+    fn perform_action(&self, action_id: ActionId) -> OptionalValue<ManagedAddress> {
         let action = self.action_mapper().get(action_id);
 
         self.start_perform_action_event(&ActionFullInfo {
@@ -117,6 +123,11 @@ pub trait MultisigPerformModule:
         // happens before actual execution, because the match provides the return on each branch
         // syntax aside, the async_call_raw kills contract execution so cleanup cannot happen afterwards
         self.clear_action(action_id);
+
+        let group_id = self.group_for_action(action_id).take();
+        if group_id != 0 {
+            let _ = self.action_groups(group_id).swap_remove(&action_id);
+        }
 
         match action {
             Action::Nothing => OptionalValue::None,
