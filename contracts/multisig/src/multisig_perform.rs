@@ -92,6 +92,11 @@ pub trait MultisigPerformModule:
     fn clear_action(&self, action_id: ActionId) {
         self.action_mapper().clear_entry_unchecked(action_id);
         self.action_signer_ids(action_id).clear();
+
+        let group_id = self.group_for_action(action_id).take();
+        if group_id != 0 {
+            let _ = self.action_groups(group_id).swap_remove(&action_id);
+        }
     }
 
     /// Proposers and board members use this to launch signed actions.
@@ -123,11 +128,6 @@ pub trait MultisigPerformModule:
         // happens before actual execution, because the match provides the return on each branch
         // syntax aside, the async_call_raw kills contract execution so cleanup cannot happen afterwards
         self.clear_action(action_id);
-
-        let group_id = self.group_for_action(action_id).take();
-        if group_id != 0 {
-            let _ = self.action_groups(group_id).swap_remove(&action_id);
-        }
 
         match action {
             Action::Nothing => OptionalValue::None,
