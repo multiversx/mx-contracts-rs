@@ -7,9 +7,7 @@ use multiversx_sc::{
 use multiversx_sc_scenario::{api::StaticApi, num_bigint::BigUint, scenario_model::*, *};
 
 use adder::ProxyTrait as _;
-use proxy_deployer::{
-    contract_interactions::ProxyTrait as _, ProxyTrait as _,
-};
+use proxy_deployer::{contract_interactions::ProxyTrait as _, ProxyTrait as _};
 
 const PROXY_DEPLOYER_ADDRESS_EXPR: &str = "sc:proxy_deployer";
 const TEMPLATE_CONTRACT_ADDRESS_EXPR: &str = "sc:template_contract";
@@ -199,12 +197,13 @@ impl ProxyDeployerTestState {
         );
     }
 
-    fn _check_contract_metadata(&mut self, _deployed_address: &str, _expected_value: CodeMetadata) {
-        // self.world
-        //     .check_state_step(CheckStateStep::new().put_account(
-        //         deployed_address,
-        //         CheckAccount::new().code_metadata(expected_value),
-        //     ));
+    fn check_contract_metadata(&mut self, deployed_address: &str, expected_value: CodeMetadata) {
+        let metadata = BytesValue::from(expected_value.to_byte_array().as_ref());
+        self.world
+            .check_state_step(CheckStateStep::new().put_account(
+                deployed_address,
+                CheckAccount::new().code_metadata(metadata),
+            ));
     }
 }
 
@@ -304,6 +303,14 @@ fn proxy_deployer_check_metadata_test() {
 
     let template_address = state.template_contract_address.clone();
 
+    state.check_contract_metadata(
+        PROXY_DEPLOYER_ADDRESS_EXPR,
+        CodeMetadata::UPGRADEABLE
+            | CodeMetadata::READABLE
+            | CodeMetadata::PAYABLE
+            | CodeMetadata::PAYABLE_BY_SC,
+    );
+
     // Test contract deploy
     let mut deploy_args = MultiValueEncoded::new();
     deploy_args.push(ManagedBuffer::from(top_encode_to_vec_u8_or_panic(&1u64)));
@@ -316,6 +323,14 @@ fn proxy_deployer_check_metadata_test() {
     );
     state.check_contract_storage(DEPLOYED_CONTRACT_ADDRESS_EXPR1, 1u64);
     let contract_address = state.deployed_contracts[0].to_owned();
+
+    state.check_contract_metadata(
+        DEPLOYED_CONTRACT_ADDRESS_EXPR1,
+        CodeMetadata::UPGRADEABLE
+            | CodeMetadata::READABLE
+            | CodeMetadata::PAYABLE
+            | CodeMetadata::PAYABLE_BY_SC,
+    );
 
     // Test endpoint call
     let mut call_args = MultiValueEncoded::new();
