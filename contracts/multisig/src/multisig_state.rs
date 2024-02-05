@@ -2,6 +2,10 @@ use crate::{action::Action, user_role::UserRole};
 
 multiversx_sc::imports!();
 
+pub type ActionId = usize;
+pub type GroupId = usize;
+pub type UserId = usize;
+
 /// Contains all events that can be emitted by the contract.
 #[multiversx_sc::module]
 pub trait MultisigStateModule {
@@ -14,9 +18,9 @@ pub trait MultisigStateModule {
     fn user_mapper(&self) -> UserMapper;
 
     #[storage_mapper("user_role")]
-    fn user_id_to_role(&self, user_id: usize) -> SingleValueMapper<UserRole>;
+    fn user_id_to_role(&self, user_id: UserId) -> SingleValueMapper<UserRole>;
 
-    fn get_caller_id_and_role(&self) -> (usize, UserRole) {
+    fn get_caller_id_and_role(&self) -> (UserId, UserRole) {
         let caller_address = self.blockchain().get_caller();
         let caller_id = self.user_mapper().get_user_id(&caller_address);
         let caller_role = self.user_id_to_role(caller_id).get();
@@ -58,29 +62,36 @@ pub trait MultisigStateModule {
     #[storage_mapper("action_data")]
     fn action_mapper(&self) -> VecMapper<Action<Self::Api>>;
 
+    #[view(getActionGroup)]
+    #[storage_mapper("action_groups")]
+    fn action_groups(&self, group_id: GroupId) -> UnorderedSetMapper<ActionId>;
+
+    #[storage_mapper("group_for_action")]
+    fn group_for_action(&self, action_id: ActionId) -> SingleValueMapper<GroupId>;
+
     /// The index of the last proposed action.
     /// 0 means that no action was ever proposed yet.
     #[view(getActionLastIndex)]
-    fn get_action_last_index(&self) -> usize {
+    fn get_action_last_index(&self) -> ActionId {
         self.action_mapper().len()
     }
 
     /// Serialized action data of an action with index.
     #[label("multisig-external-view")]
     #[view(getActionData)]
-    fn get_action_data(&self, action_id: usize) -> Action<Self::Api> {
+    fn get_action_data(&self, action_id: ActionId) -> Action<Self::Api> {
         self.action_mapper().get(action_id)
     }
 
     #[storage_mapper("action_signer_ids")]
-    fn action_signer_ids(&self, action_id: usize) -> UnorderedSetMapper<usize>;
+    fn action_signer_ids(&self, action_id: ActionId) -> UnorderedSetMapper<UserId>;
 
     /// Gets addresses of all users who signed an action.
     /// Does not check if those users are still board members or not,
     /// so the result may contain invalid signers.
     #[label("multisig-external-view")]
     #[view(getActionSigners)]
-    fn get_action_signers(&self, action_id: usize) -> ManagedVec<ManagedAddress> {
+    fn get_action_signers(&self, action_id: ActionId) -> ManagedVec<ManagedAddress> {
         let signer_ids = self.action_signer_ids(action_id);
         let mut signers = ManagedVec::new();
         for signer_id in signer_ids.iter() {
@@ -93,7 +104,7 @@ pub trait MultisigStateModule {
     /// All these signatures are currently valid.
     #[label("multisig-external-view")]
     #[view(getActionSignerCount)]
-    fn get_action_signer_count(&self, action_id: usize) -> usize {
+    fn get_action_signer_count(&self, action_id: ActionId) -> usize {
         self.action_signer_ids(action_id).len()
     }
 
@@ -104,7 +115,7 @@ pub trait MultisigStateModule {
     /// It also makes it easy to check before performing an action.
     #[label("multisig-external-view")]
     #[view(getActionValidSignerCount)]
-    fn get_action_valid_signer_count(&self, action_id: usize) -> usize {
+    fn get_action_valid_signer_count(&self, action_id: ActionId) -> usize {
         let signer_ids = self.action_signer_ids(action_id);
         signer_ids
             .iter()

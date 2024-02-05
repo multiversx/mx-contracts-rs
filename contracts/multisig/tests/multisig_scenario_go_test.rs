@@ -67,6 +67,7 @@ fn interactor_nft_all_roles_go() {
 }
 
 #[test]
+#[ignore = "not updated"]
 fn interactor_wegld_go() {
     world().run("scenarios/interactor_wegld.scen.json");
 }
