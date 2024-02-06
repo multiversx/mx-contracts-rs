@@ -55,9 +55,9 @@ impl<M: ManagedTypeApi> Action<M> {
 #[derive(TopEncode, TypeAbi)]
 pub struct ActionFullInfo<M: ManagedTypeApi> {
     pub action_id: ActionId,
+    pub group_id: GroupId,
     pub action_data: Action<M>,
     pub signers: ManagedVec<M, ManagedAddress<M>>,
-    pub group_id: GroupId,
 }
 
 #[cfg(test)]

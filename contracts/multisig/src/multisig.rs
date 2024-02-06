@@ -9,7 +9,7 @@ pub mod multisig_state;
 pub mod user_role;
 
 use action::ActionFullInfo;
-use multisig_state::{ActionId, GroupId};
+use multisig_state::ActionId;
 use user_role::UserRole;
 
 multiversx_sc::imports!();
@@ -137,21 +137,16 @@ pub trait Multisig:
         self.discard_action(action_id);
     }
 
-    /// Discard all the actions in the given group
+    /// Discard all the actions with the given IDs
     #[endpoint(discardBatch)]
-    fn discard_batch(&self, group_id: GroupId) {
+    fn discard_batch(&self, action_ids: MultiValueEncoded<ActionId>) {
         let (_, caller_role) = self.get_caller_id_and_role();
         require!(
             caller_role.can_discard_action(),
             "only board members and proposers can discard actions"
         );
 
-        let mut action_ids = ManagedVec::<Self::Api, usize>::new();
-        for action_id in self.action_groups(group_id).iter() {
-            action_ids.push(action_id);
-        }
-
-        for action_id in &action_ids {
+        for action_id in action_ids {
             self.discard_action(action_id);
         }
     }

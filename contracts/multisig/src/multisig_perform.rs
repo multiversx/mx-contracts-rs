@@ -1,6 +1,6 @@
 use crate::{
     action::{Action, ActionFullInfo, GasLimit},
-    multisig_state::{ActionId, GroupId},
+    multisig_state::ActionId,
     user_role::UserRole,
 };
 
@@ -115,21 +115,16 @@ pub trait MultisigPerformModule:
         self.perform_action(action_id)
     }
 
-    /// Perform all the actions in the given group
+    /// Perform all the actions with the given IDs
     #[endpoint(performBatch)]
-    fn perform_batch(&self, group_id: GroupId) {
+    fn perform_batch(&self, action_ids: MultiValueEncoded<ActionId>) {
         let (_, caller_role) = self.get_caller_id_and_role();
         require!(
             caller_role.can_perform_action(),
             "only board members and proposers can perform actions"
         );
 
-        let mut action_ids = ManagedVec::<Self::Api, usize>::new();
-        for action_id in self.action_groups(group_id).iter() {
-            action_ids.push(action_id);
-        }
-
-        for action_id in &action_ids {
+        for action_id in action_ids {
             require!(
                 self.quorum_reached(action_id),
                 "quorum has not been reached"

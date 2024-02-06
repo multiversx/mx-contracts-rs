@@ -1,4 +1,4 @@
-use crate::multisig_state::{ActionId, GroupId};
+use crate::multisig_state::ActionId;
 
 multiversx_sc::imports!();
 
@@ -64,18 +64,13 @@ pub trait MultisigSignModule:
         self.unsign_action(action_id, caller_id);
     }
 
-    /// Unsign all actions in the given group
+    /// Unsign all actions with the given IDs
     #[endpoint(unsignBatch)]
-    fn unsign_batch(&self, group_id: GroupId) {
+    fn unsign_batch(&self, action_ids: MultiValueEncoded<ActionId>) {
         let (caller_id, caller_role) = self.get_caller_id_and_role();
         require!(caller_role.can_sign(), "only board members can un-sign");
 
-        let mut action_ids = ManagedVec::<Self::Api, usize>::new();
-        for action_id in self.action_groups(group_id).iter() {
-            action_ids.push(action_id);
-        }
-
-        for action_id in &action_ids {
+        for action_id in action_ids {
             self.unsign_action(action_id, caller_id);
         }
     }
