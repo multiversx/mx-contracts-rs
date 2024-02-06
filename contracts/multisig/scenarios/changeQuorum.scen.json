@@ -65,7 +65,7 @@
                     [
                         "u32:1",
                         "u8:4|u32:3",
-                        "u32:2|address:alice|address:bob"
+                        "u32:2|address:alice|address:bob|u32:0"
                     ]
                 ],
                 "status": ""
