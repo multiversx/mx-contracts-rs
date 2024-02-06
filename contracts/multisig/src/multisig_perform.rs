@@ -124,7 +124,12 @@ pub trait MultisigPerformModule:
             "only board members and proposers can perform actions"
         );
 
+        let mut action_ids = ManagedVec::<Self::Api, usize>::new();
         for action_id in self.action_groups(group_id).iter() {
+            action_ids.push(action_id);
+        }
+
+        for action_id in &action_ids {
             require!(
                 self.quorum_reached(action_id),
                 "quorum has not been reached"

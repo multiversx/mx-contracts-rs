@@ -70,7 +70,12 @@ pub trait MultisigSignModule:
         let (caller_id, caller_role) = self.get_caller_id_and_role();
         require!(caller_role.can_sign(), "only board members can un-sign");
 
+        let mut action_ids = ManagedVec::<Self::Api, usize>::new();
         for action_id in self.action_groups(group_id).iter() {
+            action_ids.push(action_id);
+        }
+
+        for action_id in &action_ids {
             self.unsign_action(action_id, caller_id);
         }
     }
