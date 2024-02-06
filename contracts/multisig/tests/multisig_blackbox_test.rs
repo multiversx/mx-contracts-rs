@@ -377,7 +377,7 @@ fn test_change_quorum() {
     state.world.sc_call(
         ScCallStep::new()
             .from(BOARD_MEMBER_ADDRESS_EXPR)
-            .call(state.multisig_contract.discard_action(action_id))
+            .call(state.multisig_contract.discard_action_endpoint(action_id))
             .expect(TxExpect::user_error(
                 "str:cannot discard action with valid signatures",
             )),
@@ -393,7 +393,7 @@ fn test_change_quorum() {
     state.world.sc_call(
         ScCallStep::new()
             .from(BOARD_MEMBER_ADDRESS_EXPR)
-            .call(state.multisig_contract.discard_action(action_id)),
+            .call(state.multisig_contract.discard_action_endpoint(action_id)),
     );
 
     // try sign discarded action

@@ -9,7 +9,7 @@ pub mod multisig_state;
 pub mod user_role;
 
 use action::ActionFullInfo;
-use multisig_state::ActionId;
+use multisig_state::{ActionId, GroupId};
 use user_role::UserRole;
 
 multiversx_sc::imports!();
@@ -46,7 +46,7 @@ pub trait Multisig:
 
     #[upgrade]
     fn upgrade(&self, quorum: usize, board: MultiValueEncoded<ManagedAddress>) {
-        self.init(quorum, board)
+        self.init(quorum, board);
     }
 
     /// Allows the contract to receive funds even if it is marked as unpayable in the protocol.
@@ -72,9 +72,11 @@ pub trait Multisig:
                     action_id,
                     action_data,
                     signers: self.get_action_signers(action_id),
+                    group_id: self.group_for_action(action_id).get(),
                 });
             }
         }
+
         result
     }
 
@@ -87,10 +89,10 @@ pub trait Multisig:
     fn user_role(&self, user: ManagedAddress) -> UserRole {
         let user_id = self.user_mapper().get_user_id(&user);
         if user_id == 0 {
-            UserRole::None
-        } else {
-            self.user_id_to_role(user_id).get()
+            return UserRole::None;
         }
+
+        self.user_id_to_role(user_id).get()
     }
 
     /// Lists all users that can sign actions.
@@ -117,6 +119,7 @@ pub trait Multisig:
                 }
             }
         }
+
         result
     }
 
@@ -124,12 +127,31 @@ pub trait Multisig:
     /// Any signatures that the action received must first be removed, via `unsign`.
     /// Otherwise this endpoint would be prone to abuse.
     #[endpoint(discardAction)]
-    fn discard_action(&self, action_id: ActionId) {
+    fn discard_action_endpoint(&self, action_id: ActionId) {
         let (_, caller_role) = self.get_caller_id_and_role();
         require!(
             caller_role.can_discard_action(),
             "only board members and proposers can discard actions"
         );
+
+        self.discard_action(action_id);
+    }
+
+    /// Discard all the actions in the given group
+    #[endpoint(discardBatch)]
+    fn discard_batch(&self, group_id: GroupId) {
+        let (_, caller_role) = self.get_caller_id_and_role();
+        require!(
+            caller_role.can_discard_action(),
+            "only board members and proposers can discard actions"
+        );
+
+        for action_id in self.action_groups(group_id).iter() {
+            self.discard_action(action_id);
+        }
+    }
+
+    fn discard_action(&self, action_id: ActionId) {
         require!(
             self.get_action_valid_signer_count(action_id) == 0,
             "cannot discard action with valid signatures"
