@@ -1,0 +1,19 @@
+name = "on-chain-claim"
+contract_trait = "OnChainClaim"
+src_file = "contract.rs"
+rename_pairs = [
+    [
+        "blockchain.set_current_dir_from_workspace(\"contracts/examples/on-chain-claim\");",
+        "// blockchain.set_current_dir_from_workspace(\"relative path to your workspace, if applicable\");",
+    ],
+]
+files_include = [
+    "meta",
+    "scenarios",
+    "src",
+    "tests",
+    "wasm/Cargo.toml",
+    "Cargo.toml",
+    "README.md",
+    "multiversx.json",
+]
