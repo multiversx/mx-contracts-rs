@@ -199,11 +199,11 @@ pub trait MultisigPerformModule:
                 self.perform_change_quorum_event(action_id, new_quorum);
                 OptionalValue::None
             }
-            Action::SendTransferExecute(call_data) => {
+            Action::SendTransferExecuteEgld(call_data) => {
                 let gas = call_data
                     .opt_gas_limit
                     .unwrap_or_else(|| self.gas_for_transfer_exec());
-                self.perform_transfer_execute_event(
+                self.perform_transfer_execute_egld_event(
                     action_id,
                     &call_data.to,
                     &call_data.egld_amount,
@@ -217,6 +217,35 @@ pub trait MultisigPerformModule:
                     gas,
                     &call_data.endpoint_name,
                     &call_data.arguments.into(),
+                );
+                if let Result::Err(e) = result {
+                    sc_panic!(e);
+                }
+
+                OptionalValue::None
+            }
+            Action::SendTransferExecuteEsdt {
+                to,
+                tokens,
+                opt_gas_limit,
+                endpoint_name,
+                arguments,
+            } => {
+                let gas = opt_gas_limit.unwrap_or_else(|| self.blockchain().get_gas_left());
+                self.perform_transfer_execute_esdt_event(
+                    action_id,
+                    &to,
+                    &tokens,
+                    gas,
+                    &endpoint_name,
+                    arguments.as_multi(),
+                );
+                let result = self.send_raw().multi_esdt_transfer_execute(
+                    &to,
+                    &tokens,
+                    gas,
+                    &endpoint_name,
+                    &arguments.into(),
                 );
                 if let Result::Err(e) = result {
                     sc_panic!(e);

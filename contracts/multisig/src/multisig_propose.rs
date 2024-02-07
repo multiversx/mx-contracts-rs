@@ -1,3 +1,5 @@
+use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
+
 use crate::{
     action::{Action, CallActionData, GasLimit},
     multisig_state::{ActionId, GroupId},
@@ -75,7 +77,26 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
             arguments: function_call.arg_buffer.into_vec_of_buffers(),
         };
 
-        self.propose_action(Action::SendTransferExecute(call_data))
+        self.propose_action(Action::SendTransferExecuteEgld(call_data))
+    }
+
+    #[endpoint(proposeTransferExecuteEsdt)]
+    fn propose_transfer_execute_esdt(
+        &self,
+        to: ManagedAddress,
+        tokens: PaymentsVec<Self::Api>,
+        opt_gas_limit: Option<GasLimit>,
+        function_call: FunctionCall,
+    ) -> ActionId {
+        require!(!tokens.is_empty(), "No tokens to transfer");
+
+        self.propose_action(Action::SendTransferExecuteEsdt {
+            to,
+            tokens,
+            opt_gas_limit,
+            endpoint_name: function_call.function_name,
+            arguments: function_call.arg_buffer.into_vec_of_buffers(),
+        })
     }
 
     /// Propose a transaction in which the contract will perform a transfer-execute call.
@@ -163,7 +184,7 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
                 "Invalid action"
             );
 
-            if let Action::SendTransferExecute(call_data) = &action {
+            if let Action::SendTransferExecuteEgld(call_data) = &action {
                 let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
                 require!(
                     own_shard == other_sc_shard,
