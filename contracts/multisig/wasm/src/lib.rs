@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           25
+// Endpoints:                           28
 // Async Callback:                       1
-// Total number of exported functions:  27
+// Total number of exported functions:  30
 
 #![no_std]
 #![allow(internal_features)]
@@ -22,7 +22,8 @@ multiversx_sc_wasm_adapter::endpoints! {
         init => init
         upgrade => upgrade
         deposit => deposit
-        discardAction => discard_action
+        discardAction => discard_action_endpoint
+        discardBatch => discard_batch
         getQuorum => quorum
         getNumBoardMembers => num_board_members
         getNumProposers => num_proposers
@@ -41,9 +42,11 @@ multiversx_sc_wasm_adapter::endpoints! {
         signAndPerform => sign_and_perform
         signBatchAndPerform => sign_batch_and_perform
         unsign => unsign
+        unsignBatch => unsign_batch
         signed => signed
         quorumReached => quorum_reached
         performAction => perform_action_endpoint
+        performBatch => perform_batch
         dnsRegister => dns_register
     )
 }

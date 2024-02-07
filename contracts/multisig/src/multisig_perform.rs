@@ -115,6 +115,25 @@ pub trait MultisigPerformModule:
         self.perform_action(action_id)
     }
 
+    /// Perform all the actions with the given IDs
+    #[endpoint(performBatch)]
+    fn perform_batch(&self, action_ids: MultiValueEncoded<ActionId>) {
+        let (_, caller_role) = self.get_caller_id_and_role();
+        require!(
+            caller_role.can_perform_action(),
+            "only board members and proposers can perform actions"
+        );
+
+        for action_id in action_ids {
+            require!(
+                self.quorum_reached(action_id),
+                "quorum has not been reached"
+            );
+
+            let _ = self.perform_action(action_id);
+        }
+    }
+
     fn perform_action(&self, action_id: ActionId) -> OptionalValue<ManagedAddress> {
         let action = self.action_mapper().get(action_id);
 
@@ -122,6 +141,7 @@ pub trait MultisigPerformModule:
             action_id,
             action_data: action.clone(),
             signers: self.get_action_signers(action_id),
+            group_id: self.group_for_action(action_id).get(),
         });
 
         // clean up storage
