@@ -683,6 +683,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "fair-launch"
+version = "0.0.0"
+dependencies = [
+ "crowdfunding-esdt",
+ "hex",
+ "multiversx-sc",
+ "multiversx-sc-modules",
+ "multiversx-sc-scenario",
+ "num-bigint",
+ "num-traits",
+ "pair-mock",
+]
+
+[[package]]
+name = "fair-launch-meta"
+version = "0.0.0"
+dependencies = [
+ "fair-launch",
+ "multiversx-sc-meta",
+]
+
+[[package]]
 name = "fastrand"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1787,6 +1809,23 @@ version = "0.0.0"
 dependencies = [
  "multiversx-sc-meta",
  "order-book-pair",
+]
+
+[[package]]
+name = "pair-mock"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc",
+ "multiversx-sc-scenario",
+ "num-bigint",
+]
+
+[[package]]
+name = "pair-mock-meta"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc-meta",
+ "pair-mock",
 ]
 
 [[package]]

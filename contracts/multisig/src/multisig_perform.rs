@@ -1,5 +1,6 @@
 use crate::{
-    action::{Action, ActionFullInfo},
+    action::{Action, ActionFullInfo, GasLimit},
+    multisig_state::ActionId,
     user_role::UserRole,
 };
 
@@ -17,7 +18,7 @@ fn usize_add_isize(value: &mut usize, delta: isize) {
 pub trait MultisigPerformModule:
     crate::multisig_state::MultisigStateModule + crate::multisig_events::MultisigEventsModule
 {
-    fn gas_for_transfer_exec(&self) -> u64 {
+    fn gas_for_transfer_exec(&self) -> GasLimit {
         let gas_left = self.blockchain().get_gas_left();
         if gas_left <= PERFORM_ACTION_FINISH_GAS {
             sc_panic!("insufficient gas for call");
@@ -31,7 +32,12 @@ pub trait MultisigPerformModule:
     /// - reactivate removed user
     /// - convert between board member and proposer
     /// Will keep the board size and proposer count in sync.
-    fn change_user_role(&self, action_id: usize, user_address: ManagedAddress, new_role: UserRole) {
+    fn change_user_role(
+        &self,
+        action_id: ActionId,
+        user_address: ManagedAddress,
+        new_role: UserRole,
+    ) {
         let user_id = if new_role == UserRole::None {
             // avoid creating a new user just to delete it
             let user_id = self.user_mapper().get_user_id(&user_address);
@@ -77,20 +83,25 @@ pub trait MultisigPerformModule:
 
     /// Returns `true` (`1`) if `getActionValidSignerCount >= getQuorum`.
     #[view(quorumReached)]
-    fn quorum_reached(&self, action_id: usize) -> bool {
+    fn quorum_reached(&self, action_id: ActionId) -> bool {
         let quorum = self.quorum().get();
         let valid_signers_count = self.get_action_valid_signer_count(action_id);
         valid_signers_count >= quorum
     }
 
-    fn clear_action(&self, action_id: usize) {
+    fn clear_action(&self, action_id: ActionId) {
         self.action_mapper().clear_entry_unchecked(action_id);
         self.action_signer_ids(action_id).clear();
+
+        let group_id = self.group_for_action(action_id).take();
+        if group_id != 0 {
+            let _ = self.action_groups(group_id).swap_remove(&action_id);
+        }
     }
 
     /// Proposers and board members use this to launch signed actions.
     #[endpoint(performAction)]
-    fn perform_action_endpoint(&self, action_id: usize) -> OptionalValue<ManagedAddress> {
+    fn perform_action_endpoint(&self, action_id: ActionId) -> OptionalValue<ManagedAddress> {
         let (_, caller_role) = self.get_caller_id_and_role();
         require!(
             caller_role.can_perform_action(),
@@ -104,7 +115,7 @@ pub trait MultisigPerformModule:
         self.perform_action(action_id)
     }
 
-    fn perform_action(&self, action_id: usize) -> OptionalValue<ManagedAddress> {
+    fn perform_action(&self, action_id: ActionId) -> OptionalValue<ManagedAddress> {
         let action = self.action_mapper().get(action_id);
 
         self.start_perform_action_event(&ActionFullInfo {
@@ -123,7 +134,7 @@ pub trait MultisigPerformModule:
             Action::AddBoardMember(board_member_address) => {
                 self.change_user_role(action_id, board_member_address, UserRole::BoardMember);
                 OptionalValue::None
-            },
+            }
             Action::AddProposer(proposer_address) => {
                 self.change_user_role(action_id, proposer_address, UserRole::Proposer);
 
@@ -133,7 +144,7 @@ pub trait MultisigPerformModule:
                     "quorum cannot exceed board size"
                 );
                 OptionalValue::None
-            },
+            }
             Action::RemoveUser(user_address) => {
                 self.change_user_role(action_id, user_address, UserRole::None);
                 let num_board_members = self.num_board_members().get();
@@ -147,7 +158,7 @@ pub trait MultisigPerformModule:
                     "quorum cannot exceed board size"
                 );
                 OptionalValue::None
-            },
+            }
             Action::ChangeQuorum(new_quorum) => {
                 require!(
                     new_quorum <= self.num_board_members().get(),
@@ -156,9 +167,11 @@ pub trait MultisigPerformModule:
                 self.quorum().set(new_quorum);
                 self.perform_change_quorum_event(action_id, new_quorum);
                 OptionalValue::None
-            },
+            }
             Action::SendTransferExecute(call_data) => {
-                let gas = self.gas_for_transfer_exec();
+                let gas = call_data
+                    .opt_gas_limit
+                    .unwrap_or_else(|| self.gas_for_transfer_exec());
                 self.perform_transfer_execute_event(
                     action_id,
                     &call_data.to,
@@ -177,15 +190,18 @@ pub trait MultisigPerformModule:
                 if let Result::Err(e) = result {
                     sc_panic!(e);
                 }
+
                 OptionalValue::None
-            },
+            }
             Action::SendAsyncCall(call_data) => {
-                let gas_left = self.blockchain().get_gas_left();
+                let gas = call_data
+                    .opt_gas_limit
+                    .unwrap_or_else(|| self.blockchain().get_gas_left());
                 self.perform_async_call_event(
                     action_id,
                     &call_data.to,
                     &call_data.egld_amount,
-                    gas_left,
+                    gas,
                     &call_data.endpoint_name,
                     call_data.arguments.as_multi(),
                 );
@@ -196,7 +212,7 @@ pub trait MultisigPerformModule:
                     .async_call()
                     .with_callback(self.callbacks().perform_async_call_callback())
                     .call_and_exit()
-            },
+            }
             Action::SCDeployFromSource {
                 amount,
                 source,
@@ -220,7 +236,7 @@ pub trait MultisigPerformModule:
                     &arguments.into(),
                 );
                 OptionalValue::Some(new_address)
-            },
+            }
             Action::SCUpgradeFromSource {
                 sc_address,
                 amount,
@@ -247,7 +263,7 @@ pub trait MultisigPerformModule:
                     &arguments.into(),
                 );
                 OptionalValue::None
-            },
+            }
         }
     }
 
@@ -260,10 +276,10 @@ pub trait MultisigPerformModule:
         match call_result {
             ManagedAsyncCallResult::Ok(results) => {
                 self.async_call_success(results);
-            },
+            }
             ManagedAsyncCallResult::Err(err) => {
                 self.async_call_error(err.err_code, err.err_msg);
-            },
+            }
         }
     }
 
