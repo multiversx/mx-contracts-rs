@@ -99,7 +99,7 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
         })
     }
 
-    /// Propose a transaction in which the contract will perform a transfer-execute call.
+    /// Propose a transaction in which the contract will perform an async call call.
     /// Can call smart contract endpoints directly.
     /// Can use ESDTTransfer/ESDTNFTTransfer/MultiESDTTransfer to send tokens, while also optionally calling endpoints.
     /// Works well with builtin functions.
