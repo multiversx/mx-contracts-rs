@@ -163,15 +163,12 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
                 "Invalid action"
             );
 
-            match &action {
-                Action::SendTransferExecute(call_data) => {
-                    let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
-                    require!(
-                        own_shard == other_sc_shard,
-                        "All transfer exec must be to the same shard"
-                    );
-                }
-                _ => {}
+            if let Action::SendTransferExecute(call_data) = &action {
+                let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
+                require!(
+                    own_shard == other_sc_shard,
+                    "All transfer exec must be to the same shard"
+                );
             }
 
             let action_id = action_mapper.push(&action);
