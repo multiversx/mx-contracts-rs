@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           11
+// Endpoints:                           12
 // Async Callback (empty):               1
-// Total number of exported functions:  13
+// Total number of exported functions:  14
 
 #![no_std]
 #![allow(internal_features)]
@@ -24,6 +24,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         claim => claim
         claimAndRepair => claim_and_repair
         updateState => update_state
+        setRepairStreakTokenId => set_repair_streak_token_id
         getAddressInfo => get_address_info
         canBeRepaired => can_be_repaired
         getRepairStreakTokenIdentifier => repair_streak_token_identifier

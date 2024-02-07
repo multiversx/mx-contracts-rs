@@ -15,12 +15,8 @@ use multiversx_sc_modules::only_admin;
 pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModule {
     #[init]
     fn init(&self, repair_streak_token_id: TokenIdentifier) {
-        require!(
-            repair_streak_token_id.is_valid_esdt_identifier(),
-            "Invalid token ID"
-        );
-        self.repair_streak_token_identifier()
-            .set(repair_streak_token_id);
+        self.internal_set_repair_streak_token_id(repair_streak_token_id);
+
         let caller = self.blockchain().get_caller();
         self.add_admin(caller);
     }
@@ -137,5 +133,21 @@ pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModu
             best_streak,
         );
         self.address_info(address).set(address_info);
+    }
+
+    #[endpoint(setRepairStreakTokenId)]
+    fn set_repair_streak_token_id(&self, repair_streak_token_id: TokenIdentifier) {
+        self.require_caller_is_admin();
+
+        self.internal_set_repair_streak_token_id(repair_streak_token_id);
+    }
+
+    fn internal_set_repair_streak_token_id(&self, repair_streak_token_id: TokenIdentifier) {
+        require!(
+            repair_streak_token_id.is_valid_esdt_identifier(),
+            "Invalid token ID"
+        );
+        self.repair_streak_token_identifier()
+            .set(repair_streak_token_id);
     }
 }
