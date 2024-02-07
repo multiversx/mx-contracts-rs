@@ -1,0 +1,15 @@
+[package]
+name = "on-chain-claim-meta"
+version = "0.0.0"
+edition = "2018"
+publish = false
+authors = [ "Vlad Bucur <vlad.bucur@multiversx.com>"]
+
+[dev-dependencies]
+
+[dependencies.on-chain-claim]
+path = ".."
+
+[dependencies.multiversx-sc-meta]
+version = "0.46.0"
+default-features = false
