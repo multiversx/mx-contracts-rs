@@ -144,12 +144,16 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
     #[endpoint(proposeBatch)]
     fn propose_batch(&self, group_id: GroupId, actions: MultiValueEncoded<Action<Self::Api>>) {
         require!(group_id != 0, "May not use group ID 0");
+        require!(!actions.is_empty(), "No actions");
 
         let (caller_id, caller_role) = self.get_caller_id_and_role();
         require!(
             caller_role.can_propose(),
             "only board members and proposers can propose"
         );
+
+        let own_sc_address = self.blockchain().get_sc_address();
+        let own_shard = self.blockchain().get_shard_of_address(&own_sc_address);
 
         let mut action_mapper = self.action_mapper();
         let mut action_groups_mapper = self.action_groups(group_id);
@@ -158,6 +162,17 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
                 !action.is_nothing() && !action.is_async_call(),
                 "Invalid action"
             );
+
+            match &action {
+                Action::SendTransferExecute(call_data) => {
+                    let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
+                    require!(
+                        own_shard == other_sc_shard,
+                        "All transfer exec must be to the same shard"
+                    );
+                }
+                _ => {}
+            }
 
             let action_id = action_mapper.push(&action);
             if caller_role.can_sign() {
