@@ -1,7 +1,7 @@
 use adder::ProxyTrait as _;
 use multisig::{
     action::GasLimit, multisig_perform::ProxyTrait as _, multisig_propose::ProxyTrait as _,
-    multisig_sign::ProxyTrait, multisig_state::GroupId, user_role::UserRole, ProxyTrait as _,
+    multisig_sign::ProxyTrait, user_role::UserRole, ProxyTrait as _,
 };
 use multiversx_sc::{
     codec::{
@@ -96,14 +96,12 @@ impl MultisigTestState {
                 .call(self.multisig_contract.init(QUORUM_SIZE, board_members)),
         );
 
-        let action_id: usize =
-            self.world
-                .sc_call_get_result(ScCallStep::new().from(BOARD_MEMBER_ADDRESS_EXPR).call(
-                    self.multisig_contract.propose_add_proposer(
-                        self.proposer_address.clone(),
-                        OptionalValue::<GroupId>::None,
-                    ),
-                ));
+        let action_id: usize = self.world.sc_call_get_result(
+            ScCallStep::new().from(BOARD_MEMBER_ADDRESS_EXPR).call(
+                self.multisig_contract
+                    .propose_add_proposer(self.proposer_address.clone()),
+            ),
+        );
         self.sign(action_id);
         self.perform(action_id);
 
@@ -129,7 +127,7 @@ impl MultisigTestState {
         self.world.sc_call_get_result(
             ScCallStep::new().from(PROPOSER_ADDRESS_EXPR).call(
                 self.multisig_contract
-                    .propose_add_board_member(board_member_address, OptionalValue::<GroupId>::None),
+                    .propose_add_board_member(board_member_address),
             ),
         )
     }
@@ -138,17 +136,16 @@ impl MultisigTestState {
         self.world.sc_call_get_result(
             ScCallStep::new().from(PROPOSER_ADDRESS_EXPR).call(
                 self.multisig_contract
-                    .propose_add_proposer(proposer_address, OptionalValue::<GroupId>::None),
+                    .propose_add_proposer(proposer_address),
             ),
         )
     }
 
     fn propose_change_quorum(&mut self, new_quorum: usize) -> usize {
         self.world.sc_call_get_result(
-            ScCallStep::new().from(PROPOSER_ADDRESS_EXPR).call(
-                self.multisig_contract
-                    .propose_change_quorum(new_quorum, OptionalValue::<GroupId>::None),
-            ),
+            ScCallStep::new()
+                .from(PROPOSER_ADDRESS_EXPR)
+                .call(self.multisig_contract.propose_change_quorum(new_quorum)),
         )
     }
 
@@ -157,7 +154,6 @@ impl MultisigTestState {
         to: Address,
         egld_amount: u64,
         opt_gas_limit: Option<GasLimit>,
-        opt_group_id: Option<GroupId>,
         contract_call: ContractCallNoPayment<StaticApi, ()>,
     ) -> usize {
         self.world
@@ -166,7 +162,6 @@ impl MultisigTestState {
                     to,
                     egld_amount,
                     opt_gas_limit,
-                    opt_group_id,
                     contract_call.into_function_call(),
                 ),
             ))
@@ -177,7 +172,6 @@ impl MultisigTestState {
         to: Address,
         egld_amount: u64,
         opt_gas_limit: Option<GasLimit>,
-        opt_group_id: Option<GroupId>,
         contract_call: ContractCallNoPayment<StaticApi, ()>,
     ) -> usize {
         self.world
@@ -186,7 +180,6 @@ impl MultisigTestState {
                     to,
                     egld_amount,
                     opt_gas_limit,
-                    opt_group_id,
                     contract_call.into_function_call(),
                 ),
             ))
@@ -194,10 +187,9 @@ impl MultisigTestState {
 
     fn propose_remove_user(&mut self, user_address: Address) -> usize {
         self.world.sc_call_get_result(
-            ScCallStep::new().from(PROPOSER_ADDRESS_EXPR).call(
-                self.multisig_contract
-                    .propose_remove_user(user_address, OptionalValue::<GroupId>::None),
-            ),
+            ScCallStep::new()
+                .from(PROPOSER_ADDRESS_EXPR)
+                .call(self.multisig_contract.propose_remove_user(user_address)),
         )
     }
 
@@ -214,7 +206,6 @@ impl MultisigTestState {
                     amount,
                     source,
                     code_metadata,
-                    Option::<GroupId>::None,
                     arguments,
                 ),
             ))
@@ -235,7 +226,6 @@ impl MultisigTestState {
                     amount,
                     source,
                     code_metadata,
-                    Option::<GroupId>::None,
                     arguments,
                 ),
             ))
@@ -456,7 +446,6 @@ fn test_transfer_execute_to_user() {
                 new_user_address.clone(),
                 0u64,
                 Option::<GasLimit>::None,
-                Option::<GroupId>::None,
                 FunctionCall::empty(),
             ))
             .expect(TxExpect::user_error("str:proposed action has no effect")),
@@ -471,7 +460,6 @@ fn test_transfer_execute_to_user() {
                     new_user_address,
                     AMOUNT.parse::<u64>().unwrap(),
                     Option::<GasLimit>::None,
-                    Option::<GroupId>::None,
                     FunctionCall::empty(),
                 ),
             ));
@@ -495,7 +483,6 @@ fn test_transfer_execute_sc_all() {
         state.adder_address.clone(),
         0u64,
         Option::<GasLimit>::None,
-        Option::<GroupId>::None,
         adder_call,
     );
     state.sign(action_id);
@@ -519,7 +506,6 @@ fn test_async_call_to_sc() {
         state.adder_address.clone(),
         0u64,
         Option::<GasLimit>::None,
-        Option::<GroupId>::None,
         adder_call,
     );
     state.sign(action_id);
@@ -566,7 +552,6 @@ fn test_deploy_and_upgrade_from_source() {
         new_adder_address,
         0u64,
         Option::<GasLimit>::None,
-        Option::<GroupId>::None,
         adder_call,
     );
     state.sign(action_id);

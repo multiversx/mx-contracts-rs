@@ -49,6 +49,14 @@ impl<M: ManagedTypeApi> Action<M> {
     pub fn is_pending(&self) -> bool {
         !matches!(*self, Action::Nothing)
     }
+
+    pub fn is_nothing(&self) -> bool {
+        matches!(*self, Action::Nothing)
+    }
+
+    pub fn is_async_call(&self) -> bool {
+        matches!(*self, Action::SendAsyncCall(_))
+    }
 }
 
 /// Not used internally, just to retrieve results via endpoint.
