@@ -58,13 +58,28 @@ pub trait MultisigSignModule:
     /// Actions that are left with no valid signatures can be then deleted to free up storage.
     #[endpoint]
     fn unsign(&self, action_id: ActionId) {
+        let (caller_id, caller_role) = self.get_caller_id_and_role();
+        require!(caller_role.can_sign(), "only board members can un-sign");
+
+        self.unsign_action(action_id, caller_id);
+    }
+
+    /// Unsign all actions with the given IDs
+    #[endpoint(unsignBatch)]
+    fn unsign_batch(&self, action_ids: MultiValueEncoded<ActionId>) {
+        let (caller_id, caller_role) = self.get_caller_id_and_role();
+        require!(caller_role.can_sign(), "only board members can un-sign");
+
+        for action_id in action_ids {
+            self.unsign_action(action_id, caller_id);
+        }
+    }
+
+    fn unsign_action(&self, action_id: ActionId, caller_id: usize) {
         require!(
             !self.action_mapper().item_is_empty_unchecked(action_id),
             "action does not exist"
         );
-
-        let (caller_id, caller_role) = self.get_caller_id_and_role();
-        require!(caller_role.can_sign(), "only board members can un-sign");
 
         let _ = self.action_signer_ids(action_id).swap_remove(&caller_id);
     }

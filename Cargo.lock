@@ -1722,6 +1722,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "on-chain-claim"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc",
+ "multiversx-sc-modules",
+ "multiversx-sc-scenario",
+]
+
+[[package]]
+name = "on-chain-claim-meta"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc-meta",
+ "on-chain-claim",
+]
+
+[[package]]
 name = "once_cell"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

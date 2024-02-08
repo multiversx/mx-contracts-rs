@@ -3,7 +3,7 @@ use multiversx_sc::{
     types::{BigUint, CodeMetadata, ManagedAddress, ManagedBuffer, ManagedVec},
 };
 
-use crate::multisig_state::ActionId;
+use crate::multisig_state::{ActionId, GroupId};
 
 multiversx_sc::derive_imports!();
 
@@ -55,6 +55,7 @@ impl<M: ManagedTypeApi> Action<M> {
 #[derive(TopEncode, TypeAbi)]
 pub struct ActionFullInfo<M: ManagedTypeApi> {
     pub action_id: ActionId,
+    pub group_id: GroupId,
     pub action_data: Action<M>,
     pub signers: ManagedVec<M, ManagedAddress<M>>,
 }
