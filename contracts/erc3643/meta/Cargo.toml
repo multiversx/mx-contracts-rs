@@ -1,0 +1,12 @@
+[package]
+name = "erc3643-meta"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies.erc3643]
+path = ".."
+
+[dependencies.multiversx-sc-meta]
+version = "0.46.1"
+default-features = false

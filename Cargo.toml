@@ -32,6 +32,8 @@ members = [
   "contracts/digital-cash/meta",
   "contracts/empty",
   "contracts/empty/meta",
+  "contracts/erc3643",
+  "contracts/erc3643/meta",
   "contracts/factorial",
   "contracts/factorial/meta",
   "contracts/fair-launch",
