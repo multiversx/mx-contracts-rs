@@ -11,5 +11,5 @@ authors = [ "Vlad Bucur <vlad.bucur@multiversx.com>"]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
-version = "0.46.0"
+version = "0.47.2"
 default-features = false

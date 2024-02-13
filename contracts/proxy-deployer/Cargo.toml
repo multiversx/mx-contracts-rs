@@ -1,0 +1,22 @@
+[package]
+name = "proxy-deployer"
+version = "0.0.0"
+authors = ["MultiversX <contact@multiversx.com>"]
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies.multiversx-sc]
+version = "=0.47.2"
+features = ["esdt-token-payment-legacy-decode"]
+
+[dependencies.multiversx-sc-modules]
+version = "0.47.2"
+
+[dev-dependencies.multiversx-sc-scenario]
+version = "=0.47.2"
+
+[dev-dependencies.adder]
+path = "../adder"
