@@ -1,6 +1,6 @@
 use crate::{
     action::{Action, ActionFullInfo, GasLimit},
-    multisig_state::ActionId,
+    multisig_state::{ActionId, GroupId},
     user_role::UserRole,
 };
 
@@ -112,19 +112,30 @@ pub trait MultisigPerformModule:
             "quorum has not been reached"
         );
 
+        let group_id = self.group_for_action(action_id).get();
+        require!(group_id == 0, "May not execute this action by itself");
+
         self.perform_action(action_id)
     }
 
-    /// Perform all the actions with the given IDs
+    /// Perform all the actions in the given batch
     #[endpoint(performBatch)]
-    fn perform_batch(&self, action_ids: MultiValueEncoded<ActionId>) {
+    fn perform_batch(&self, group_id: GroupId) {
         let (_, caller_role) = self.get_caller_id_and_role();
         require!(
             caller_role.can_perform_action(),
             "only board members and proposers can perform actions"
         );
 
-        for action_id in action_ids {
+        let mapper = self.action_groups(group_id);
+        require!(!mapper.is_empty(), "Invalid group ID");
+
+        let mut action_ids = ManagedVec::<Self::Api, _>::new();
+        for action_id in mapper.iter() {
+            action_ids.push(action_id);
+        }
+
+        for action_id in &action_ids {
             require!(
                 self.quorum_reached(action_id),
                 "quorum has not been reached"
@@ -188,11 +199,11 @@ pub trait MultisigPerformModule:
                 self.perform_change_quorum_event(action_id, new_quorum);
                 OptionalValue::None
             }
-            Action::SendTransferExecute(call_data) => {
+            Action::SendTransferExecuteEgld(call_data) => {
                 let gas = call_data
                     .opt_gas_limit
                     .unwrap_or_else(|| self.gas_for_transfer_exec());
-                self.perform_transfer_execute_event(
+                self.perform_transfer_execute_egld_event(
                     action_id,
                     &call_data.to,
                     &call_data.egld_amount,
@@ -206,6 +217,35 @@ pub trait MultisigPerformModule:
                     gas,
                     &call_data.endpoint_name,
                     &call_data.arguments.into(),
+                );
+                if let Result::Err(e) = result {
+                    sc_panic!(e);
+                }
+
+                OptionalValue::None
+            }
+            Action::SendTransferExecuteEsdt {
+                to,
+                tokens,
+                opt_gas_limit,
+                endpoint_name,
+                arguments,
+            } => {
+                let gas = opt_gas_limit.unwrap_or_else(|| self.blockchain().get_gas_left());
+                self.perform_transfer_execute_esdt_event(
+                    action_id,
+                    &to,
+                    &tokens,
+                    gas,
+                    &endpoint_name,
+                    arguments.as_multi(),
+                );
+                let result = self.send_raw().multi_esdt_transfer_execute(
+                    &to,
+                    &tokens,
+                    gas,
+                    &endpoint_name,
+                    &arguments.into(),
                 );
                 if let Result::Err(e) = result {
                     sc_panic!(e);

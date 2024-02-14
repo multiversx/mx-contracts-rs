@@ -2,6 +2,7 @@ use multiversx_sc::{
     api::ManagedTypeApi,
     types::{BigUint, CodeMetadata, ManagedAddress, ManagedBuffer, ManagedVec},
 };
+use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
 use crate::multisig_state::{ActionId, GroupId};
 
@@ -25,7 +26,14 @@ pub enum Action<M: ManagedTypeApi> {
     AddProposer(ManagedAddress<M>),
     RemoveUser(ManagedAddress<M>),
     ChangeQuorum(usize),
-    SendTransferExecute(CallActionData<M>),
+    SendTransferExecuteEgld(CallActionData<M>),
+    SendTransferExecuteEsdt {
+        to: ManagedAddress<M>,
+        tokens: PaymentsVec<M>,
+        opt_gas_limit: Option<GasLimit>,
+        endpoint_name: ManagedBuffer<M>,
+        arguments: ManagedVec<M, ManagedBuffer<M>>,
+    },
     SendAsyncCall(CallActionData<M>),
     SCDeployFromSource {
         amount: BigUint<M>,
@@ -48,6 +56,14 @@ impl<M: ManagedTypeApi> Action<M> {
     /// So this is equivalent to `action != Action::Nothing`.
     pub fn is_pending(&self) -> bool {
         !matches!(*self, Action::Nothing)
+    }
+
+    pub fn is_nothing(&self) -> bool {
+        matches!(*self, Action::Nothing)
+    }
+
+    pub fn is_async_call(&self) -> bool {
+        matches!(*self, Action::SendAsyncCall(_))
     }
 }
 
