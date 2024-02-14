@@ -25,3 +25,4 @@ pub trait Erc3643:
     #[endpoint]
     fn upgrade(&self) {}
 }
+
