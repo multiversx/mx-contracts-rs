@@ -25,6 +25,7 @@ name = "dn404"
 version = "0.0.0"
 dependencies = [
  "multiversx-sc",
+ "multiversx-sc-modules",
 ]
 
 [[package]]
@@ -99,6 +100,15 @@ dependencies = [
  "quote",
  "radix_trie",
  "syn",
+]
+
+[[package]]
+name = "multiversx-sc-modules"
+version = "0.47.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b5a30a1f32d8097b1382a614ac252e1b8d16e9d7d7a7e00ef75e06697d6a55e"
+dependencies = [
+ "multiversx-sc",
 ]
 
 [[package]]
