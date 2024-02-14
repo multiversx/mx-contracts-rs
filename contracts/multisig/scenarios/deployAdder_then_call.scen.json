@@ -27,7 +27,6 @@
                     "0",
                     "sc:adder-code",
                     "0x0000",
-                    "0x",
                     "1234"
                 ],
                 "gasLimit": "200,000,000",
@@ -71,7 +70,7 @@
                         "str:quorum": "2",
                         "str:action_data.len": "3",
                         "str:action_data.item|u32:3": {
-                            "1-discriminant": "0x07",
+                            "1-discriminant": "0x08",
                             "2-amount": "u32:0",
                             "3-code_source": "sc:adder-code",
                             "4-code_metadata": "0x0000",
@@ -185,7 +184,6 @@
                 "arguments": [
                     "sc:adder",
                     "0",
-                    "0x",
                     "0x",
                     "str:add",
                     "1234"

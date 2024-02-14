@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           28
+// Endpoints:                           30
 // Async Callback:                       1
-// Total number of exported functions:  30
+// Total number of exported functions:  32
 
 #![no_std]
 #![allow(internal_features)]
@@ -34,9 +34,11 @@ multiversx_sc_wasm_adapter::endpoints! {
         proposeRemoveUser => propose_remove_user
         proposeChangeQuorum => propose_change_quorum
         proposeTransferExecute => propose_transfer_execute
+        proposeTransferExecuteEsdt => propose_transfer_execute_esdt
         proposeAsyncCall => propose_async_call
         proposeSCDeployFromSource => propose_sc_deploy_from_source
         proposeSCUpgradeFromSource => propose_sc_upgrade_from_source
+        proposeBatch => propose_batch
         sign => sign
         signBatch => sign_batch
         signAndPerform => sign_and_perform
