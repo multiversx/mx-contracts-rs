@@ -552,6 +552,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "dn404"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc",
+ "multiversx-sc-scenario",
+ "num-bigint",
+]
+
+[[package]]
+name = "dn404-meta"
+version = "0.0.0"
+dependencies = [
+ "dn404",
+ "multiversx-sc-meta",
+]
+
+[[package]]
 name = "ed25519"
 version = "2.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

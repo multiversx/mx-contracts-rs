@@ -1,0 +1,12 @@
+[package]
+name = "dn404-meta"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies.dn404]
+path = ".."
+
+[dependencies.multiversx-sc-meta]
+version = "=0.47.2"
+default-features = false
