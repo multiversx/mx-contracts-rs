@@ -1,4 +1,4 @@
-use crate::multisig_state::ActionId;
+use crate::multisig_state::{ActionId, GroupId};
 
 multiversx_sc::imports!();
 
@@ -23,13 +23,16 @@ pub trait MultisigSignModule:
         let _ = self.action_signer_ids(action_id).insert(caller_id);
     }
 
-    /// Sign all the actions with the given IDs
+    /// Sign all the actions in the given batch
     #[endpoint(signBatch)]
-    fn sign_batch(&self, action_ids: MultiValueEncoded<ActionId>) {
+    fn sign_batch(&self, group_id: GroupId) {
         let (caller_id, caller_role) = self.get_caller_id_and_role();
         require!(caller_role.can_sign(), "only board members can sign");
 
-        for action_id in action_ids {
+        let mapper = self.action_groups(group_id);
+        require!(!mapper.is_empty(), "Invalid group ID");
+
+        for action_id in mapper.iter() {
             require!(
                 !self.action_mapper().item_is_empty_unchecked(action_id),
                 "action does not exist"
@@ -46,10 +49,10 @@ pub trait MultisigSignModule:
     }
 
     #[endpoint(signBatchAndPerform)]
-    fn sign_batch_and_perform(&self, action_ids: MultiValueEncoded<ActionId>) {
-        self.sign_batch(action_ids.clone());
+    fn sign_batch_and_perform(&self, group_id: GroupId) {
+        self.sign_batch(group_id);
 
-        for action_id in action_ids {
+        for action_id in self.action_groups(group_id).iter() {
             let _ = self.perform_action_endpoint(action_id);
         }
     }
@@ -66,11 +69,14 @@ pub trait MultisigSignModule:
 
     /// Unsign all actions with the given IDs
     #[endpoint(unsignBatch)]
-    fn unsign_batch(&self, action_ids: MultiValueEncoded<ActionId>) {
+    fn unsign_batch(&self, group_id: GroupId) {
         let (caller_id, caller_role) = self.get_caller_id_and_role();
         require!(caller_role.can_sign(), "only board members can un-sign");
 
-        for action_id in action_ids {
+        let mapper = self.action_groups(group_id);
+        require!(!mapper.is_empty(), "Invalid group ID");
+
+        for action_id in mapper.iter() {
             self.unsign_action(action_id, caller_id);
         }
     }

@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use multisig::{action::GasLimit, multisig_state::GroupId};
+use multisig::action::GasLimit;
 use multiversx_sc_scenario::multiversx_sc::{
     codec::{multi_types::IgnoreValue, Empty},
     types::FunctionCall,
@@ -47,7 +47,6 @@ impl MultisigInteract {
                             system_sc_address,
                             ISSUE_COST,
                             Option::<GasLimit>::None,
-                            Option::<GroupId>::None,
                             FunctionCall::new("registerAndSetAllRoles")
                                 .argument(&COLLECTION_NAME)
                                 .argument(&COLLECTION_TICKER)
@@ -110,7 +109,6 @@ impl MultisigInteract {
                             system_sc_address,
                             ISSUE_COST,
                             Option::<GasLimit>::None,
-                            Option::<GroupId>::None,
                             FunctionCall::new("issueNonFungible")
                                 .argument(&COLLECTION_NAME)
                                 .argument(&COLLECTION_TICKER),
@@ -170,7 +168,6 @@ impl MultisigInteract {
                             &self.system_sc_address,
                             0u64,
                             Option::<GasLimit>::None,
-                            Option::<GroupId>::None,
                             FunctionCall::new("setSpecialRole")
                                 .argument(&self.collection_token_identifier)
                                 .argument(&multisig_address)
@@ -214,7 +211,6 @@ impl MultisigInteract {
                         &multisig_address,
                         0u64,
                         Option::<GasLimit>::None,
-                        Option::<GroupId>::None,
                         FunctionCall::new("ESDTNFTCreate")
                             .argument(&self.collection_token_identifier)
                             .argument(&1u32)

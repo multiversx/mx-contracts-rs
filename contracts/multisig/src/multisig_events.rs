@@ -1,3 +1,5 @@
+use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
+
 use crate::{
     action::{ActionFullInfo, GasLimit},
     multisig_state::ActionId,
@@ -39,12 +41,23 @@ pub trait MultisigEventsModule {
         #[indexed] arguments: &MultiValueManagedVec<ManagedBuffer>,
     );
 
-    #[event("performTransferExecute")]
-    fn perform_transfer_execute_event(
+    #[event("performTransferExecuteEgld")]
+    fn perform_transfer_execute_egld_event(
         &self,
         #[indexed] action_id: ActionId,
         #[indexed] to: &ManagedAddress,
         #[indexed] egld_value: &BigUint,
+        #[indexed] gas: GasLimit,
+        #[indexed] endpoint: &ManagedBuffer,
+        #[indexed] arguments: &MultiValueManagedVec<ManagedBuffer>,
+    );
+
+    #[event("performTransferExecuteEsdt")]
+    fn perform_transfer_execute_esdt_event(
+        &self,
+        #[indexed] action_id: ActionId,
+        #[indexed] to: &ManagedAddress,
+        #[indexed] tokens: &PaymentsVec<Self::Api>,
         #[indexed] gas: GasLimit,
         #[indexed] endpoint: &ManagedBuffer,
         #[indexed] arguments: &MultiValueManagedVec<ManagedBuffer>,

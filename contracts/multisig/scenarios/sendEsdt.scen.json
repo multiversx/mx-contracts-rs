@@ -79,7 +79,6 @@
                     "sc:multisig",
                     "0",
                     "0x",
-                    "0x",
                     "str:MultiESDTNFTTransfer",
                     "address:esdt-owner",
                     "3",
