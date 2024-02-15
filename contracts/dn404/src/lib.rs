@@ -21,6 +21,7 @@ pub trait Dn404:
     + multiversx_sc_modules::pause::PauseModule
     + multiversx_sc_modules::only_admin::OnlyAdminModule
 {
+    /// Needs mint and burn roles for fractal_token
     #[init]
     fn init(&self, fractal_token_id: TokenIdentifier, admins: MultiValueEncoded<ManagedAddress>) {
         require!(

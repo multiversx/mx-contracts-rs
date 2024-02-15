@@ -16,6 +16,9 @@ version = "=0.47.2"
 
 [dev-dependencies]
 num-bigint = "0.4.2"
+num-traits = "0.2"
+hex = "0.4"
+hex-literal = "0.4.1"
 
 [dev-dependencies.multiversx-sc-scenario]
 version = "=0.47.2"

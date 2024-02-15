@@ -555,10 +555,13 @@ dependencies = [
 name = "dn404"
 version = "0.0.0"
 dependencies = [
+ "hex",
+ "hex-literal",
  "multiversx-sc",
  "multiversx-sc-modules",
  "multiversx-sc-scenario",
  "num-bigint",
+ "num-traits",
 ]
 
 [[package]]

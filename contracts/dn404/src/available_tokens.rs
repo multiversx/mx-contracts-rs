@@ -52,15 +52,7 @@ pub trait AvailableTokensModule:
             };
             require!(price_as_payment.amount >= fee_amount, "Invalid state");
 
-            if fee_amount > 0 {
-                self.send().esdt_local_burn(
-                    &price_as_payment.token_identifier,
-                    price_as_payment.token_nonce,
-                    &fee_amount,
-                );
-                price_as_payment.amount -= fee_amount;
-            }
-
+            price_as_payment.amount -= fee_amount;
             total_output_payment += &price_as_payment.amount;
             self.add_tokens(&mut basket, payment);
         }
