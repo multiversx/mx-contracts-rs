@@ -19,22 +19,10 @@ pub trait ExchangeActionsModule:
         sc_addr: ManagedAddress,
         endpoint_names: MultiValueEncoded<EndpointName<Self::Api>>,
     ) {
-        let mut new_endpoints = ManagedVec::<Self::Api, _>::new();
-        for endpoint_name in endpoint_names {
-            new_endpoints.push(endpoint_name);
+        let mut mapper = self.known_contracts(&sc_addr);
+        for new_endpoint in endpoint_names {
+            let _ = mapper.insert(new_endpoint);
         }
-
-        let mapper = self.known_contracts(&sc_addr);
-        let mut current_endpoints = mapper.get();
-        for new_endpoint in &new_endpoints {
-            for current_endpoint in &current_endpoints {
-                require!(current_endpoint != new_endpoint, "Endpoint already known");
-            }
-
-            current_endpoints.push(new_endpoint);
-        }
-
-        mapper.set(current_endpoints);
     }
 
     #[only_owner]
@@ -44,21 +32,11 @@ pub trait ExchangeActionsModule:
         sc_addr: ManagedAddress,
         endpoint_names: MultiValueEncoded<ManagedBuffer>,
     ) {
-        let mapper = self.known_contracts(&sc_addr);
-        let mut current_endpoints = mapper.get();
-
+        let mut mapper = self.known_contracts(&sc_addr);
         for endpoint_to_remove in endpoint_names {
-            let mut removed = false;
-            for (i, endpoint) in current_endpoints.iter().enumerate() {
-                if *endpoint == endpoint_to_remove {
-                    removed = true;
-                    current_endpoints.remove(i);
+            let is_removed = mapper.swap_remove(&endpoint_to_remove);
 
-                    break;
-                }
-            }
-
-            require!(removed, "Unknown endpoint name");
+            require!(is_removed, "Unknown endpoint name");
         }
     }
 
@@ -115,19 +93,12 @@ pub trait ExchangeActionsModule:
             "Unknown SC, use forwardTransfer endpoint"
         );
 
-        let endpoint_names = known_sc_mapper.get();
-        for name in &endpoint_names {
-            if &name == endpoint_name {
-                return;
-            }
-        }
-
-        sc_panic!("Unknown endpoint");
+        require!(known_sc_mapper.contains(endpoint_name), "Unknown endpoint");
     }
 
     #[storage_mapper("knownContracts")]
     fn known_contracts(
         &self,
         sc_addr: &ManagedAddress,
-    ) -> SingleValueMapper<ManagedVec<EndpointName<Self::Api>>>;
+    ) -> UnorderedSetMapper<EndpointName<Self::Api>>;
 }

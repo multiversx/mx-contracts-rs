@@ -19,7 +19,7 @@ pub trait TransferModule:
     + multiversx_sc_modules::pause::PauseModule
 {
     /// Forward the transfer to the specified address
-    /// Part of the tokens is taken as fees
+    /// Part of the tokens may be taken as fees
     /// If the destination is a SC, the first argument is the function name
     #[payable("*")]
     #[endpoint(forwardTransfer)]
