@@ -30,6 +30,8 @@ members = [
   "contracts/crypto-kitties/kitty-auction/meta",
   "contracts/digital-cash",
   "contracts/digital-cash/meta",
+  "contracts/dn404",
+  "contracts/dn404/meta",
   "contracts/empty",
   "contracts/empty/meta",
   "contracts/erc3643",
