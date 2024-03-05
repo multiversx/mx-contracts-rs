@@ -64,7 +64,10 @@ impl MultisigTestState {
                     PROPOSER_ADDRESS_EXPR,
                     Account::new().nonce(1).balance(PROPOSER_BALANCE_EXPR),
                 )
-                .put_account(BOARD_MEMBER_ADDRESS_EXPR, Account::new().nonce(1))
+                .put_account(
+                    BOARD_MEMBER_ADDRESS_EXPR,
+                    Account::new().nonce(1).balance(PROPOSER_BALANCE_EXPR),
+                )
                 .put_account(ADDER_OWNER_ADDRESS_EXPR, Account::new().nonce(1))
                 .new_address(ADDER_OWNER_ADDRESS_EXPR, 1, ADDER_ADDRESS_EXPR),
         );
@@ -380,20 +383,6 @@ fn test_change_quorum() {
             .call(state.multisig_contract.unsign(action_id)),
     );
 
-    state.world.sc_call(
-        ScCallStep::new()
-            .from(BOARD_MEMBER_ADDRESS_EXPR)
-            .call(state.multisig_contract.discard_action_endpoint(action_id)),
-    );
-
-    // try sign discarded action
-    state.world.sc_call(
-        ScCallStep::new()
-            .from(BOARD_MEMBER_ADDRESS_EXPR)
-            .call(state.multisig_contract.sign(action_id))
-            .expect(TxExpect::user_error("str:action does not exist")),
-    );
-
     // add another board member
     const NEW_BOARD_MEMBER_ADDRESS_EXPR: &str = "address:new-board-member";
     let new_board_member_address = AddressValue::from(NEW_BOARD_MEMBER_ADDRESS_EXPR).to_address();
@@ -410,6 +399,30 @@ fn test_change_quorum() {
     let action_id = state.propose_change_quorum(new_quorum);
     state.sign(action_id);
     state.perform(action_id);
+
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(BOARD_MEMBER_ADDRESS_EXPR)
+            .call(state.multisig_contract.discard_action_endpoint(action_id)),
+    );
+
+    // try sign discarded action
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(BOARD_MEMBER_ADDRESS_EXPR)
+            .call(state.multisig_contract.unsign(action_id))
+            .expect(TxExpect::user_error(
+                "str:cannot unsign actions of an aborted batch",
+            )),
+    );
+
+    // try sign discarded action
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(BOARD_MEMBER_ADDRESS_EXPR)
+            .call(state.multisig_contract.sign(action_id))
+            .expect(TxExpect::user_error("str:action does not exist")),
+    );
 }
 
 #[test]
@@ -481,7 +494,7 @@ fn test_transfer_execute_sc_all() {
 
     let action_id = state.propose_transfer_execute(
         state.adder_address.clone(),
-        0u64,
+        5u64,
         Option::<GasLimit>::None,
         adder_call,
     );
@@ -550,7 +563,7 @@ fn test_deploy_and_upgrade_from_source() {
 
     let action_id = state.propose_transfer_execute(
         new_adder_address,
-        0u64,
+        5u64,
         Option::<GasLimit>::None,
         adder_call,
     );
