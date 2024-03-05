@@ -193,7 +193,7 @@ pub trait MultisigPerformModule:
             Action::Nothing => OptionalValue::None,
             Action::AddBoardMember(board_member_address) => {
                 require!(
-                    self.num_board_members().get() <= MAX_BOARD_MEMBERS,
+                    self.num_board_members().get() < MAX_BOARD_MEMBERS,
                     "board size cannot exceed limit"
                 );
                 self.change_user_role(action_id, board_member_address, UserRole::BoardMember);
@@ -203,7 +203,7 @@ pub trait MultisigPerformModule:
             Action::AddProposer(proposer_address) => {
                 // validation required for the scenario when a board member becomes a proposer
                 require!(
-                    self.quorum().get() <= self.num_board_members().get(),
+                    self.quorum().get() < self.num_board_members().get(),
                     "quorum cannot exceed board size"
                 );
                 self.change_user_role(action_id, proposer_address, UserRole::Proposer);
@@ -218,7 +218,7 @@ pub trait MultisigPerformModule:
                     "cannot remove all board members and proposers"
                 );
                 require!(
-                    self.quorum().get() <= num_board_members,
+                    self.quorum().get() < num_board_members,
                     "quorum cannot exceed board size"
                 );
                 self.change_user_role(action_id, user_address, UserRole::None);
