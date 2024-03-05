@@ -166,8 +166,8 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
     }
 
     #[endpoint(proposeBatch)]
-    fn propose_batch(&self, group_id: GroupId, actions: MultiValueEncoded<Action<Self::Api>>) {
-        require!(group_id != 0, "May not use group ID 0");
+    fn propose_batch(&self, actions: MultiValueEncoded<Action<Self::Api>>) -> GroupId {
+        let group_id = self.last_action_group_id().get() + 1;
         require!(!actions.is_empty(), "No actions");
 
         let (caller_id, caller_role) = self.get_caller_id_and_role();
@@ -184,7 +184,10 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
         self.action_group_status(group_id)
             .set(ActionStatus::Available);
 
-        require!(!action_groups_mapper.is_empty(), "group cannot be empty");
+        require!(
+            action_groups_mapper.is_empty(),
+            "cannot add actions to an already existing batch"
+        );
 
         for action in actions {
             require!(
@@ -214,5 +217,7 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
             let _ = action_groups_mapper.insert(action_id);
             self.group_for_action(action_id).set(group_id);
         }
+        self.last_action_group_id().set(group_id);
+        group_id
     }
 }

@@ -82,6 +82,10 @@ pub trait MultisigStateModule {
     #[storage_mapper("action_groups")]
     fn action_groups(&self, group_id: GroupId) -> UnorderedSetMapper<ActionId>;
 
+    #[view(getLastGroupActionId)]
+    #[storage_mapper("last_action_group_id")]
+    fn last_action_group_id(&self) -> SingleValueMapper<GroupId>;
+
     #[view(getActionGroup)]
     #[storage_mapper("action_group_status")]
     fn action_group_status(&self, group_id: GroupId) -> SingleValueMapper<ActionStatus>;
