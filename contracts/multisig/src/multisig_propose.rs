@@ -166,21 +166,8 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
     }
 
     #[endpoint(proposeBatch)]
-    fn propose_batch(
-        &self,
-        actions: MultiValueEncoded<Action<Self::Api>>,
-        group_id: OptionalValue<GroupId>,
-    ) {
-        let mut batch_id = self.num_groups().get() + 1;
-        let mut is_new_batch = false;
-        if let OptionalValue::Some(unwrapped_group_id) = group_id {
-            require!(batch_id != 0, "May not use group ID 0");
-            batch_id = unwrapped_group_id;
-        } else {
-            is_new_batch = true;
-            self.action_group_status(batch_id)
-                .set(ActionStatus::Available);
-        }
+    fn propose_batch(&self, group_id: GroupId, actions: MultiValueEncoded<Action<Self::Api>>) {
+        require!(group_id != 0, "May not use group ID 0");
         require!(!actions.is_empty(), "No actions");
 
         let (caller_id, caller_role) = self.get_caller_id_and_role();
@@ -193,11 +180,12 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
         let own_shard = self.blockchain().get_shard_of_address(&own_sc_address);
 
         let mut action_mapper = self.action_mapper();
-        let mut action_groups_mapper = self.action_groups(batch_id);
+        let mut action_groups_mapper = self.action_groups(group_id);
+        self.action_group_status(group_id)
+            .set(ActionStatus::Available);
 
-        if !is_new_batch {
-            require!(!action_groups_mapper.is_empty(), "group cannot be empty");
-        }
+        require!(!action_groups_mapper.is_empty(), "group cannot be empty");
+
         for action in actions {
             require!(
                 !action.is_nothing() && !action.is_async_call() && !action.is_sc_upgrade(),
@@ -224,7 +212,7 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
             }
 
             let _ = action_groups_mapper.insert(action_id);
-            self.group_for_action(action_id).set(batch_id);
+            self.group_for_action(action_id).set(group_id);
         }
     }
 }
