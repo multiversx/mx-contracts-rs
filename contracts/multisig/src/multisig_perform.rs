@@ -263,7 +263,7 @@ pub trait MultisigPerformModule:
                     .unwrap_or_else(|| self.blockchain().get_gas_left());
                 require!(gas > PERFORM_ACTION_FINISH_GAS, "insufficient gas for call");
                 require!(
-                    call_data.tokens.len() != 0,
+                    call_data.tokens.is_empty(),
                     "number of tokens cannot be zero"
                 );
                 self.perform_transfer_execute_esdt_event(
