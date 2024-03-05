@@ -64,8 +64,16 @@ pub trait MultisigSignModule:
     fn sign_batch_and_perform(&self, group_id: GroupId) {
         self.sign_batch(group_id);
 
+        let (_, caller_role) = self.get_caller_id_and_role();
+        require!(
+            caller_role.can_perform_action(),
+            "only board members and proposers can perform actions"
+        );
+
         for action_id in self.action_groups(group_id).iter() {
-            let _ = self.perform_action_endpoint(action_id);
+            if self.quorum_reached(action_id) {
+                let _ = self.perform_action(action_id);
+            }
         }
     }
 
