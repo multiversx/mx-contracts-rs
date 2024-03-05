@@ -45,6 +45,10 @@ pub trait MultisigStateModule {
     #[storage_mapper("num_board_members")]
     fn num_board_members(&self) -> SingleValueMapper<usize>;
 
+    #[view(getNumGroups)]
+    #[storage_mapper("num_groups")]
+    fn num_groups(&self) -> SingleValueMapper<usize>;
+
     /// Denormalized proposer count.
     /// It is kept in sync with the user list by the contract.
     #[view(getNumProposers)]
