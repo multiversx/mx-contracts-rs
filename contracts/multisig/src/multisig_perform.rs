@@ -19,11 +19,12 @@ fn usize_add_isize(value: &mut usize, delta: isize) {
 pub trait MultisigPerformModule:
     crate::multisig_state::MultisigStateModule + crate::multisig_events::MultisigEventsModule
 {
-    fn gas_for_transfer_exec(&self) -> GasLimit {
+    fn ensure_and_get_gas_for_transfer_exec(&self) -> GasLimit {
         let gas_left = self.blockchain().get_gas_left();
-        if gas_left <= PERFORM_ACTION_FINISH_GAS {
-            sc_panic!("insufficient gas for call");
-        }
+        require!(
+            gas_left > PERFORM_ACTION_FINISH_GAS,
+            "insufficient gas for call"
+        );
         gas_left - PERFORM_ACTION_FINISH_GAS
     }
 
@@ -191,25 +192,25 @@ pub trait MultisigPerformModule:
         match action {
             Action::Nothing => OptionalValue::None,
             Action::AddBoardMember(board_member_address) => {
-                self.change_user_role(action_id, board_member_address, UserRole::BoardMember);
                 require!(
                     self.num_board_members().get() <= MAX_BOARD_MEMBERS,
                     "board size cannot exceed limit"
                 );
+                self.change_user_role(action_id, board_member_address, UserRole::BoardMember);
+
                 OptionalValue::None
             }
             Action::AddProposer(proposer_address) => {
-                self.change_user_role(action_id, proposer_address, UserRole::Proposer);
-
                 // validation required for the scenario when a board member becomes a proposer
                 require!(
                     self.quorum().get() <= self.num_board_members().get(),
                     "quorum cannot exceed board size"
                 );
+                self.change_user_role(action_id, proposer_address, UserRole::Proposer);
+
                 OptionalValue::None
             }
             Action::RemoveUser(user_address) => {
-                self.change_user_role(action_id, user_address, UserRole::None);
                 let num_board_members = self.num_board_members().get();
                 let num_proposers = self.num_proposers().get();
                 require!(
@@ -220,6 +221,7 @@ pub trait MultisigPerformModule:
                     self.quorum().get() <= num_board_members,
                     "quorum cannot exceed board size"
                 );
+                self.change_user_role(action_id, user_address, UserRole::None);
                 OptionalValue::None
             }
             Action::ChangeQuorum(new_quorum) => {
@@ -235,7 +237,7 @@ pub trait MultisigPerformModule:
                 require!(call_data.egld_amount != 0, "EGLD amount cannot be zero");
                 let gas = call_data
                     .opt_gas_limit
-                    .unwrap_or_else(|| self.gas_for_transfer_exec());
+                    .unwrap_or_else(|| self.ensure_and_get_gas_for_transfer_exec());
                 self.perform_transfer_execute_egld_event(
                     action_id,
                     &call_data.to,
@@ -261,7 +263,7 @@ pub trait MultisigPerformModule:
                 let gas = call_data
                     .opt_gas_limit
                     .unwrap_or_else(|| self.blockchain().get_gas_left());
-                require!(gas > PERFORM_ACTION_FINISH_GAS, "insufficient gas for call");
+                let _ = self.ensure_and_get_gas_for_transfer_exec();
                 require!(
                     call_data.tokens.is_empty(),
                     "number of tokens cannot be zero"
@@ -291,9 +293,7 @@ pub trait MultisigPerformModule:
                 let gas = call_data
                     .opt_gas_limit
                     .unwrap_or_else(|| self.blockchain().get_gas_left());
-                if gas <= PERFORM_ACTION_FINISH_GAS {
-                    sc_panic!("insufficient gas for call");
-                }
+                let _ = self.ensure_and_get_gas_for_transfer_exec();
                 self.perform_async_call_event(
                     action_id,
                     &call_data.to,

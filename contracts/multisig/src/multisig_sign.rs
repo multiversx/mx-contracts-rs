@@ -80,7 +80,7 @@ pub trait MultisigSignModule:
         let group_status = self.action_group_status(group_id).get();
         require!(
             group_status == ActionStatus::Available,
-            "cannot sign actions of an aborted batch"
+            "cannot unsign actions of an aborted batch"
         );
 
         self.unsign_action(action_id, caller_id);
@@ -95,7 +95,7 @@ pub trait MultisigSignModule:
         let group_status = self.action_group_status(group_id).get();
         require!(
             group_status == ActionStatus::Available,
-            "cannot sign actions of an aborted batch"
+            "cannot unsign actions of an aborted batch"
         );
         let mapper = self.action_groups(group_id);
         require!(!mapper.is_empty(), "Invalid group ID");

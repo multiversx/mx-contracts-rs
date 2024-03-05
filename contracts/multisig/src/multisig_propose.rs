@@ -176,9 +176,6 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
             "only board members and proposers can propose"
         );
 
-        let own_sc_address = self.blockchain().get_sc_address();
-        let own_shard = self.blockchain().get_shard_of_address(&own_sc_address);
-
         let mut action_mapper = self.action_mapper();
         let mut action_groups_mapper = self.action_groups(group_id);
         self.action_group_status(group_id)
@@ -190,24 +187,8 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
         );
 
         for action in actions {
-            require!(
-                !action.is_nothing() && !action.is_async_call() && !action.is_sc_upgrade(),
-                "Invalid action"
-            );
-
-            if let Action::SendTransferExecuteEgld(call_data) = &action {
-                let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
-                require!(
-                    own_shard == other_sc_shard,
-                    "All transfer exec must be to the same shard"
-                );
-            } else if let Action::SendTransferExecuteEsdt(call_data) = &action {
-                let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
-                require!(
-                    own_shard == other_sc_shard,
-                    "All transfer exec must be to the same shard"
-                );
-            }
+            self.require_valid_action_type(&action);
+            self.ensure_valid_transfer_action(&action);
 
             let action_id = action_mapper.push(&action);
             if caller_role.can_sign() {
@@ -219,5 +200,34 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
         }
         self.last_action_group_id().set(group_id);
         group_id
+    }
+
+    fn require_valid_action_type(&self, action: &Action<Self::Api>) {
+        require!(
+            !action.is_nothing() && !action.is_async_call() && !action.is_sc_upgrade(),
+            "Invalid action"
+        );
+    }
+
+    fn ensure_valid_transfer_action(&self, action: &Action<Self::Api>) {
+        let own_sc_address = self.blockchain().get_sc_address();
+        let own_shard = self.blockchain().get_shard_of_address(&own_sc_address);
+
+        if let Action::SendTransferExecuteEgld(call_data) = &action {
+            let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
+            require!(
+                own_shard == other_sc_shard,
+                "All transfer exec must be to the same shard"
+            );
+            return;
+        }
+
+        if let Action::SendTransferExecuteEsdt(call_data) = &action {
+            let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
+            require!(
+                own_shard == other_sc_shard,
+                "All transfer exec must be to the same shard"
+            );
+        }
     }
 }
