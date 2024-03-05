@@ -1,10 +1,19 @@
 use crate::{action::Action, user_role::UserRole};
 
 multiversx_sc::imports!();
+multiversx_sc::derive_imports!();
 
 pub type ActionId = usize;
 pub type GroupId = usize;
 pub type UserId = usize;
+
+#[derive(
+    TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Eq, Clone, Copy, Debug,
+)]
+pub enum ActionStatus {
+    Available,
+    Aborted,
+}
 
 /// Contains all events that can be emitted by the contract.
 #[multiversx_sc::module]
@@ -14,8 +23,11 @@ pub trait MultisigStateModule {
     #[storage_mapper("quorum")]
     fn quorum(&self) -> SingleValueMapper<usize>;
 
-    #[storage_mapper("user")]
+    #[storage_mapper("sc_user")]
     fn user_mapper(&self) -> UserMapper;
+
+    #[storage_mapper("quorum_for_action")]
+    fn quorum_for_action(&self, action_id: ActionId) -> SingleValueMapper<usize>;
 
     #[storage_mapper("user_role")]
     fn user_id_to_role(&self, user_id: UserId) -> SingleValueMapper<UserRole>;
@@ -65,6 +77,10 @@ pub trait MultisigStateModule {
     #[view(getActionGroup)]
     #[storage_mapper("action_groups")]
     fn action_groups(&self, group_id: GroupId) -> UnorderedSetMapper<ActionId>;
+
+    #[view(getActionGroup)]
+    #[storage_mapper("action_group_status")]
+    fn action_group_status(&self, group_id: GroupId) -> SingleValueMapper<ActionStatus>;
 
     #[storage_mapper("group_for_action")]
     fn group_for_action(&self, action_id: ActionId) -> SingleValueMapper<GroupId>;

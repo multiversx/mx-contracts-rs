@@ -1,4 +1,4 @@
-use crate::multisig_state::{ActionId, GroupId};
+use crate::multisig_state::{ActionId, ActionStatus, GroupId};
 
 multiversx_sc::imports!();
 
@@ -16,6 +16,13 @@ pub trait MultisigSignModule:
             !self.action_mapper().item_is_empty_unchecked(action_id),
             "action does not exist"
         );
+        let group_id = self.group_for_action(action_id).get();
+
+        let group_status = self.action_group_status(group_id).get();
+        require!(
+            group_status == ActionStatus::Available,
+            "cannot sign actions of an aborted batch"
+        );
 
         let (caller_id, caller_role) = self.get_caller_id_and_role();
         require!(caller_role.can_sign(), "only board members can sign");
@@ -29,6 +36,11 @@ pub trait MultisigSignModule:
         let (caller_id, caller_role) = self.get_caller_id_and_role();
         require!(caller_role.can_sign(), "only board members can sign");
 
+        let group_status = self.action_group_status(group_id).get();
+        require!(
+            group_status == ActionStatus::Available,
+            "cannot sign actions of an aborted batch"
+        );
         let mapper = self.action_groups(group_id);
         require!(!mapper.is_empty(), "Invalid group ID");
 
@@ -45,7 +57,7 @@ pub trait MultisigSignModule:
     #[endpoint(signAndPerform)]
     fn sign_and_perform(&self, action_id: ActionId) -> OptionalValue<ManagedAddress> {
         self.sign(action_id);
-        self.perform_action_endpoint(action_id)
+        self.try_perform_action(action_id)
     }
 
     #[endpoint(signBatchAndPerform)]
@@ -63,6 +75,13 @@ pub trait MultisigSignModule:
     fn unsign(&self, action_id: ActionId) {
         let (caller_id, caller_role) = self.get_caller_id_and_role();
         require!(caller_role.can_sign(), "only board members can un-sign");
+        let group_id = self.group_for_action(action_id).get();
+
+        let group_status = self.action_group_status(group_id).get();
+        require!(
+            group_status == ActionStatus::Available,
+            "cannot sign actions of an aborted batch"
+        );
 
         self.unsign_action(action_id, caller_id);
     }
@@ -73,6 +92,11 @@ pub trait MultisigSignModule:
         let (caller_id, caller_role) = self.get_caller_id_and_role();
         require!(caller_role.can_sign(), "only board members can un-sign");
 
+        let group_status = self.action_group_status(group_id).get();
+        require!(
+            group_status == ActionStatus::Available,
+            "cannot sign actions of an aborted batch"
+        );
         let mapper = self.action_groups(group_id);
         require!(!mapper.is_empty(), "Invalid group ID");
 

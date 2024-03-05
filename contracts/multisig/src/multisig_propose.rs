@@ -1,8 +1,8 @@
 use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
 use crate::{
-    action::{Action, CallActionData, GasLimit},
-    multisig_state::{ActionId, GroupId},
+    action::{Action, CallActionData, EsdtTransferExecuteData, GasLimit},
+    multisig_state::{ActionId, ActionStatus, GroupId},
 };
 
 multiversx_sc::imports!();
@@ -18,6 +18,7 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
         );
 
         let action_id = self.action_mapper().push(&action);
+        self.quorum_for_action(action_id).set(self.quorum().get());
         if caller_role.can_sign() {
             // also sign
             // since the action is newly created, the caller can be the only signer
@@ -90,13 +91,15 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
     ) -> ActionId {
         require!(!tokens.is_empty(), "No tokens to transfer");
 
-        self.propose_action(Action::SendTransferExecuteEsdt {
+        let call_data = EsdtTransferExecuteData {
             to,
             tokens,
             opt_gas_limit,
             endpoint_name: function_call.function_name,
             arguments: function_call.arg_buffer.into_vec_of_buffers(),
-        })
+        };
+
+        self.propose_action(Action::SendTransferExecuteEsdt(call_data))
     }
 
     /// Propose a transaction in which the contract will perform an async call call.
@@ -178,13 +181,24 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
 
         let mut action_mapper = self.action_mapper();
         let mut action_groups_mapper = self.action_groups(group_id);
+        self.action_group_status(group_id)
+            .set(ActionStatus::Available);
+
+        require!(!action_groups_mapper.is_empty(), "group cannot be empty");
+
         for action in actions {
             require!(
-                !action.is_nothing() && !action.is_async_call(),
+                !action.is_nothing() && !action.is_async_call() && !action.is_sc_upgrade(),
                 "Invalid action"
             );
 
             if let Action::SendTransferExecuteEgld(call_data) = &action {
+                let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
+                require!(
+                    own_shard == other_sc_shard,
+                    "All transfer exec must be to the same shard"
+                );
+            } else if let Action::SendTransferExecuteEsdt(call_data) = &action {
                 let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
                 require!(
                     own_shard == other_sc_shard,

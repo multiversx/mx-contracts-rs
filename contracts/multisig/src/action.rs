@@ -19,6 +19,15 @@ pub struct CallActionData<M: ManagedTypeApi> {
     pub arguments: ManagedVec<M, ManagedBuffer<M>>,
 }
 
+#[derive(NestedEncode, NestedDecode, TypeAbi, Clone)]
+pub struct EsdtTransferExecuteData<M: ManagedTypeApi> {
+    pub to: ManagedAddress<M>,
+    pub tokens: PaymentsVec<M>,
+    pub opt_gas_limit: Option<GasLimit>,
+    pub endpoint_name: ManagedBuffer<M>,
+    pub arguments: ManagedVec<M, ManagedBuffer<M>>,
+}
+
 #[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, TypeAbi, Clone)]
 pub enum Action<M: ManagedTypeApi> {
     Nothing,
@@ -27,13 +36,7 @@ pub enum Action<M: ManagedTypeApi> {
     RemoveUser(ManagedAddress<M>),
     ChangeQuorum(usize),
     SendTransferExecuteEgld(CallActionData<M>),
-    SendTransferExecuteEsdt {
-        to: ManagedAddress<M>,
-        tokens: PaymentsVec<M>,
-        opt_gas_limit: Option<GasLimit>,
-        endpoint_name: ManagedBuffer<M>,
-        arguments: ManagedVec<M, ManagedBuffer<M>>,
-    },
+    SendTransferExecuteEsdt(EsdtTransferExecuteData<M>),
     SendAsyncCall(CallActionData<M>),
     SCDeployFromSource {
         amount: BigUint<M>,
@@ -64,6 +67,19 @@ impl<M: ManagedTypeApi> Action<M> {
 
     pub fn is_async_call(&self) -> bool {
         matches!(*self, Action::SendAsyncCall(_))
+    }
+
+    pub fn is_sc_upgrade(&self) -> bool {
+        matches!(
+            self,
+            Action::SCUpgradeFromSource {
+                sc_address: _,
+                amount: _,
+                source: _,
+                code_metadata: _,
+                arguments: _
+            }
+        )
     }
 }
 
