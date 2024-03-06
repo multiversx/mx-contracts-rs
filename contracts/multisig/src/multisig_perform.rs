@@ -172,11 +172,13 @@ pub trait MultisigPerformModule:
         let action = self.action_mapper().get(action_id);
 
         let group_id = self.group_for_action(action_id).get();
-        let group_status = self.action_group_status(group_id).get();
-        require!(
-            group_status == ActionStatus::Available,
-            "cannot perform actions of an aborted batch"
-        );
+        if group_id != 0 {
+            let group_status = self.action_group_status(group_id).get();
+            require!(
+                group_status == ActionStatus::Available,
+                "cannot perform actions of an aborted batch"
+            );
+        }
         self.start_perform_action_event(&ActionFullInfo {
             action_id,
             action_data: action.clone(),

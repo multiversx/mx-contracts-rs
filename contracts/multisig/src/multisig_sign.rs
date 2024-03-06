@@ -17,13 +17,13 @@ pub trait MultisigSignModule:
             "action does not exist"
         );
         let group_id = self.group_for_action(action_id).get();
-
-        let group_status = self.action_group_status(group_id).get();
-        require!(
-            group_status == ActionStatus::Available,
-            "cannot sign actions of an aborted batch"
-        );
-
+        if group_id != 0 {
+            let group_status = self.action_group_status(group_id).get();
+            require!(
+                group_status == ActionStatus::Available,
+                "cannot sign actions of an aborted batch"
+            );
+        }
         let (caller_id, caller_role) = self.get_caller_id_and_role();
         require!(caller_role.can_sign(), "only board members can sign");
 
@@ -84,13 +84,13 @@ pub trait MultisigSignModule:
         let (caller_id, caller_role) = self.get_caller_id_and_role();
         require!(caller_role.can_sign(), "only board members can un-sign");
         let group_id = self.group_for_action(action_id).get();
-
-        let group_status = self.action_group_status(group_id).get();
-        require!(
-            group_status == ActionStatus::Available,
-            "cannot unsign actions of an aborted batch"
-        );
-
+        if group_id != 0 {
+            let group_status = self.action_group_status(group_id).get();
+            require!(
+                group_status == ActionStatus::Available,
+                "cannot unsign actions of an aborted batch"
+            );
+        }
         self.unsign_action(action_id, caller_id);
     }
 
