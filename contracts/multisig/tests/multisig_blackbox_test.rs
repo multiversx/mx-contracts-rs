@@ -411,9 +411,7 @@ fn test_change_quorum() {
         ScCallStep::new()
             .from(BOARD_MEMBER_ADDRESS_EXPR)
             .call(state.multisig_contract.unsign(action_id))
-            .expect(TxExpect::user_error(
-                "str:cannot unsign actions of an aborted batch",
-            )),
+            .expect(TxExpect::user_error("str:action does not exist")),
     );
 
     // try sign discarded action
