@@ -61,20 +61,29 @@ pub trait Multisig:
     #[view(getPendingActionFullInfo)]
     fn get_pending_action_full_info(
         &self,
-        offset: OptionalValue<usize>,
+        count: OptionalValue<usize>,
+        offset_id: OptionalValue<usize>,
     ) -> MultiValueEncoded<ActionFullInfo<Self::Api>> {
         let mut result = MultiValueEncoded::new();
         let action_last_index = self.get_action_last_index();
         let action_mapper = self.action_mapper();
         let mut index_of_first_action = 1;
-        if let OptionalValue::Some(unwrapped_offset) = offset {
+        let mut index_of_last_action = action_last_index;
+        if let OptionalValue::Some(unwrapped_offset_id) = offset_id {
             require!(
-                unwrapped_offset <= action_last_index,
-                "offset needs to be smaller than the total number of actions"
+                unwrapped_offset_id <= action_last_index,
+                "offset_id needs to be within the range of the available action ids"
             );
-            index_of_first_action += action_last_index - unwrapped_offset;
+            index_of_first_action = unwrapped_offset_id;
         }
-        for action_id in index_of_first_action..=action_last_index {
+        if let OptionalValue::Some(unwrapped_count) = count {
+            require!(
+                unwrapped_count <= action_last_index,
+                "cannot exceed the total number of actions"
+            );
+            index_of_last_action = index_of_first_action + unwrapped_count;
+        }
+        for action_id in index_of_first_action..=index_of_last_action {
             let action_data = action_mapper.get(action_id);
             if action_data.is_pending() {
                 result.push(ActionFullInfo {
@@ -85,36 +94,6 @@ pub trait Multisig:
                 });
             }
         }
-
-        result
-    }
-
-    #[label("multisig-external-view")]
-    #[view(getPendingActionFullInfoInRange)]
-    fn get_pending_action_full_info_in_range(
-        &self,
-        action_start_id: usize,
-        action_stop_id: usize,
-    ) -> MultiValueEncoded<ActionFullInfo<Self::Api>> {
-        let mut result = MultiValueEncoded::new();
-        let action_last_index = self.get_action_last_index();
-        let action_mapper = self.action_mapper();
-        require!(
-            action_start_id < action_stop_id && action_stop_id <= action_last_index,
-            "action ids provided need to be in the range of the available actions"
-        );
-        for action_id in action_start_id..=action_stop_id {
-            let action_data = action_mapper.get(action_id);
-            if action_data.is_pending() {
-                result.push(ActionFullInfo {
-                    action_id,
-                    action_data,
-                    signers: self.get_action_signers(action_id),
-                    group_id: self.group_for_action(action_id).get(),
-                });
-            }
-        }
-
         result
     }
 
