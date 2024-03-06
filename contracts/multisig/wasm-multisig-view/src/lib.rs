@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                            9
+// Endpoints:                            8
 // Async Callback (empty):               1
-// Total number of exported functions:  11
+// Total number of exported functions:  10
 
 #![no_std]
 #![allow(internal_features)]
@@ -22,7 +22,6 @@ multiversx_sc_wasm_adapter::external_view_endpoints! {
     multisig
     (
         getPendingActionFullInfo => get_pending_action_full_info
-        getPendingActionFullInfoInRange => get_pending_action_full_info_in_range
         userRole => user_role
         getAllBoardMembers => get_all_board_members
         getAllProposers => get_all_proposers

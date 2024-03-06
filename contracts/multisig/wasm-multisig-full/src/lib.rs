@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           41
+// Endpoints:                           40
 // Async Callback:                       1
-// Total number of exported functions:  43
+// Total number of exported functions:  42
 
 #![no_std]
 #![allow(internal_features)]
@@ -53,7 +53,6 @@ multiversx_sc_wasm_adapter::endpoints! {
         performBatch => perform_batch
         dnsRegister => dns_register
         getPendingActionFullInfo => get_pending_action_full_info
-        getPendingActionFullInfoInRange => get_pending_action_full_info_in_range
         userRole => user_role
         getAllBoardMembers => get_all_board_members
         getAllProposers => get_all_proposers

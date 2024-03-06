@@ -58,6 +58,7 @@ pub trait Multisig:
     /// - the serialized action data
     /// - (number of signers followed by) list of signer addresses.
     #[label("multisig-external-view")]
+    #[allow_multiple_var_args]
     #[view(getPendingActionFullInfo)]
     fn get_pending_action_full_info(
         &self,
