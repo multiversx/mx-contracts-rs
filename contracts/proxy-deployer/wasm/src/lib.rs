@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           18
+// Endpoints:                           19
 // Async Callback (empty):               1
-// Total number of exported functions:  20
+// Total number of exported functions:  21
 
 #![no_std]
 #![allow(internal_features)]
@@ -25,6 +25,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         contractUpgrade => contract_upgrade
         contractCallByAddress => contract_call_by_address
         upgradeContractsByTemplate => upgrade_contracts_by_template
+        clearOngoingUpgradeOperation => clear_ongoing_upgrade_operation
         addDeployerToBlacklist => add_deployer_to_blacklist
         removeDeployerFromBlacklist => remove_deployer_from_blacklist
         setDefaultGasForSaveOperation => set_default_gas_for_save_operation

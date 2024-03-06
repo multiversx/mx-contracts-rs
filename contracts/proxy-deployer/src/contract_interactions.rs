@@ -95,6 +95,9 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             .execute_on_dest_context()
     }
 
+    /// Allows the owner to bulk upgrade all the contracts by starting an ongoing upgrade operation
+    /// The first time when the endpoint is called, the optional arguments are required
+    /// After that the endpoint needs to be called without the optional args, until the upgrade operation is finished
     #[only_owner]
     #[allow_multiple_var_args]
     #[endpoint(upgradeContractsByTemplate)]
@@ -133,6 +136,12 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
 
         self.ongoing_upgrade_operation().clear();
         true
+    }
+
+    #[only_owner]
+    #[endpoint(clearOngoingUpgradeOperation)]
+    fn clear_ongoing_upgrade_operation(&self) {
+        self.ongoing_upgrade_operation().clear();
     }
 
     fn get_ongoing_operation(
