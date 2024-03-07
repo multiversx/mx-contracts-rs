@@ -9,8 +9,11 @@ use multiversx_sc::{
         test_util::top_encode_to_vec_u8_or_panic,
     },
     storage::mappers::SingleValue,
-    types::{Address, CodeMetadata, ContractCallNoPayment, FunctionCall},
+    types::{
+        Address, CodeMetadata, ContractCallNoPayment, EsdtTokenPayment, FunctionCall, ManagedVec,
+    },
 };
+use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 use multiversx_sc_scenario::{
     api::StaticApi,
     scenario_model::{
@@ -30,6 +33,7 @@ const MULTISIG_PATH_EXPR: &str = "file:output/multisig.wasm";
 const OWNER_ADDRESS_EXPR: &str = "address:owner";
 const PROPOSER_ADDRESS_EXPR: &str = "address:proposer";
 const PROPOSER_BALANCE_EXPR: &str = "100,000,000";
+const NFT_TOKEN_ID: &str = "str:NFT-123456";
 const QUORUM_SIZE: usize = 1;
 
 type MultisigContract = ContractInfo<multisig::Proxy<StaticApi>>;
@@ -62,12 +66,12 @@ impl MultisigTestState {
                 .new_address(OWNER_ADDRESS_EXPR, 1, MULTISIG_ADDRESS_EXPR)
                 .put_account(
                     PROPOSER_ADDRESS_EXPR,
-                    Account::new().nonce(1).balance(PROPOSER_BALANCE_EXPR),
+                    Account::new()
+                        .nonce(1)
+                        .balance(PROPOSER_BALANCE_EXPR)
+                        .esdt_nft_balance(NFT_TOKEN_ID, 1u64, "1", Option::<&[u8]>::None),
                 )
-                .put_account(
-                    BOARD_MEMBER_ADDRESS_EXPR,
-                    Account::new().nonce(1).balance(PROPOSER_BALANCE_EXPR),
-                )
+                .put_account(BOARD_MEMBER_ADDRESS_EXPR, Account::new().nonce(1))
                 .put_account(ADDER_OWNER_ADDRESS_EXPR, Account::new().nonce(1))
                 .new_address(ADDER_OWNER_ADDRESS_EXPR, 1, ADDER_ADDRESS_EXPR),
         );
@@ -150,6 +154,23 @@ impl MultisigTestState {
                 .from(PROPOSER_ADDRESS_EXPR)
                 .call(self.multisig_contract.propose_change_quorum(new_quorum)),
         )
+    }
+    fn propose_transfer_execute_esdt(
+        &mut self,
+        to: Address,
+        tokens: PaymentsVec<StaticApi>,
+        opt_gas_limit: Option<GasLimit>,
+        contract_call: ContractCallNoPayment<StaticApi, ()>,
+    ) -> usize {
+        self.world
+            .sc_call_get_result(ScCallStep::new().from(PROPOSER_ADDRESS_EXPR).call(
+                self.multisig_contract.propose_transfer_execute_esdt(
+                    to,
+                    tokens,
+                    opt_gas_limit,
+                    contract_call.into_function_call(),
+                ),
+            ))
     }
 
     fn propose_transfer_execute(
@@ -346,6 +367,54 @@ fn test_remove_proposer() {
 }
 
 #[test]
+fn test_perform_action_signed_by_removed_board_user() {
+    let mut state = MultisigTestState::new();
+    state.deploy_multisig_contract();
+
+    const NEW_BOARD_MEMBER_ADDRESS_EXPR: &str = "address:new-board-member";
+    let new_board_member_address = AddressValue::from(NEW_BOARD_MEMBER_ADDRESS_EXPR).to_address();
+
+    state.world.set_state_step(
+        SetStateStep::new().put_account(NEW_BOARD_MEMBER_ADDRESS_EXPR, Account::new().nonce(1)),
+    );
+
+    let action_id = state.propose_add_board_member(new_board_member_address.clone());
+    state.sign(action_id);
+    state.perform(action_id);
+
+    let adder_call = state.adder_contract.add(5u64);
+
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(PROPOSER_ADDRESS_EXPR)
+            .egld_value("100")
+            .call(state.multisig_contract.deposit()),
+    );
+
+    let special_action_id = state.propose_transfer_execute(
+        state.adder_address.clone(),
+        100u64,
+        Option::<GasLimit>::None,
+        adder_call,
+    );
+
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(NEW_BOARD_MEMBER_ADDRESS_EXPR)
+            .call(state.multisig_contract.sign(special_action_id)),
+    );
+
+    let action_id = state.propose_remove_user(new_board_member_address.clone());
+    state.sign(action_id);
+    state.perform(action_id);
+
+    state.perform_and_expect_err(special_action_id, "quorum has not been reached");
+
+    state.sign(special_action_id);
+    state.perform(special_action_id);
+}
+
+#[test]
 fn test_try_remove_all_board_members() {
     let mut state = MultisigTestState::new();
     state.deploy_multisig_contract();
@@ -488,6 +557,41 @@ fn test_transfer_execute_sc_all() {
     let mut state = MultisigTestState::new();
     state.deploy_multisig_contract().deploy_adder_contract();
 
+    // try make a transfer propose with 0 EGLD
+
+    let adder_call = state.adder_contract.add(5u64);
+
+    let action_id = state.propose_transfer_execute(
+        state.adder_address.clone(),
+        0u64,
+        Option::<GasLimit>::None,
+        adder_call,
+    );
+    state.sign(action_id);
+    state.perform_and_expect_err(action_id, "EGLD amount cannot be zero");
+
+    // try make a transfer propose with 0 EGLD
+
+    let adder_call = state.adder_contract.add(5u64);
+
+    let mut esdt_payment: PaymentsVec<StaticApi> = ManagedVec::new();
+    esdt_payment.push(EsdtTokenPayment {
+        token_identifier: NFT_TOKEN_ID.into(),
+        token_nonce: 1u64.into(),
+        amount: 1u64.into(),
+    });
+
+    let action_id = state.propose_transfer_execute_esdt(
+        state.adder_address.clone(),
+        esdt_payment,
+        Option::<GasLimit>::None,
+        adder_call,
+    );
+    state.sign(action_id);
+    state.perform_and_expect_err(action_id, "number of tokens cannot be zero");
+
+    // perform an EGLD transfer purpose after a deposit to the contract
+
     let adder_call = state.adder_contract.add(5u64);
 
     state.world.sc_call(
@@ -511,6 +615,33 @@ fn test_transfer_execute_sc_all() {
             .call(state.adder_contract.sum())
             .expect_value(SingleValue::from(BigUint::from(10u64))),
     );
+
+    // perform an ESDT transfer purpose after a deposit to the contract
+
+    let adder_call = state.adder_contract.add(5u64);
+
+    let mut esdt_payment: PaymentsVec<StaticApi> = ManagedVec::new();
+    esdt_payment.push(EsdtTokenPayment {
+        token_identifier: NFT_TOKEN_ID.into(),
+        token_nonce: 1u64.into(),
+        amount: 1u64.into(),
+    });
+
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(PROPOSER_ADDRESS_EXPR)
+            .esdt_transfer(NFT_TOKEN_ID, 1u64, "1")
+            .call(state.multisig_contract.deposit()),
+    );
+
+    let action_id = state.propose_transfer_execute_esdt(
+        state.adder_address.clone(),
+        esdt_payment,
+        Option::<GasLimit>::None,
+        adder_call,
+    );
+    state.sign(action_id);
+    state.perform_and_expect_err(action_id, "number of tokens cannot be zero");
 }
 
 #[test]
