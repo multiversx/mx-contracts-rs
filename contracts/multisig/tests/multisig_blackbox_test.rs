@@ -490,9 +490,16 @@ fn test_transfer_execute_sc_all() {
 
     let adder_call = state.adder_contract.add(5u64);
 
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(PROPOSER_ADDRESS_EXPR)
+            .egld_value("100")
+            .call(state.multisig_contract.deposit()),
+    );
+
     let action_id = state.propose_transfer_execute(
         state.adder_address.clone(),
-        5u64,
+        100u64,
         Option::<GasLimit>::None,
         adder_call,
     );
@@ -559,9 +566,16 @@ fn test_deploy_and_upgrade_from_source() {
 
     let adder_call = state.adder_contract.add(5u64);
 
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(PROPOSER_ADDRESS_EXPR)
+            .egld_value("100")
+            .call(state.multisig_contract.deposit()),
+    );
+
     let action_id = state.propose_transfer_execute(
         new_adder_address,
-        5u64,
+        100u64,
         Option::<GasLimit>::None,
         adder_call,
     );
