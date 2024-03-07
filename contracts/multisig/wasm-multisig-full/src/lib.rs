@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           40
+// Endpoints:                           41
 // Async Callback:                       1
-// Total number of exported functions:  42
+// Total number of exported functions:  43
 
 #![no_std]
 #![allow(internal_features)]
@@ -48,6 +48,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         unsign => unsign
         unsignBatch => unsign_batch
         signed => signed
+        unsignForOutdatedBoardMembers => unsign_for_outdated_board_members
         quorumReached => quorum_reached
         performAction => perform_action_endpoint
         performBatch => perform_batch

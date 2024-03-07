@@ -133,4 +133,17 @@ pub trait MultisigSignModule:
             self.action_signer_ids(action_id).contains(&user_id)
         }
     }
+
+    #[endpoint(unsignForOutdatedBoardMembers)]
+    fn unsign_for_outdated_board_members(&self, action_id: ActionId) {
+        let mut outdated_board_members: ManagedVec<usize> = ManagedVec::new();
+        for signer_id in self.action_signer_ids(action_id).iter() {
+            if !self.user_id_to_role(signer_id).get().can_sign() {
+                outdated_board_members.push(signer_id);
+            }
+        }
+        for member in outdated_board_members.iter() {
+            self.action_signer_ids(action_id).swap_remove(&member);
+        }
+    }
 }

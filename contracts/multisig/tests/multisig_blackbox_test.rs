@@ -371,6 +371,8 @@ fn test_perform_action_signed_by_removed_board_user() {
     let mut state = MultisigTestState::new();
     state.deploy_multisig_contract();
 
+    // a new board member is added
+
     const NEW_BOARD_MEMBER_ADDRESS_EXPR: &str = "address:new-board-member";
     let new_board_member_address = AddressValue::from(NEW_BOARD_MEMBER_ADDRESS_EXPR).to_address();
 
@@ -398,19 +400,53 @@ fn test_perform_action_signed_by_removed_board_user() {
         adder_call,
     );
 
+    // the new board member signs the special action
+
     state.world.sc_call(
         ScCallStep::new()
             .from(NEW_BOARD_MEMBER_ADDRESS_EXPR)
             .call(state.multisig_contract.sign(special_action_id)),
     );
 
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(PROPOSER_ADDRESS_EXPR)
+            .call(state.multisig_contract.quorum_reached(special_action_id))
+            .expect_value(true),
+    );
+
+    // just before performing the new board member gets removed
+
     let action_id = state.propose_remove_user(new_board_member_address.clone());
     state.sign(action_id);
     state.perform(action_id);
 
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(PROPOSER_ADDRESS_EXPR)
+            .call(state.multisig_contract.quorum_reached(special_action_id))
+            .expect_value(false),
+    );
+
     state.perform_and_expect_err(special_action_id, "quorum has not been reached");
 
+    // removing the signature of the removed board member
+
+    state.world.sc_call(
+        ScCallStep::new().from(PROPOSER_ADDRESS_EXPR).call(
+            state
+                .multisig_contract
+                .unsign_for_outdated_board_members(special_action_id),
+        ),
+    );
     state.sign(special_action_id);
+
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(PROPOSER_ADDRESS_EXPR)
+            .call(state.multisig_contract.quorum_reached(special_action_id))
+            .expect_value(true),
+    );
     state.perform(special_action_id);
 }
 
