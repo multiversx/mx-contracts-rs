@@ -577,7 +577,7 @@ fn test_transfer_execute_sc_all() {
     let mut esdt_payment: PaymentsVec<StaticApi> = ManagedVec::new();
     esdt_payment.push(EsdtTokenPayment {
         token_identifier: NFT_TOKEN_ID.into(),
-        token_nonce: 1u64.into(),
+        token_nonce: 1u64,
         amount: 1u64.into(),
     });
 
@@ -623,7 +623,7 @@ fn test_transfer_execute_sc_all() {
     let mut esdt_payment: PaymentsVec<StaticApi> = ManagedVec::new();
     esdt_payment.push(EsdtTokenPayment {
         token_identifier: NFT_TOKEN_ID.into(),
-        token_nonce: 1u64.into(),
+        token_nonce: 1u64,
         amount: 1u64.into(),
     });
 
