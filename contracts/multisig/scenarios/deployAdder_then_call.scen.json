@@ -49,17 +49,20 @@
                     "nonce": "0",
                     "balance": "0",
                     "storage": {
-                        "str:user_count": "5",
-                        "str:user_address_to_id|address:alice": "1",
-                        "str:user_address_to_id|address:bob": "2",
-                        "str:user_address_to_id|address:charlie": "3",
-                        "str:user_address_to_id|address:paul": "4",
-                        "str:user_address_to_id|address:dan": "5",
-                        "str:user_id_to_address|u32:1": "address:alice",
-                        "str:user_id_to_address|u32:2": "address:bob",
-                        "str:user_id_to_address|u32:3": "address:charlie",
-                        "str:user_id_to_address|u32:4": "address:paul",
-                        "str:user_id_to_address|u32:5": "address:dan",
+                        "str:sc_user_count": "5",
+                        "str:sc_user_address_to_id|address:alice": "1",
+                        "str:sc_user_address_to_id|address:bob": "2",
+                        "str:sc_user_address_to_id|address:charlie": "3",
+                        "str:sc_user_address_to_id|address:paul": "4",
+                        "str:sc_user_address_to_id|address:dan": "5",
+                        "str:sc_user_id_to_address|u32:1": "address:alice",
+                        "str:sc_user_id_to_address|u32:2": "address:bob",
+                        "str:sc_user_id_to_address|u32:3": "address:charlie",
+                        "str:sc_user_id_to_address|u32:4": "address:paul",
+                        "str:sc_user_id_to_address|u32:5": "address:dan",
+                        "str:quorum_for_action|u32:1": "2",
+                        "str:quorum_for_action|u32:2": "2",
+                        "str:quorum_for_action|u32:3": "2",
                         "str:user_role|u32:1": "2",
                         "str:user_role|u32:2": "2",
                         "str:user_role|u32:3": "2",
@@ -183,7 +186,7 @@
                 "function": "proposeTransferExecute",
                 "arguments": [
                     "sc:adder",
-                    "0",
+                    "100",
                     "0x",
                     "str:add",
                     "1234"
@@ -245,6 +248,24 @@
         },
         {
             "step": "scCall",
+            "tx": {
+                "from": "address:paul",
+                "to": "sc:multisig",
+                "egldValue": "100",
+                "function": "deposit",
+                "arguments": [],
+                "gasLimit": "70,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "0",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
             "id": "sc-deploy-perform-2",
             "tx": {
                 "from": "address:paul",
@@ -258,7 +279,7 @@
             },
             "expect": {
                 "out": [],
-                "status": "",
+                "status": "0",
                 "logs": "*",
                 "gas": "*",
                 "refund": "*"
@@ -304,7 +325,7 @@
             "accounts": {
                 "sc:adder": {
                     "nonce": "0",
-                    "balance": "0",
+                    "balance": "100",
                     "storage": {
                         "str:sum": "2468"
                     },

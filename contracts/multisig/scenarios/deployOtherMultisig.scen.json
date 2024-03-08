@@ -125,9 +125,9 @@
                     "nonce": "0",
                     "balance": "0",
                     "storage": {
-                        "str:user_count": "1",
-                        "str:user_address_to_id|address:paul": "1",
-                        "str:user_id_to_address|u32:1": "address:paul",
+                        "str:sc_user_count": "1",
+                        "str:sc_user_address_to_id|address:paul": "1",
+                        "str:sc_user_id_to_address|u32:1": "address:paul",
                         "str:user_role|u32:1": "2",
                         "str:num_board_members": "1",
                         "str:quorum": "1"
