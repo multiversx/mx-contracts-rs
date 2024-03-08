@@ -16,7 +16,7 @@
                     "sc:multisig-child",
                     "0",
                     "sc:multisig",
-                    "0x0000"
+                    "0x0502"
                 ],
                 "gasLimit": "20,000,000",
                 "gasPrice": "0"
