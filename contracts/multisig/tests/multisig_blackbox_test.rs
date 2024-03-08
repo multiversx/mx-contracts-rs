@@ -370,6 +370,7 @@ fn test_remove_proposer() {
 fn test_perform_action_signed_by_removed_board_user() {
     let mut state = MultisigTestState::new();
     state.deploy_multisig_contract();
+    state.deploy_adder_contract();
 
     // a new board member is added
 
