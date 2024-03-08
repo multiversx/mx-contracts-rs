@@ -60,6 +60,26 @@ pub trait ConfigModule {
             .set(default_gas_for_save_operation);
     }
 
+    #[only_owner]
+    #[endpoint(addTemplateAddress)]
+    fn add_template_address(&self, template_address: ManagedAddress) {
+        require!(
+            self.blockchain().is_smart_contract(&template_address),
+            "Template address must be a SC"
+        );
+        self.templates_list().insert(template_address);
+    }
+
+    #[only_owner]
+    #[endpoint(removeTemplateAddress)]
+    fn remove_template_address(&self, template_address: ManagedAddress) {
+        require!(
+            self.templates_list().contains(&template_address),
+            "Template address not found"
+        );
+        self.templates_list().swap_remove(&template_address);
+    }
+
     #[view(getDeployerContractsByTemplate)]
     fn get_deployer_contracts_by_template(
         &self,
@@ -89,6 +109,13 @@ pub trait ConfigModule {
         template_address: &ManagedAddress,
     ) -> SingleValueMapper<ManagedVec<ManagedAddress>>;
 
+    #[view(getContractTemplate)]
+    #[storage_mapper("contractTemplate")]
+    fn contract_template(
+        &self,
+        contract_address: &ManagedAddress,
+    ) -> SingleValueMapper<ManagedAddress>;
+
     #[view(getOngoingUpgradeOperations)]
     #[storage_mapper("ongoingUpgradeOperation")]
     fn ongoing_upgrade_operation(&self) -> SingleValueMapper<OngoingUpgradeOperation<Self::Api>>;
@@ -102,7 +129,11 @@ pub trait ConfigModule {
     fn deployers_list(&self) -> UnorderedSetMapper<ManagedAddress>;
 
     #[storage_mapper("deployerContracts")]
-    fn deployer_contracts(&self, user: &ManagedAddress) -> WhitelistMapper<ManagedAddress>;
+    fn deployer_contracts(&self, user: &ManagedAddress) -> UnorderedSetMapper<ManagedAddress>;
+
+    #[view(getAllTemplates)]
+    #[storage_mapper("templatesList")]
+    fn templates_list(&self) -> UnorderedSetMapper<ManagedAddress>;
 
     // (K, V) - (TemplateAddress, Vec<DeployedAddress>)
     #[storage_mapper("deployerTemplateAddresses")]
