@@ -236,7 +236,6 @@ pub trait MultisigPerformModule:
                 OptionalValue::None
             }
             Action::SendTransferExecuteEgld(call_data) => {
-                require!(call_data.egld_amount != 0, "EGLD amount cannot be zero");
                 let gas = call_data
                     .opt_gas_limit
                     .unwrap_or_else(|| self.ensure_and_get_gas_for_transfer_exec());
@@ -266,10 +265,7 @@ pub trait MultisigPerformModule:
                     .opt_gas_limit
                     .unwrap_or_else(|| self.blockchain().get_gas_left());
                 let _ = self.ensure_and_get_gas_for_transfer_exec();
-                require!(
-                    call_data.tokens.is_empty(),
-                    "number of tokens cannot be zero"
-                );
+
                 self.perform_transfer_execute_esdt_event(
                     action_id,
                     &call_data.to,

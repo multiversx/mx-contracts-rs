@@ -26,7 +26,7 @@
                 "function": "proposeTransferExecute",
                 "arguments": [
                     "sc:other-shard-2",
-                    "100",
+                    "0",
                     "0x",
                     "str:method-from-other-shard",
                     "str:arg1",
@@ -41,24 +41,6 @@
                 ],
                 "status": "",
                 "logs": "*",
-                "gas": "*",
-                "refund": "*"
-            }
-        },
-        {
-            "step": "scCall",
-            "tx": {
-                "from": "address:alice",
-                "to": "sc:multisig",
-                "egldValue": "100",
-                "function": "deposit",
-                "arguments": [],
-                "gasLimit": "70,000,000",
-                "gasPrice": "0"
-            },
-            "expect": {
-                "out": [],
-                "status": "0",
                 "gas": "*",
                 "refund": "*"
             }

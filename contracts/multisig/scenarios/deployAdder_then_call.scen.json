@@ -186,7 +186,7 @@
                 "function": "proposeTransferExecute",
                 "arguments": [
                     "sc:adder",
-                    "100",
+                    "0",
                     "0x",
                     "str:add",
                     "1234"
@@ -242,24 +242,6 @@
                 "out": [],
                 "status": "",
                 "logs": "*",
-                "gas": "*",
-                "refund": "*"
-            }
-        },
-        {
-            "step": "scCall",
-            "tx": {
-                "from": "address:paul",
-                "to": "sc:multisig",
-                "egldValue": "100",
-                "function": "deposit",
-                "arguments": [],
-                "gasLimit": "70,000,000",
-                "gasPrice": "0"
-            },
-            "expect": {
-                "out": [],
-                "status": "0",
                 "gas": "*",
                 "refund": "*"
             }
@@ -325,7 +307,7 @@
             "accounts": {
                 "sc:adder": {
                     "nonce": "0",
-                    "balance": "100",
+                    "balance": "0",
                     "storage": {
                         "str:sum": "2468"
                     },

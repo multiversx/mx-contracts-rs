@@ -616,19 +616,11 @@ fn test_transfer_execute_sc_all() {
         },
     );
 
-    world.whitebox_call(
-        &multisig_whitebox,
-        ScCallStep::new()
-            .from(PROPOSER_ADDRESS_EXPR)
-            .egld_value("100"),
-        |sc| sc.deposit(),
-    );
-
     let action_id = call_propose(
         &mut world,
         ActionRaw::SendTransferExecute(CallActionDataRaw {
             to: address_expr_to_address(ADDER_ADDRESS_EXPR),
-            egld_amount: 100u64.into(),
+            egld_amount: 0u64.into(),
             endpoint_name: BoxedBytes::from(&b"add"[..]),
             arguments: vec![BoxedBytes::from(&[5u8][..])],
         }),
@@ -779,19 +771,11 @@ fn test_deploy_and_upgrade_from_source() {
 
     assert_eq!(address_expr_to_address(NEW_ADDER_ADDRESS_EXPR), addr);
 
-    world.whitebox_call(
-        &multisig_whitebox,
-        ScCallStep::new()
-            .from(PROPOSER_ADDRESS_EXPR)
-            .egld_value("100"),
-        |sc| sc.deposit(),
-    );
-
     let action_id = call_propose(
         &mut world,
         ActionRaw::SendTransferExecute(CallActionDataRaw {
             to: address_expr_to_address(NEW_ADDER_ADDRESS_EXPR),
-            egld_amount: 100u64.into(),
+            egld_amount: 0u64.into(),
             endpoint_name: BoxedBytes::from(&b"add"[..]),
             arguments: vec![BoxedBytes::from(&[5u8][..])],
         }),

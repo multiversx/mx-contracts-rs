@@ -11,7 +11,7 @@
                 },
                 "address:alice": {
                     "nonce": "0",
-                    "balance": "1000"
+                    "balance": "0"
                 },
                 "address:bob": {
                     "nonce": "0",
@@ -27,7 +27,7 @@
                 },
                 "address:paul": {
                     "nonce": "0",
-                    "balance": "1000"
+                    "balance": "0"
                 },
                 "sc:adder-code": {
                     "code": "file:../../test-contracts/adder.wasm"

@@ -216,6 +216,10 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
         if let Action::SendTransferExecuteEgld(call_data) = &action {
             let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
             require!(
+                call_data.egld_amount > 0 || !call_data.endpoint_name.is_empty(),
+                "proposed action has no effect"
+            );
+            require!(
                 own_shard == other_sc_shard,
                 "All transfer exec must be to the same shard"
             );
@@ -223,6 +227,7 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
         }
 
         if let Action::SendTransferExecuteEsdt(call_data) = &action {
+            require!(!call_data.tokens.is_empty(), "No tokens to transfer");
             let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
             require!(
                 own_shard == other_sc_shard,
