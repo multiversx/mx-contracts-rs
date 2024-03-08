@@ -154,7 +154,7 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
         require!(contract_processed, "Contract not found for deployer");
         self.deployer_contracts(&caller)
             .swap_remove(&contract_address);
-        if self.deployer_contracts(&caller).len() == 0 {
+        if self.deployer_contracts(&caller).is_empty() {
             self.deployers_list().swap_remove(&caller);
         }
 
