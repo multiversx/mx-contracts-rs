@@ -304,6 +304,7 @@ pub trait MultisigPerformModule:
                     .contract_call::<()>(call_data.to, call_data.endpoint_name)
                     .with_egld_transfer(call_data.egld_amount)
                     .with_raw_arguments(call_data.arguments.into())
+                    .with_gas_limit(gas)
                     .async_call()
                     .with_callback(self.callbacks().perform_async_call_callback())
                     .call_and_exit()

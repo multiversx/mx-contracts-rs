@@ -23,7 +23,7 @@ pub trait MultisigStateModule {
     #[storage_mapper("quorum")]
     fn quorum(&self) -> SingleValueMapper<usize>;
 
-    #[storage_mapper("sc_user")]
+    #[storage_mapper("user_ids")]
     fn user_mapper(&self) -> UserMapper;
 
     #[storage_mapper("quorum_for_action")]
