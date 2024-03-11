@@ -218,6 +218,7 @@
                     "str:add",
                     "1234"
                 ],
+                "gasLimit": "5,000,000",
                 "gasPrice": "0"
             },
             "expect": {
