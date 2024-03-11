@@ -128,7 +128,7 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
         let mut caller = self.blockchain().get_caller();
         if caller == self.blockchain().get_owner_address() {
             require!(opt_orig_owner.is_some(), "Must provide original owner");
-            caller = opt_orig_owner.into_option().unwrap();
+            caller = unsafe { opt_orig_owner.into_option().unwrap_unchecked() };
         }
         let contract_template_mapper = self.contract_template(&contract_address);
         require!(!contract_template_mapper.is_empty(), "No template found");
@@ -136,9 +136,12 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
         let mut contract_processed = false;
         let template_address = contract_template_mapper.take();
         let deployer_template_addresses_mapper = self.deployer_template_addresses(&caller);
-        let mut deployer_template_addresses = deployer_template_addresses_mapper
-            .get(&template_address)
-            .unwrap();
+        let mut deployer_template_addresses =
+            match deployer_template_addresses_mapper.get(&template_address) {
+                Some(addresses) => addresses,
+                None => sc_panic!("No mapped deployer template found"),
+            };
+
         for index in 0..deployer_template_addresses.len() {
             let deployed_address = deployer_template_addresses.get(index).clone_value();
             if deployed_address == contract_address {
