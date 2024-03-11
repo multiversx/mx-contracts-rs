@@ -177,7 +177,9 @@ pub trait Multisig:
     }
     fn abort_batch_of_action(&self, action_id: ActionId) {
         let batch_id = self.group_for_action(action_id).get();
-        self.action_group_status(batch_id)
-            .set(ActionStatus::Aborted);
+        if batch_id != 0 {
+            self.action_group_status(batch_id)
+                .set(ActionStatus::Aborted);
+        }
     }
 }

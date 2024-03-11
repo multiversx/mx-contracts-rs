@@ -83,14 +83,6 @@ pub trait MultisigSignModule:
     fn unsign(&self, action_id: ActionId) {
         let (caller_id, caller_role) = self.get_caller_id_and_role();
         require!(caller_role.can_sign(), "only board members can un-sign");
-        let group_id = self.group_for_action(action_id).get();
-        if group_id != 0 {
-            let group_status = self.action_group_status(group_id).get();
-            require!(
-                group_status == ActionStatus::Available,
-                "cannot unsign actions of an aborted batch"
-            );
-        }
         self.unsign_action(action_id, caller_id);
     }
 
@@ -100,11 +92,6 @@ pub trait MultisigSignModule:
         let (caller_id, caller_role) = self.get_caller_id_and_role();
         require!(caller_role.can_sign(), "only board members can un-sign");
 
-        let group_status = self.action_group_status(group_id).get();
-        require!(
-            group_status == ActionStatus::Available,
-            "cannot unsign actions of an aborted batch"
-        );
         let mapper = self.action_groups(group_id);
         require!(!mapper.is_empty(), "Invalid group ID");
 
