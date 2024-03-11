@@ -8,7 +8,7 @@ multiversx_sc::imports!();
 
 /// Gas required to finish transaction after transfer-execute.
 const PERFORM_ACTION_FINISH_GAS: u64 = 300_000;
-const MAX_BOARD_MEMBERS: usize = 30;
+pub const MAX_BOARD_MEMBERS: usize = 30;
 
 fn usize_add_isize(value: &mut usize, delta: isize) {
     *value = (*value as isize + delta) as usize;

@@ -1,5 +1,5 @@
+use crate::multisig_perform::MAX_BOARD_MEMBERS;
 use crate::{action::Action, user_role::UserRole};
-
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
@@ -57,6 +57,11 @@ pub trait MultisigStateModule {
 
     fn add_multiple_board_members(&self, new_board_members: ManagedVec<ManagedAddress>) -> usize {
         let mut duplicates = false;
+        require!(
+            self.num_board_members().get() + new_board_members.len() <= MAX_BOARD_MEMBERS,
+            "board size cannot exceed limit"
+        );
+
         self.user_mapper().get_or_create_users(
             new_board_members.into_iter(),
             |user_id, new_user| {

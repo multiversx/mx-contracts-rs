@@ -62,24 +62,22 @@ pub trait Multisig:
     #[view(getPendingActionFullInfo)]
     fn get_pending_action_full_info(
         &self,
-        opt_count: OptionalValue<usize>,
-        opt_offset_id: OptionalValue<usize>,
+        opt_range: OptionalValue<(usize, usize)>,
     ) -> MultiValueEncoded<ActionFullInfo<Self::Api>> {
         let mut result = MultiValueEncoded::new();
         let action_last_index = self.get_action_last_index();
         let action_mapper = self.action_mapper();
         let mut index_of_first_action = 1;
         let mut index_of_last_action = action_last_index;
-        if let OptionalValue::Some(offset_id) = opt_offset_id {
+        if let OptionalValue::Some((count, offset_id)) = opt_range {
             require!(
                 offset_id <= action_last_index,
                 "offset_id needs to be within the range of the available action ids"
             );
             index_of_first_action = offset_id;
-        }
-        if let OptionalValue::Some(count) = opt_count {
+
             require!(
-                count <= action_last_index,
+                index_of_first_action + count <= action_last_index,
                 "cannot exceed the total number of actions"
             );
             index_of_last_action = index_of_first_action + count;
