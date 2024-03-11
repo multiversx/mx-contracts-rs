@@ -71,9 +71,13 @@ pub trait MultisigSignModule:
         );
 
         for action_id in self.action_groups(group_id).iter() {
-            if self.quorum_reached(action_id) {
-                let _ = self.perform_action(action_id);
-            }
+            require!(
+                self.quorum_reached(action_id),
+                "quorum has not been reached"
+            );
+        }
+        for action_id in self.action_groups(group_id).iter() {
+            let _ = self.perform_action(action_id);
         }
     }
 

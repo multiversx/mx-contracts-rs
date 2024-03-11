@@ -206,6 +206,31 @@
         },
         {
             "step": "scCall",
+            "id": "proposeTransferExecute-fail",
+            "tx": {
+                "from": "address:paul",
+                "to": "sc:multisig",
+                "function": "proposeTransferExecute",
+                "arguments": [
+                    "sc:adder",
+                    "0",
+                    "0x",
+                    "str:add",
+                    "1234"
+                ],
+                "gasPrice": "0"
+            },
+            "expect": {
+                "out": [],
+                "status": "5",
+                "message": "str:not enough gas",
+                "logs": "*",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
             "id": "sc-deploy-sign-alice",
             "tx": {
                 "from": "address:alice",

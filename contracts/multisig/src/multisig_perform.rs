@@ -290,8 +290,7 @@ pub trait MultisigPerformModule:
             Action::SendAsyncCall(call_data) => {
                 let gas = call_data
                     .opt_gas_limit
-                    .unwrap_or_else(|| self.blockchain().get_gas_left());
-                let _ = self.ensure_and_get_gas_for_transfer_exec();
+                    .unwrap_or_else(|| self.ensure_and_get_gas_for_transfer_exec());
                 self.perform_async_call_event(
                     action_id,
                     &call_data.to,
