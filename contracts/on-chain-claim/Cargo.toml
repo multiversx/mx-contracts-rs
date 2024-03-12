@@ -1,7 +1,7 @@
 [package]
 name = "on-chain-claim"
 version = "0.0.0"
-authors = [ "Vlad Bucur <vlad.bucur@multiversx.com>"]
+authors = ["Vlad Bucur <vlad.bucur@multiversx.com>"]
 edition = "2021"
 publish = false
 
@@ -9,10 +9,10 @@ publish = false
 path = "src/contract.rs"
 
 [dependencies.multiversx-sc]
-version = "0.47.2"
+version = "0.47.5"
 
 [dependencies.multiversx-sc-modules]
-version = "0.47.2"
+version = "0.47.5"
 
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.47.2"
+version = "0.47.5"
