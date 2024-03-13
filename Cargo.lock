@@ -1318,7 +1318,7 @@ dependencies = [
  "multiversx-sc",
  "multiversx-sc-modules",
  "multiversx-sc-scenario",
- "multiversx-wegld-swap-sc 0.47.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "multiversx-wegld-swap-sc 0.47.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-bigint",
  "num-traits",
 ]
@@ -1388,7 +1388,7 @@ checksum = "b59072fa0624b55ae5ae3fa6bfa91515bbeb4ac440214bc4a509e2c8806d6e9f"
 
 [[package]]
 name = "multiversx-price-aggregator-sc"
-version = "0.47.1"
+version = "0.47.5"
 dependencies = [
  "arrayvec",
  "multiversx-sc",
@@ -1562,7 +1562,7 @@ dependencies = [
 
 [[package]]
 name = "multiversx-wegld-swap-sc"
-version = "0.47.1"
+version = "0.47.5"
 dependencies = [
  "multiversx-sc",
  "multiversx-sc-modules",
@@ -1571,9 +1571,9 @@ dependencies = [
 
 [[package]]
 name = "multiversx-wegld-swap-sc"
-version = "0.47.1"
+version = "0.47.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6eecff44a3b9a39872f982ec373e2f69e1c8515b37d295ff6fe70fb7c00c858"
+checksum = "9cbc2f6e692c0a182f314e49f8c26ac68bdc2f4b9d2af1c9883bfabb2ab6f8e6"
 dependencies = [
  "multiversx-sc",
  "multiversx-sc-modules",
@@ -1585,7 +1585,7 @@ version = "0.0.0"
 dependencies = [
  "multiversx-sc",
  "multiversx-sc-meta",
- "multiversx-wegld-swap-sc 0.47.1",
+ "multiversx-wegld-swap-sc 0.47.5",
 ]
 
 [[package]]
@@ -1895,7 +1895,7 @@ dependencies = [
  "adder",
  "multiversx-sc",
  "multiversx-sc-scenario",
- "multiversx-wegld-swap-sc 0.47.1",
+ "multiversx-wegld-swap-sc 0.47.5",
  "num-bigint",
 ]
 
