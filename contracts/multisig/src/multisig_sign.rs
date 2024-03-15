@@ -130,14 +130,22 @@ pub trait MultisigSignModule:
     }
 
     #[endpoint(unsignForOutdatedBoardMembers)]
-    fn unsign_for_outdated_board_members(&self, action_id: ActionId) {
-        let mut outdated_board_members: ManagedVec<usize> = ManagedVec::new();
-        for signer_id in self.action_signer_ids(action_id).iter() {
-            if !self.user_id_to_role(signer_id).get().can_sign() {
-                outdated_board_members.push(signer_id);
+    fn unsign_for_outdated_board_members(
+        &self,
+        action_id: ActionId,
+        outdated_board_members: MultiValueEncoded<usize>,
+    ) {
+        let mut board_members_to_remove: ManagedVec<usize> = ManagedVec::new();
+        if outdated_board_members.is_empty() {
+            for signer_id in self.action_signer_ids(action_id).iter() {
+                if !self.user_id_to_role(signer_id).get().can_sign() {
+                    board_members_to_remove.push(signer_id);
+                }
             }
+        } else {
+            board_members_to_remove = outdated_board_members.to_vec();
         }
-        for member in outdated_board_members.iter() {
+        for member in board_members_to_remove.iter() {
             self.action_signer_ids(action_id).swap_remove(&member);
         }
     }

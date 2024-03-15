@@ -408,9 +408,10 @@ fn test_perform_action_signed_by_removed_board_user() {
 
     state.world.sc_call(
         ScCallStep::new().from(PROPOSER_ADDRESS_EXPR).call(
-            state
-                .multisig_contract
-                .unsign_for_outdated_board_members(special_action_id),
+            state.multisig_contract.unsign_for_outdated_board_members(
+                special_action_id,
+                MultiValueVec::<usize>::new(),
+            ),
         ),
     );
     state.sign(special_action_id);
