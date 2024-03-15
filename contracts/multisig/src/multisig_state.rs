@@ -20,7 +20,7 @@ pub enum ActionStatus {
 pub trait MultisigStateModule {
     /// Minimum number of signatures needed to perform any action.
     #[view(getQuorum)]
-    #[storage_mapper("quorum")]
+    #[storage_mapper("quorum_ids")]
     fn quorum(&self) -> SingleValueMapper<usize>;
 
     #[storage_mapper("user_ids")]
