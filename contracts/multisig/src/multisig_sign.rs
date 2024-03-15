@@ -70,14 +70,18 @@ pub trait MultisigSignModule:
             "only board members and proposers can perform actions"
         );
 
+        let mut quorums_reached = true;
+
         for action_id in self.action_groups(group_id).iter() {
-            require!(
-                self.quorum_reached(action_id),
-                "quorum has not been reached"
-            );
+            if !self.quorum_reached(action_id) {
+                quorums_reached = false;
+            }
         }
-        for action_id in self.action_groups(group_id).iter() {
-            let _ = self.perform_action(action_id);
+
+        if quorums_reached {
+            for action_id in self.action_groups(group_id).iter() {
+                let _ = self.perform_action(action_id);
+            }
         }
     }
 
