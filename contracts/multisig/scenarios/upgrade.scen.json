@@ -107,7 +107,7 @@
                         "str:user_ids_id_to_address|u32:1": "address:paul",
                         "str:user_role|u32:1": "2",
                         "str:num_board_members": "1",
-                        "str:quorum": "1",
+                        "str:quorum_ids": "1",
                         "str:sum": "1234"
                     },
                     "code": "file:../test-contracts/adder.wasm"

@@ -105,7 +105,7 @@
                         "str:user_role|u32:2": "2",
                         "str:user_role|u32:3": "2",
                         "str:num_board_members": "3",
-                        "str:quorum": "2"
+                        "str:quorum_ids": "2"
                     },
                     "code": "file:../../output/multisig.wasm"
                 },
