@@ -263,8 +263,7 @@ pub trait MultisigPerformModule:
             Action::SendTransferExecuteEsdt(call_data) => {
                 let gas = call_data
                     .opt_gas_limit
-                    .unwrap_or_else(|| self.blockchain().get_gas_left());
-                let _ = self.ensure_and_get_gas_for_transfer_exec();
+                    .unwrap_or_else(|| self.ensure_and_get_gas_for_transfer_exec());
 
                 self.perform_transfer_execute_esdt_event(
                     action_id,
