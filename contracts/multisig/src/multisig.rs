@@ -69,12 +69,12 @@ pub trait Multisig:
         let action_mapper = self.action_mapper();
         let mut index_of_first_action = 1;
         let mut index_of_last_action = action_last_index;
-        if let OptionalValue::Some((count, offset_id)) = opt_range {
+        if let OptionalValue::Some((count, first_action_id)) = opt_range {
             require!(
-                offset_id <= action_last_index,
-                "offset_id needs to be within the range of the available action ids"
+                first_action_id <= action_last_index,
+                "first_action_id needs to be within the range of the available action ids"
             );
-            index_of_first_action = offset_id;
+            index_of_first_action = first_action_id;
 
             require!(
                 index_of_first_action + count <= action_last_index,
