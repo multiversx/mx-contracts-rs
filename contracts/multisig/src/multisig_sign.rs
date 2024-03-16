@@ -138,12 +138,16 @@ pub trait MultisigSignModule:
         let mut board_members_to_remove: ManagedVec<usize> = ManagedVec::new();
         if outdated_board_members.is_empty() {
             for signer_id in self.action_signer_ids(action_id).iter() {
-                if !self.user_id_to_role(signer_id).get().can_sign() {
+                if self.user_id_to_role(signer_id).get().has_no_role() {
                     board_members_to_remove.push(signer_id);
                 }
             }
         } else {
-            board_members_to_remove = outdated_board_members.to_vec();
+            for signer_id in outdated_board_members.into_iter() {
+                if self.user_id_to_role(signer_id).get().has_no_role() {
+                    board_members_to_remove.push(signer_id);
+                }
+            }
         }
         for member in board_members_to_remove.iter() {
             self.action_signer_ids(action_id).swap_remove(&member);
