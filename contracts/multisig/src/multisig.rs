@@ -9,7 +9,7 @@ pub mod multisig_state;
 pub mod user_role;
 
 use action::ActionFullInfo;
-use multisig_state::ActionId;
+use multisig_state::{ActionId, ActionStatus};
 use user_role::UserRole;
 
 multiversx_sc::imports!();
@@ -45,9 +45,7 @@ pub trait Multisig:
     }
 
     #[upgrade]
-    fn upgrade(&self, quorum: usize, board: MultiValueEncoded<ManagedAddress>) {
-        self.init(quorum, board);
-    }
+    fn upgrade(&self) {}
 
     /// Allows the contract to receive funds even if it is marked as unpayable in the protocol.
     #[payable("*")]
@@ -60,12 +58,31 @@ pub trait Multisig:
     /// - the serialized action data
     /// - (number of signers followed by) list of signer addresses.
     #[label("multisig-external-view")]
+    #[allow_multiple_var_args]
     #[view(getPendingActionFullInfo)]
-    fn get_pending_action_full_info(&self) -> MultiValueEncoded<ActionFullInfo<Self::Api>> {
+    fn get_pending_action_full_info(
+        &self,
+        opt_range: OptionalValue<(usize, usize)>,
+    ) -> MultiValueEncoded<ActionFullInfo<Self::Api>> {
         let mut result = MultiValueEncoded::new();
         let action_last_index = self.get_action_last_index();
         let action_mapper = self.action_mapper();
-        for action_id in 1..=action_last_index {
+        let mut index_of_first_action = 1;
+        let mut index_of_last_action = action_last_index;
+        if let OptionalValue::Some((count, first_action_id)) = opt_range {
+            require!(
+                first_action_id <= action_last_index,
+                "first_action_id needs to be within the range of the available action ids"
+            );
+            index_of_first_action = first_action_id;
+
+            require!(
+                index_of_first_action + count <= action_last_index,
+                "cannot exceed the total number of actions"
+            );
+            index_of_last_action = index_of_first_action + count;
+        }
+        for action_id in index_of_first_action..=index_of_last_action {
             let action_data = action_mapper.get(action_id);
             if action_data.is_pending() {
                 result.push(ActionFullInfo {
@@ -76,7 +93,6 @@ pub trait Multisig:
                 });
             }
         }
-
         result
     }
 
@@ -156,7 +172,14 @@ pub trait Multisig:
             self.get_action_valid_signer_count(action_id) == 0,
             "cannot discard action with valid signatures"
         );
-
+        self.abort_batch_of_action(action_id);
         self.clear_action(action_id);
+    }
+    fn abort_batch_of_action(&self, action_id: ActionId) {
+        let batch_id = self.group_for_action(action_id).get();
+        if batch_id != 0 {
+            self.action_group_status(batch_id)
+                .set(ActionStatus::Aborted);
+        }
     }
 }

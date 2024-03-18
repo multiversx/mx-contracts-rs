@@ -1,6 +1,6 @@
 use crate::{
     action::{Action, ActionFullInfo, GasLimit},
-    multisig_state::{ActionId, GroupId},
+    multisig_state::{ActionId, ActionStatus, GroupId},
     user_role::UserRole,
 };
 
@@ -8,6 +8,7 @@ multiversx_sc::imports!();
 
 /// Gas required to finish transaction after transfer-execute.
 const PERFORM_ACTION_FINISH_GAS: u64 = 300_000;
+pub const MAX_BOARD_MEMBERS: usize = 30;
 
 fn usize_add_isize(value: &mut usize, delta: isize) {
     *value = (*value as isize + delta) as usize;
@@ -18,11 +19,12 @@ fn usize_add_isize(value: &mut usize, delta: isize) {
 pub trait MultisigPerformModule:
     crate::multisig_state::MultisigStateModule + crate::multisig_events::MultisigEventsModule
 {
-    fn gas_for_transfer_exec(&self) -> GasLimit {
+    fn ensure_and_get_gas_for_transfer_exec(&self) -> GasLimit {
         let gas_left = self.blockchain().get_gas_left();
-        if gas_left <= PERFORM_ACTION_FINISH_GAS {
-            sc_panic!("insufficient gas for call");
-        }
+        require!(
+            gas_left > PERFORM_ACTION_FINISH_GAS,
+            "insufficient gas for call"
+        );
         gas_left - PERFORM_ACTION_FINISH_GAS
     }
 
@@ -84,7 +86,7 @@ pub trait MultisigPerformModule:
     /// Returns `true` (`1`) if `getActionValidSignerCount >= getQuorum`.
     #[view(quorumReached)]
     fn quorum_reached(&self, action_id: ActionId) -> bool {
-        let quorum = self.quorum().get();
+        let quorum = self.quorum_for_action(action_id).get();
         let valid_signers_count = self.get_action_valid_signer_count(action_id);
         valid_signers_count >= quorum
     }
@@ -118,6 +120,21 @@ pub trait MultisigPerformModule:
         self.perform_action(action_id)
     }
 
+    fn try_perform_action(&self, action_id: ActionId) -> OptionalValue<ManagedAddress> {
+        let (_, caller_role) = self.get_caller_id_and_role();
+        require!(
+            caller_role.can_perform_action(),
+            "only board members and proposers can perform actions"
+        );
+        if self.quorum_reached(action_id) {
+            let group_id = self.group_for_action(action_id).get();
+            require!(group_id == 0, "May not execute this action by itself");
+
+            return self.perform_action(action_id);
+        }
+        OptionalValue::None
+    }
+
     /// Perform all the actions in the given batch
     #[endpoint(performBatch)]
     fn perform_batch(&self, group_id: GroupId) {
@@ -125,6 +142,12 @@ pub trait MultisigPerformModule:
         require!(
             caller_role.can_perform_action(),
             "only board members and proposers can perform actions"
+        );
+
+        let group_status = self.action_group_status(group_id).get();
+        require!(
+            group_status == ActionStatus::Available,
+            "cannot perform actions of an aborted batch"
         );
 
         let mapper = self.action_groups(group_id);
@@ -148,11 +171,19 @@ pub trait MultisigPerformModule:
     fn perform_action(&self, action_id: ActionId) -> OptionalValue<ManagedAddress> {
         let action = self.action_mapper().get(action_id);
 
+        let group_id = self.group_for_action(action_id).get();
+        if group_id != 0 {
+            let group_status = self.action_group_status(group_id).get();
+            require!(
+                group_status == ActionStatus::Available,
+                "cannot perform actions of an aborted batch"
+            );
+        }
         self.start_perform_action_event(&ActionFullInfo {
             action_id,
             action_data: action.clone(),
             signers: self.get_action_signers(action_id),
-            group_id: self.group_for_action(action_id).get(),
+            group_id,
         });
 
         // clean up storage
@@ -163,7 +194,12 @@ pub trait MultisigPerformModule:
         match action {
             Action::Nothing => OptionalValue::None,
             Action::AddBoardMember(board_member_address) => {
+                require!(
+                    self.num_board_members().get() < MAX_BOARD_MEMBERS,
+                    "board size cannot exceed limit"
+                );
                 self.change_user_role(action_id, board_member_address, UserRole::BoardMember);
+
                 OptionalValue::None
             }
             Action::AddProposer(proposer_address) => {
@@ -202,7 +238,7 @@ pub trait MultisigPerformModule:
             Action::SendTransferExecuteEgld(call_data) => {
                 let gas = call_data
                     .opt_gas_limit
-                    .unwrap_or_else(|| self.gas_for_transfer_exec());
+                    .unwrap_or_else(|| self.ensure_and_get_gas_for_transfer_exec());
                 self.perform_transfer_execute_egld_event(
                     action_id,
                     &call_data.to,
@@ -224,28 +260,25 @@ pub trait MultisigPerformModule:
 
                 OptionalValue::None
             }
-            Action::SendTransferExecuteEsdt {
-                to,
-                tokens,
-                opt_gas_limit,
-                endpoint_name,
-                arguments,
-            } => {
-                let gas = opt_gas_limit.unwrap_or_else(|| self.blockchain().get_gas_left());
+            Action::SendTransferExecuteEsdt(call_data) => {
+                let gas = call_data
+                    .opt_gas_limit
+                    .unwrap_or_else(|| self.ensure_and_get_gas_for_transfer_exec());
+
                 self.perform_transfer_execute_esdt_event(
                     action_id,
-                    &to,
-                    &tokens,
+                    &call_data.to,
+                    &call_data.tokens,
                     gas,
-                    &endpoint_name,
-                    arguments.as_multi(),
+                    &call_data.endpoint_name,
+                    call_data.arguments.as_multi(),
                 );
                 let result = self.send_raw().multi_esdt_transfer_execute(
-                    &to,
-                    &tokens,
+                    &call_data.to,
+                    &call_data.tokens,
                     gas,
-                    &endpoint_name,
-                    &arguments.into(),
+                    &call_data.endpoint_name,
+                    &call_data.arguments.into(),
                 );
                 if let Result::Err(e) = result {
                     sc_panic!(e);
@@ -256,7 +289,7 @@ pub trait MultisigPerformModule:
             Action::SendAsyncCall(call_data) => {
                 let gas = call_data
                     .opt_gas_limit
-                    .unwrap_or_else(|| self.blockchain().get_gas_left());
+                    .unwrap_or_else(|| self.ensure_and_get_gas_for_transfer_exec());
                 self.perform_async_call_event(
                     action_id,
                     &call_data.to,
@@ -269,6 +302,7 @@ pub trait MultisigPerformModule:
                     .contract_call::<()>(call_data.to, call_data.endpoint_name)
                     .with_egld_transfer(call_data.egld_amount)
                     .with_raw_arguments(call_data.arguments.into())
+                    .with_gas_limit(gas)
                     .async_call()
                     .with_callback(self.callbacks().perform_async_call_callback())
                     .call_and_exit()

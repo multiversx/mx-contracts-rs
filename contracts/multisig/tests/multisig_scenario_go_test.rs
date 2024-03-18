@@ -85,6 +85,11 @@ fn send_esdt_go() {
 }
 
 #[test]
+fn transfer_no_gas_specified_test_go() {
+    world().run("scenarios/transfer_no_gas_specified_test.scen.json");
+}
+
+#[test]
 fn upgrade_go() {
     world().run("scenarios/upgrade.scen.json");
 }

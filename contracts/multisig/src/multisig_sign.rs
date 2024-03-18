@@ -1,4 +1,4 @@
-use crate::multisig_state::{ActionId, GroupId};
+use crate::multisig_state::{ActionId, ActionStatus, GroupId};
 
 multiversx_sc::imports!();
 
@@ -16,7 +16,14 @@ pub trait MultisigSignModule:
             !self.action_mapper().item_is_empty_unchecked(action_id),
             "action does not exist"
         );
-
+        let group_id = self.group_for_action(action_id).get();
+        if group_id != 0 {
+            let group_status = self.action_group_status(group_id).get();
+            require!(
+                group_status == ActionStatus::Available,
+                "cannot sign actions of an aborted batch"
+            );
+        }
         let (caller_id, caller_role) = self.get_caller_id_and_role();
         require!(caller_role.can_sign(), "only board members can sign");
 
@@ -29,6 +36,11 @@ pub trait MultisigSignModule:
         let (caller_id, caller_role) = self.get_caller_id_and_role();
         require!(caller_role.can_sign(), "only board members can sign");
 
+        let group_status = self.action_group_status(group_id).get();
+        require!(
+            group_status == ActionStatus::Available,
+            "cannot sign actions of an aborted batch"
+        );
         let mapper = self.action_groups(group_id);
         require!(!mapper.is_empty(), "Invalid group ID");
 
@@ -45,15 +57,31 @@ pub trait MultisigSignModule:
     #[endpoint(signAndPerform)]
     fn sign_and_perform(&self, action_id: ActionId) -> OptionalValue<ManagedAddress> {
         self.sign(action_id);
-        self.perform_action_endpoint(action_id)
+        self.try_perform_action(action_id)
     }
 
     #[endpoint(signBatchAndPerform)]
     fn sign_batch_and_perform(&self, group_id: GroupId) {
         self.sign_batch(group_id);
 
+        let (_, caller_role) = self.get_caller_id_and_role();
+        require!(
+            caller_role.can_perform_action(),
+            "only board members and proposers can perform actions"
+        );
+
+        let mut quorums_reached = true;
+
         for action_id in self.action_groups(group_id).iter() {
-            let _ = self.perform_action_endpoint(action_id);
+            if !self.quorum_reached(action_id) {
+                quorums_reached = false;
+            }
+        }
+
+        if quorums_reached {
+            for action_id in self.action_groups(group_id).iter() {
+                let _ = self.perform_action(action_id);
+            }
         }
     }
 
@@ -63,7 +91,6 @@ pub trait MultisigSignModule:
     fn unsign(&self, action_id: ActionId) {
         let (caller_id, caller_role) = self.get_caller_id_and_role();
         require!(caller_role.can_sign(), "only board members can un-sign");
-
         self.unsign_action(action_id, caller_id);
     }
 
@@ -99,6 +126,31 @@ pub trait MultisigSignModule:
             false
         } else {
             self.action_signer_ids(action_id).contains(&user_id)
+        }
+    }
+
+    #[endpoint(unsignForOutdatedBoardMembers)]
+    fn unsign_for_outdated_board_members(
+        &self,
+        action_id: ActionId,
+        outdated_board_members: MultiValueEncoded<usize>,
+    ) {
+        let mut board_members_to_remove: ManagedVec<usize> = ManagedVec::new();
+        if outdated_board_members.is_empty() {
+            for signer_id in self.action_signer_ids(action_id).iter() {
+                if !self.user_id_to_role(signer_id).get().can_sign() {
+                    board_members_to_remove.push(signer_id);
+                }
+            }
+        } else {
+            for signer_id in outdated_board_members.into_iter() {
+                if !self.user_id_to_role(signer_id).get().can_sign() {
+                    board_members_to_remove.push(signer_id);
+                }
+            }
+        }
+        for member in board_members_to_remove.iter() {
+            self.action_signer_ids(action_id).swap_remove(&member);
         }
     }
 }

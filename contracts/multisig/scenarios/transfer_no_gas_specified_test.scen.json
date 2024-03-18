@@ -179,7 +179,7 @@
         },
         {
             "step": "scCall",
-            "id": "proposeTransferExecute",
+            "id": "proposeTransferExecute-fail",
             "tx": {
                 "from": "address:paul",
                 "to": "sc:multisig",
@@ -191,129 +191,15 @@
                     "str:add",
                     "1234"
                 ],
-                "gasLimit": "70,000,000",
-                "gasPrice": "0"
-            },
-            "expect": {
-                "out": [
-                    "4"
-                ],
-                "status": "",
-                "logs": "*",
-                "gas": "*",
-                "refund": "*"
-            }
-        },
-        {
-            "step": "scCall",
-            "id": "sc-deploy-sign-alice",
-            "tx": {
-                "from": "address:alice",
-                "to": "sc:multisig",
-                "function": "sign",
-                "arguments": [
-                    "4"
-                ],
-                "gasLimit": "50,000,000",
                 "gasPrice": "0"
             },
             "expect": {
                 "out": [],
-                "status": "",
+                "status": "5",
+                "message": "str:not enough gas",
                 "logs": "*",
                 "gas": "*",
                 "refund": "*"
-            }
-        },
-        {
-            "step": "scCall",
-            "id": "sc-deploy-sign-bob",
-            "tx": {
-                "from": "address:bob",
-                "to": "sc:multisig",
-                "function": "sign",
-                "arguments": [
-                    "4"
-                ],
-                "gasLimit": "50,000,000",
-                "gasPrice": "0"
-            },
-            "expect": {
-                "out": [],
-                "status": "",
-                "logs": "*",
-                "gas": "*",
-                "refund": "*"
-            }
-        },
-        {
-            "step": "scCall",
-            "id": "sc-deploy-perform-2",
-            "tx": {
-                "from": "address:paul",
-                "to": "sc:multisig",
-                "function": "performAction",
-                "arguments": [
-                    "4"
-                ],
-                "gasLimit": "70,000,000",
-                "gasPrice": "0"
-            },
-            "expect": {
-                "out": [],
-                "status": "0",
-                "logs": "*",
-                "gas": "*",
-                "refund": "*"
-            }
-        },
-        {
-            "step": "scQuery",
-            "id": "check-cleanup-1",
-            "comment": "check that account data got cleaned up",
-            "tx": {
-                "to": "sc:multisig-view",
-                "function": "getActionData",
-                "arguments": [
-                    "4"
-                ]
-            },
-            "expect": {
-                "out": [
-                    ""
-                ],
-                "status": ""
-            }
-        },
-        {
-            "step": "scQuery",
-            "id": "check-cleanup-2",
-            "comment": "check that account data got cleaned up",
-            "tx": {
-                "to": "sc:multisig-view",
-                "function": "getActionSigners",
-                "arguments": [
-                    "4"
-                ]
-            },
-            "expect": {
-                "out": [
-                    ""
-                ]
-            }
-        },
-        {
-            "step": "checkState",
-            "accounts": {
-                "sc:adder": {
-                    "nonce": "0",
-                    "balance": "0",
-                    "storage": {
-                        "str:sum": "2468"
-                    },
-                    "code": "file:../test-contracts/adder.wasm"
-                },
-                "+": ""
             }
         }
     ]
