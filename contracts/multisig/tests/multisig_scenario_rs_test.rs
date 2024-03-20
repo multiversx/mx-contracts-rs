@@ -105,6 +105,12 @@ fn remove_everyone_rs() {
 }
 
 #[test]
+#[ignore]
+fn transfer_no_gas_specified_test_go() {
+    world().run("scenarios/transfer_no_gas_specified_test.scen.json");
+}
+
+#[test]
 fn send_esdt_rs() {
     world().run("scenarios/sendEsdt.scen.json");
 }

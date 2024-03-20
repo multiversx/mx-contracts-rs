@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           30
+// Endpoints:                           33
 // Async Callback:                       1
-// Total number of exported functions:  32
+// Total number of exported functions:  35
 
 #![no_std]
 #![allow(internal_features)]
@@ -26,8 +26,10 @@ multiversx_sc_wasm_adapter::endpoints! {
         discardBatch => discard_batch
         getQuorum => quorum
         getNumBoardMembers => num_board_members
+        getNumGroups => num_groups
         getNumProposers => num_proposers
         getActionGroup => action_groups
+        getLastGroupActionId => last_action_group_id
         getActionLastIndex => get_action_last_index
         proposeAddBoardMember => propose_add_board_member
         proposeAddProposer => propose_add_proposer
@@ -46,6 +48,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         unsign => unsign
         unsignBatch => unsign_batch
         signed => signed
+        unsignForOutdatedBoardMembers => unsign_for_outdated_board_members
         quorumReached => quorum_reached
         performAction => perform_action_endpoint
         performBatch => perform_batch

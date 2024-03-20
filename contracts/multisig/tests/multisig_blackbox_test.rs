@@ -30,6 +30,7 @@ const MULTISIG_PATH_EXPR: &str = "file:output/multisig.wasm";
 const OWNER_ADDRESS_EXPR: &str = "address:owner";
 const PROPOSER_ADDRESS_EXPR: &str = "address:proposer";
 const PROPOSER_BALANCE_EXPR: &str = "100,000,000";
+const NFT_TOKEN_ID: &str = "str:NFT-123456";
 const QUORUM_SIZE: usize = 1;
 
 type MultisigContract = ContractInfo<multisig::Proxy<StaticApi>>;
@@ -62,7 +63,10 @@ impl MultisigTestState {
                 .new_address(OWNER_ADDRESS_EXPR, 1, MULTISIG_ADDRESS_EXPR)
                 .put_account(
                     PROPOSER_ADDRESS_EXPR,
-                    Account::new().nonce(1).balance(PROPOSER_BALANCE_EXPR),
+                    Account::new()
+                        .nonce(1)
+                        .balance(PROPOSER_BALANCE_EXPR)
+                        .esdt_nft_balance(NFT_TOKEN_ID, 1u64, "1", Option::<&[u8]>::None),
                 )
                 .put_account(BOARD_MEMBER_ADDRESS_EXPR, Account::new().nonce(1))
                 .put_account(ADDER_OWNER_ADDRESS_EXPR, Account::new().nonce(1))
@@ -343,6 +347,85 @@ fn test_remove_proposer() {
 }
 
 #[test]
+fn test_perform_action_signed_by_removed_board_user() {
+    let mut state = MultisigTestState::new();
+    state.deploy_multisig_contract();
+    state.deploy_adder_contract();
+
+    // a new board member is added
+
+    const NEW_BOARD_MEMBER_ADDRESS_EXPR: &str = "address:new-board-member";
+    let new_board_member_address = AddressValue::from(NEW_BOARD_MEMBER_ADDRESS_EXPR).to_address();
+
+    state.world.set_state_step(
+        SetStateStep::new().put_account(NEW_BOARD_MEMBER_ADDRESS_EXPR, Account::new().nonce(1)),
+    );
+
+    let action_id = state.propose_add_board_member(new_board_member_address.clone());
+    state.sign(action_id);
+    state.perform(action_id);
+
+    let adder_call = state.adder_contract.add(5u64);
+
+    let special_action_id = state.propose_transfer_execute(
+        state.adder_address.clone(),
+        0u64,
+        Option::<GasLimit>::None,
+        adder_call,
+    );
+
+    // the new board member signs the special action
+
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(NEW_BOARD_MEMBER_ADDRESS_EXPR)
+            .call(state.multisig_contract.sign(special_action_id)),
+    );
+
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(PROPOSER_ADDRESS_EXPR)
+            .call(state.multisig_contract.quorum_reached(special_action_id))
+            .expect_value(true),
+    );
+
+    // just before performing the new board member gets removed
+
+    let action_id = state.propose_remove_user(new_board_member_address.clone());
+    state.sign(action_id);
+    state.perform(action_id);
+
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(PROPOSER_ADDRESS_EXPR)
+            .call(state.multisig_contract.quorum_reached(special_action_id))
+            .expect_value(false),
+    );
+
+    state.perform_and_expect_err(special_action_id, "quorum has not been reached");
+
+    // removing the signature of the removed board member
+
+    state.world.sc_call(
+        ScCallStep::new().from(PROPOSER_ADDRESS_EXPR).call(
+            state.multisig_contract.unsign_for_outdated_board_members(
+                special_action_id,
+                MultiValueVec::<usize>::new(),
+            ),
+        ),
+    );
+    state.sign(special_action_id);
+
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(PROPOSER_ADDRESS_EXPR)
+            .call(state.multisig_contract.quorum_reached(special_action_id))
+            .expect_value(true),
+    );
+    state.perform(special_action_id);
+}
+
+#[test]
 fn test_try_remove_all_board_members() {
     let mut state = MultisigTestState::new();
     state.deploy_multisig_contract();
@@ -380,20 +463,6 @@ fn test_change_quorum() {
             .call(state.multisig_contract.unsign(action_id)),
     );
 
-    state.world.sc_call(
-        ScCallStep::new()
-            .from(BOARD_MEMBER_ADDRESS_EXPR)
-            .call(state.multisig_contract.discard_action_endpoint(action_id)),
-    );
-
-    // try sign discarded action
-    state.world.sc_call(
-        ScCallStep::new()
-            .from(BOARD_MEMBER_ADDRESS_EXPR)
-            .call(state.multisig_contract.sign(action_id))
-            .expect(TxExpect::user_error("str:action does not exist")),
-    );
-
     // add another board member
     const NEW_BOARD_MEMBER_ADDRESS_EXPR: &str = "address:new-board-member";
     let new_board_member_address = AddressValue::from(NEW_BOARD_MEMBER_ADDRESS_EXPR).to_address();
@@ -410,6 +479,28 @@ fn test_change_quorum() {
     let action_id = state.propose_change_quorum(new_quorum);
     state.sign(action_id);
     state.perform(action_id);
+
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(BOARD_MEMBER_ADDRESS_EXPR)
+            .call(state.multisig_contract.discard_action_endpoint(action_id)),
+    );
+
+    // try sign discarded action
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(BOARD_MEMBER_ADDRESS_EXPR)
+            .call(state.multisig_contract.unsign(action_id))
+            .expect(TxExpect::user_error("str:action does not exist")),
+    );
+
+    // try sign discarded action
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(BOARD_MEMBER_ADDRESS_EXPR)
+            .call(state.multisig_contract.sign(action_id))
+            .expect(TxExpect::user_error("str:action does not exist")),
+    );
 }
 
 #[test]
@@ -476,6 +567,8 @@ fn test_transfer_execute_to_user() {
 fn test_transfer_execute_sc_all() {
     let mut state = MultisigTestState::new();
     state.deploy_multisig_contract().deploy_adder_contract();
+
+    // perform an EGLD transfer purpose after a deposit to the contract
 
     let adder_call = state.adder_contract.add(5u64);
 
@@ -548,9 +641,16 @@ fn test_deploy_and_upgrade_from_source() {
 
     let adder_call = state.adder_contract.add(5u64);
 
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(PROPOSER_ADDRESS_EXPR)
+            .egld_value("100")
+            .call(state.multisig_contract.deposit()),
+    );
+
     let action_id = state.propose_transfer_execute(
         new_adder_address,
-        0u64,
+        100u64,
         Option::<GasLimit>::None,
         adder_call,
     );

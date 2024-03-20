@@ -1,21 +1,33 @@
+use crate::multisig_perform::MAX_BOARD_MEMBERS;
 use crate::{action::Action, user_role::UserRole};
-
 multiversx_sc::imports!();
+multiversx_sc::derive_imports!();
 
 pub type ActionId = usize;
 pub type GroupId = usize;
 pub type UserId = usize;
+
+#[derive(
+    TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Eq, Clone, Copy, Debug,
+)]
+pub enum ActionStatus {
+    Available,
+    Aborted,
+}
 
 /// Contains all events that can be emitted by the contract.
 #[multiversx_sc::module]
 pub trait MultisigStateModule {
     /// Minimum number of signatures needed to perform any action.
     #[view(getQuorum)]
-    #[storage_mapper("quorum")]
+    #[storage_mapper("quorum_ids")]
     fn quorum(&self) -> SingleValueMapper<usize>;
 
-    #[storage_mapper("user")]
+    #[storage_mapper("user_ids")]
     fn user_mapper(&self) -> UserMapper;
+
+    #[storage_mapper("quorum_for_action")]
+    fn quorum_for_action(&self, action_id: ActionId) -> SingleValueMapper<usize>;
 
     #[storage_mapper("user_role")]
     fn user_id_to_role(&self, user_id: UserId) -> SingleValueMapper<UserRole>;
@@ -33,6 +45,10 @@ pub trait MultisigStateModule {
     #[storage_mapper("num_board_members")]
     fn num_board_members(&self) -> SingleValueMapper<usize>;
 
+    #[view(getNumGroups)]
+    #[storage_mapper("num_groups")]
+    fn num_groups(&self) -> SingleValueMapper<usize>;
+
     /// Denormalized proposer count.
     /// It is kept in sync with the user list by the contract.
     #[view(getNumProposers)]
@@ -41,6 +57,11 @@ pub trait MultisigStateModule {
 
     fn add_multiple_board_members(&self, new_board_members: ManagedVec<ManagedAddress>) -> usize {
         let mut duplicates = false;
+        require!(
+            self.num_board_members().get() + new_board_members.len() <= MAX_BOARD_MEMBERS,
+            "board size cannot exceed limit"
+        );
+
         self.user_mapper().get_or_create_users(
             new_board_members.into_iter(),
             |user_id, new_user| {
@@ -65,6 +86,14 @@ pub trait MultisigStateModule {
     #[view(getActionGroup)]
     #[storage_mapper("action_groups")]
     fn action_groups(&self, group_id: GroupId) -> UnorderedSetMapper<ActionId>;
+
+    #[view(getLastGroupActionId)]
+    #[storage_mapper("last_action_group_id")]
+    fn last_action_group_id(&self) -> SingleValueMapper<GroupId>;
+
+    #[view(getActionGroup)]
+    #[storage_mapper("action_group_status")]
+    fn action_group_status(&self, group_id: GroupId) -> SingleValueMapper<ActionStatus>;
 
     #[storage_mapper("group_for_action")]
     fn group_for_action(&self, action_id: ActionId) -> SingleValueMapper<GroupId>;

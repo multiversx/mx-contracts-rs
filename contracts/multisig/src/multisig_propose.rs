@@ -1,8 +1,8 @@
 use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
 use crate::{
-    action::{Action, CallActionData, GasLimit},
-    multisig_state::{ActionId, GroupId},
+    action::{Action, CallActionData, EsdtTransferExecuteData, GasLimit},
+    multisig_state::{ActionId, ActionStatus, GroupId},
 };
 
 multiversx_sc::imports!();
@@ -18,6 +18,7 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
         );
 
         let action_id = self.action_mapper().push(&action);
+        self.quorum_for_action(action_id).set(self.quorum().get());
         if caller_role.can_sign() {
             // also sign
             // since the action is newly created, the caller can be the only signer
@@ -90,13 +91,15 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
     ) -> ActionId {
         require!(!tokens.is_empty(), "No tokens to transfer");
 
-        self.propose_action(Action::SendTransferExecuteEsdt {
+        let call_data = EsdtTransferExecuteData {
             to,
             tokens,
             opt_gas_limit,
             endpoint_name: function_call.function_name,
             arguments: function_call.arg_buffer.into_vec_of_buffers(),
-        })
+        };
+
+        self.propose_action(Action::SendTransferExecuteEsdt(call_data))
     }
 
     /// Propose a transaction in which the contract will perform an async call call.
@@ -163,8 +166,8 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
     }
 
     #[endpoint(proposeBatch)]
-    fn propose_batch(&self, group_id: GroupId, actions: MultiValueEncoded<Action<Self::Api>>) {
-        require!(group_id != 0, "May not use group ID 0");
+    fn propose_batch(&self, actions: MultiValueEncoded<Action<Self::Api>>) -> GroupId {
+        let group_id = self.last_action_group_id().get() + 1;
         require!(!actions.is_empty(), "No actions");
 
         let (caller_id, caller_role) = self.get_caller_id_and_role();
@@ -173,24 +176,19 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
             "only board members and proposers can propose"
         );
 
-        let own_sc_address = self.blockchain().get_sc_address();
-        let own_shard = self.blockchain().get_shard_of_address(&own_sc_address);
-
         let mut action_mapper = self.action_mapper();
         let mut action_groups_mapper = self.action_groups(group_id);
-        for action in actions {
-            require!(
-                !action.is_nothing() && !action.is_async_call(),
-                "Invalid action"
-            );
+        self.action_group_status(group_id)
+            .set(ActionStatus::Available);
 
-            if let Action::SendTransferExecuteEgld(call_data) = &action {
-                let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
-                require!(
-                    own_shard == other_sc_shard,
-                    "All transfer exec must be to the same shard"
-                );
-            }
+        require!(
+            action_groups_mapper.is_empty(),
+            "cannot add actions to an already existing batch"
+        );
+
+        for action in actions {
+            self.require_valid_action_type(&action);
+            self.ensure_valid_transfer_action(&action);
 
             let action_id = action_mapper.push(&action);
             if caller_role.can_sign() {
@@ -199,6 +197,42 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
 
             let _ = action_groups_mapper.insert(action_id);
             self.group_for_action(action_id).set(group_id);
+        }
+        self.last_action_group_id().set(group_id);
+        group_id
+    }
+
+    fn require_valid_action_type(&self, action: &Action<Self::Api>) {
+        require!(
+            !action.is_nothing() && !action.is_async_call() && !action.is_sc_upgrade(),
+            "Invalid action"
+        );
+    }
+
+    fn ensure_valid_transfer_action(&self, action: &Action<Self::Api>) {
+        let own_sc_address = self.blockchain().get_sc_address();
+        let own_shard = self.blockchain().get_shard_of_address(&own_sc_address);
+
+        if let Action::SendTransferExecuteEgld(call_data) = &action {
+            let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
+            require!(
+                call_data.egld_amount > 0 || !call_data.endpoint_name.is_empty(),
+                "proposed action has no effect"
+            );
+            require!(
+                own_shard == other_sc_shard,
+                "All transfer exec must be to the same shard"
+            );
+            return;
+        }
+
+        if let Action::SendTransferExecuteEsdt(call_data) = &action {
+            require!(!call_data.tokens.is_empty(), "No tokens to transfer");
+            let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
+            require!(
+                own_shard == other_sc_shard,
+                "All transfer exec must be to the same shard"
+            );
         }
     }
 }
