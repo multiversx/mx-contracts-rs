@@ -23,6 +23,15 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             "Template address is not whitelisted"
         );
 
+        let ongoing_upgrade_operation_mapper = self.ongoing_upgrade_operation();
+        if !ongoing_upgrade_operation_mapper.is_empty() {
+            let ongoing_upgrade_operation = ongoing_upgrade_operation_mapper.get();
+            require!(
+                ongoing_upgrade_operation.template_address != template_address,
+                "There is an ongoing upgrade operation for this template address"
+            );
+        };
+
         let (new_contract_address, _) = self.send_raw().deploy_from_source_contract(
             self.blockchain().get_gas_left(),
             &BigUint::zero(),
@@ -191,7 +200,6 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
                 .get(0)
                 .clone_value();
             // If the contract_template storage is empty, it means the contracts ownership was transfered
-            // TODO - also clear the deployed_contracts_list_by_template storage
             if !self.contract_template(&contract_address).is_empty() {
                 self.send_raw().upgrade_from_source_contract(
                     &contract_address,
@@ -201,6 +209,9 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
                     CodeMetadata::DEFAULT,
                     &ongoing_upgrade_operation.arguments,
                 );
+                ongoing_upgrade_operation
+                    .processed_contracts
+                    .push(contract_address);
             }
             ongoing_upgrade_operation.contracts_remaining.remove(0);
         }
@@ -210,6 +221,8 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             return false;
         }
 
+        self.deployed_contracts_list_by_template(&ongoing_upgrade_operation.template_address)
+            .set(ongoing_upgrade_operation.processed_contracts);
         self.ongoing_upgrade_operation().clear();
         true
     }
@@ -261,6 +274,7 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             template_address,
             args.to_arg_buffer(),
             contracts_by_template,
+            ManagedVec::new(),
         )
     }
 

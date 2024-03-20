@@ -6,6 +6,7 @@ pub struct OngoingUpgradeOperation<M: ManagedTypeApi> {
     pub template_address: ManagedAddress<M>,
     pub arguments: ManagedArgBuffer<M>,
     pub contracts_remaining: ManagedVec<M, ManagedAddress<M>>,
+    pub processed_contracts: ManagedVec<M, ManagedAddress<M>>,
 }
 
 impl<M: ManagedTypeApi> OngoingUpgradeOperation<M> {
@@ -14,11 +15,13 @@ impl<M: ManagedTypeApi> OngoingUpgradeOperation<M> {
         template_address: ManagedAddress<M>,
         arguments: ManagedArgBuffer<M>,
         contracts_remaining: ManagedVec<M, ManagedAddress<M>>,
+        processed_contracts: ManagedVec<M, ManagedAddress<M>>,
     ) -> Self {
         OngoingUpgradeOperation {
             template_address,
             arguments,
             contracts_remaining,
+            processed_contracts,
         }
     }
 }
