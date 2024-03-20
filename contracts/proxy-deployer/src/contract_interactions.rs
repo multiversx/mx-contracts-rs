@@ -1,5 +1,6 @@
 multiversx_sc::imports!();
 
+use multiversx_sc::api::CHANGE_OWNER_BUILTIN_FUNC_NAME;
 use multiversx_sc_modules::pause;
 
 use crate::config::{self, OngoingUpgradeOperation};
@@ -17,6 +18,19 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             self.blockchain().is_smart_contract(&template_address),
             "Template address is not a SC"
         );
+        require!(
+            self.templates_list().contains(&template_address),
+            "Template address is not whitelisted"
+        );
+
+        let ongoing_upgrade_operation_mapper = self.ongoing_upgrade_operation();
+        if !ongoing_upgrade_operation_mapper.is_empty() {
+            let ongoing_upgrade_operation = ongoing_upgrade_operation_mapper.get();
+            require!(
+                ongoing_upgrade_operation.template_address != template_address,
+                "There is an ongoing upgrade operation for this template address"
+            );
+        };
 
         let (new_contract_address, _) = self.send_raw().deploy_from_source_contract(
             self.blockchain().get_gas_left(),
@@ -27,6 +41,17 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
         );
 
         let caller = self.blockchain().get_caller();
+        let owner = self.blockchain().get_owner_address();
+        require!(caller != owner, "The owner cannot deploy contracts");
+
+        self.deployer_contracts(&caller)
+            .insert(new_contract_address.clone());
+        self.deployed_contracts_list_by_template(&template_address)
+            .update(|deployed_contracts| {
+                deployed_contracts.push(new_contract_address.clone());
+            });
+        self.contract_template(&new_contract_address)
+            .set(&template_address);
         let mut deployed_addresses = match self
             .deployer_template_addresses(&caller)
             .get(&template_address)
@@ -35,12 +60,6 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             None => ManagedVec::new(),
         };
         deployed_addresses.push(new_contract_address.clone());
-
-        self.deployer_contracts(&caller).add(&new_contract_address);
-        self.deployed_contracts_list_by_template(&template_address)
-            .update(|deployed_contracts| {
-                deployed_contracts.push(new_contract_address.clone());
-            });
         self.deployer_template_addresses(&caller)
             .insert(template_address, deployed_addresses);
         self.deployers_list().insert(caller);
@@ -52,7 +71,6 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
     fn contract_upgrade(
         &self,
         contract_address: ManagedAddress,
-        template_address: ManagedAddress,
         args: MultiValueEncoded<ManagedBuffer>,
     ) {
         self.can_call_endpoint(Some(contract_address.clone()));
@@ -60,17 +78,16 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             self.blockchain().is_smart_contract(&contract_address),
             "Contract address is not a SC"
         );
-        require!(
-            self.blockchain().is_smart_contract(&template_address),
-            "Template address is not a SC"
-        );
+        let contract_template_mapper = self.contract_template(&contract_address);
+        require!(!contract_template_mapper.is_empty(), "No template found");
+        let template_address = contract_template_mapper.get();
 
         self.send_raw().upgrade_from_source_contract(
             &contract_address,
             self.blockchain().get_gas_left(),
             &BigUint::zero(),
             &template_address,
-            self.blockchain().get_code_metadata(&template_address),
+            self.blockchain().get_code_metadata(&contract_address),
             &args.to_arg_buffer(),
         );
     }
@@ -87,6 +104,10 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             self.blockchain().is_smart_contract(&contract_address),
             "Contract address is not a SC"
         );
+        require!(
+            function_name != ManagedBuffer::from(CHANGE_OWNER_BUILTIN_FUNC_NAME),
+            "Use the dedicated change owner endpoint instead"
+        );
 
         self.send()
             .contract_call::<()>(contract_address, function_name)
@@ -95,6 +116,69 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             .execute_on_dest_context()
     }
 
+    /// Use this endpoint to transfer the ownership
+    /// This is needed to properly update the stored data
+    #[endpoint(changeOwnerAddress)]
+    fn change_owner(
+        &self,
+        contract_address: ManagedAddress,
+        new_owner: ManagedAddress,
+        opt_orig_owner: OptionalValue<ManagedAddress>,
+    ) {
+        self.can_call_endpoint(Some(contract_address.clone()));
+        require!(
+            self.blockchain().is_smart_contract(&contract_address),
+            "Contract address is not a SC"
+        );
+        require!(
+            !self.blacklisted_deployers_list().contains(&new_owner),
+            "New owner is blacklisted"
+        );
+        let mut caller = self.blockchain().get_caller();
+        if caller == self.blockchain().get_owner_address() {
+            require!(opt_orig_owner.is_some(), "Must provide original owner");
+            caller = unsafe { opt_orig_owner.into_option().unwrap_unchecked() };
+        }
+        let contract_template_mapper = self.contract_template(&contract_address);
+        require!(!contract_template_mapper.is_empty(), "No template found");
+
+        let mut contract_processed = false;
+        let template_address = contract_template_mapper.take();
+        let deployer_template_addresses_mapper = self.deployer_template_addresses(&caller);
+        let mut deployer_template_addresses =
+            match deployer_template_addresses_mapper.get(&template_address) {
+                Some(addresses) => addresses,
+                None => sc_panic!("No mapped deployer template found"),
+            };
+
+        for index in 0..deployer_template_addresses.len() {
+            let deployed_address = deployer_template_addresses.get(index).clone_value();
+            if deployed_address == contract_address {
+                deployer_template_addresses.remove(index);
+                self.deployer_template_addresses(&caller)
+                    .insert(template_address, deployer_template_addresses);
+
+                contract_processed = true;
+                break;
+            }
+        }
+
+        require!(contract_processed, "Contract not found for deployer");
+        self.deployer_contracts(&caller)
+            .swap_remove(&contract_address);
+        if self.deployer_contracts(&caller).is_empty() {
+            self.deployers_list().swap_remove(&caller);
+        }
+
+        let () = self
+            .send()
+            .change_owner_address(contract_address, &new_owner)
+            .execute_on_dest_context();
+    }
+
+    /// Allows the owner to bulk upgrade all the contracts by starting an ongoing upgrade operation
+    /// The first time when the endpoint is called, the optional arguments are required
+    /// After that the endpoint needs to be called without the optional args, until the upgrade operation is finished
     #[only_owner]
     #[allow_multiple_var_args]
     #[endpoint(upgradeContractsByTemplate)]
@@ -115,14 +199,20 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
                 .contracts_remaining
                 .get(0)
                 .clone_value();
-            self.send_raw().upgrade_from_source_contract(
-                &contract_address,
-                gas_per_action,
-                &BigUint::zero(),
-                &ongoing_upgrade_operation.template_address,
-                CodeMetadata::DEFAULT,
-                &ongoing_upgrade_operation.arguments,
-            );
+            // If the contract_template storage is empty, it means the contracts ownership was transfered
+            if !self.contract_template(&contract_address).is_empty() {
+                self.send_raw().upgrade_from_source_contract(
+                    &contract_address,
+                    gas_per_action,
+                    &BigUint::zero(),
+                    &ongoing_upgrade_operation.template_address,
+                    self.blockchain().get_code_metadata(&contract_address),
+                    &ongoing_upgrade_operation.arguments,
+                );
+                ongoing_upgrade_operation
+                    .processed_contracts
+                    .push(contract_address);
+            }
             ongoing_upgrade_operation.contracts_remaining.remove(0);
         }
         if !ongoing_upgrade_operation.contracts_remaining.is_empty() {
@@ -131,8 +221,16 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             return false;
         }
 
+        self.deployed_contracts_list_by_template(&ongoing_upgrade_operation.template_address)
+            .set(ongoing_upgrade_operation.processed_contracts);
         self.ongoing_upgrade_operation().clear();
         true
+    }
+
+    #[only_owner]
+    #[endpoint(clearOngoingUpgradeOperation)]
+    fn clear_ongoing_upgrade_operation(&self) {
+        self.ongoing_upgrade_operation().clear();
     }
 
     fn get_ongoing_operation(
@@ -176,6 +274,7 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             template_address,
             args.to_arg_buffer(),
             contracts_by_template,
+            ManagedVec::new(),
         )
     }
 

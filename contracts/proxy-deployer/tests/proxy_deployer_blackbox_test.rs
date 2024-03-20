@@ -7,7 +7,7 @@ use multiversx_sc::{
 use multiversx_sc_scenario::{api::StaticApi, num_bigint::BigUint, scenario_model::*, *};
 
 use adder::ProxyTrait as _;
-use proxy_deployer::{contract_interactions::ProxyTrait as _, ProxyTrait as _};
+use proxy_deployer::{config::ProxyTrait, contract_interactions::ProxyTrait as _, ProxyTrait as _};
 
 const PROXY_DEPLOYER_ADDRESS_EXPR: &str = "sc:proxy_deployer";
 const TEMPLATE_CONTRACT_ADDRESS_EXPR: &str = "sc:template_contract";
@@ -89,6 +89,16 @@ impl ProxyDeployerTestState {
                     .from(OWNER_ADDRESS_EXPR)
                     .code(template_contract_code)
                     .call(self.template_contract.init(BigUint::from(0u64))),
+            )
+            .sc_call(
+                ScCallStep::new()
+                    .from(OWNER_ADDRESS_EXPR)
+                    .to(PROXY_DEPLOYER_ADDRESS_EXPR)
+                    .call(self.proxy_deployer_contract.add_template_address(
+                        ManagedAddress::from_address(
+                            &AddressValue::from(TEMPLATE_CONTRACT_ADDRESS_EXPR).to_address(),
+                        ),
+                    )),
             );
 
         self
@@ -128,18 +138,16 @@ impl ProxyDeployerTestState {
         &mut self,
         user: &str,
         contract_address: &Address,
-        template_address: &Address,
         args: MultiValueEncoded<StaticApi, ManagedBuffer<StaticApi>>,
     ) -> &mut Self {
         self.world.sc_call(
             ScCallStep::new()
                 .from(user)
                 .to(PROXY_DEPLOYER_ADDRESS_EXPR)
-                .call(self.proxy_deployer_contract.contract_upgrade(
-                    ManagedAddress::from_address(contract_address),
-                    ManagedAddress::from_address(template_address),
-                    args,
-                )),
+                .call(
+                    self.proxy_deployer_contract
+                        .contract_upgrade(ManagedAddress::from_address(contract_address), args),
+                ),
         );
 
         self
@@ -236,12 +244,7 @@ fn proxy_deployer_blackbox_test() {
     // Test contract upgrade
     let mut upgrade_args = MultiValueEncoded::new();
     upgrade_args.push(ManagedBuffer::from(top_encode_to_vec_u8_or_panic(&5u64)));
-    state.upgrade_contract(
-        USER_ADDRESS_EXPR,
-        &contract_address,
-        &template_address,
-        upgrade_args,
-    );
+    state.upgrade_contract(USER_ADDRESS_EXPR, &contract_address, upgrade_args);
     state.check_contract_storage(DEPLOYED_CONTRACT_ADDRESS_EXPR1, 5u64);
 }
 
@@ -341,11 +344,6 @@ fn proxy_deployer_check_metadata_test() {
     // Test contract upgrade
     let mut upgrade_args = MultiValueEncoded::new();
     upgrade_args.push(ManagedBuffer::from(top_encode_to_vec_u8_or_panic(&5u64)));
-    state.upgrade_contract(
-        USER_ADDRESS_EXPR,
-        &contract_address,
-        &template_address,
-        upgrade_args,
-    );
+    state.upgrade_contract(USER_ADDRESS_EXPR, &contract_address, upgrade_args);
     state.check_contract_storage(DEPLOYED_CONTRACT_ADDRESS_EXPR1, 5u64);
 }
