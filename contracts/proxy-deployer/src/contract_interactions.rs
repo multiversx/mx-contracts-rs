@@ -87,7 +87,7 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             self.blockchain().get_gas_left(),
             &BigUint::zero(),
             &template_address,
-            self.blockchain().get_code_metadata(&template_address),
+            self.blockchain().get_code_metadata(&contract_address),
             &args.to_arg_buffer(),
         );
     }
@@ -206,7 +206,7 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
                     gas_per_action,
                     &BigUint::zero(),
                     &ongoing_upgrade_operation.template_address,
-                    CodeMetadata::DEFAULT,
+                    self.blockchain().get_code_metadata(&contract_address),
                     &ongoing_upgrade_operation.arguments,
                 );
                 ongoing_upgrade_operation
