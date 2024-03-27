@@ -186,10 +186,9 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
         &self,
         gas_per_action: u64,
         opt_template_address: OptionalValue<ManagedAddress>,
-        opt_args: OptionalValue<MultiValueEncoded<ManagedBuffer>>,
+        args: MultiValueEncoded<ManagedBuffer>,
     ) -> bool {
-        let mut ongoing_upgrade_operation =
-            self.get_ongoing_operation(opt_template_address, opt_args);
+        let mut ongoing_upgrade_operation = self.get_ongoing_operation(opt_template_address, args);
 
         let default_gas_for_save = self.default_gas_for_save_operation().get();
         while self.blockchain().get_gas_left() >= gas_per_action + default_gas_for_save
@@ -236,7 +235,7 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
     fn get_ongoing_operation(
         &self,
         opt_template_address: OptionalValue<ManagedAddress>,
-        opt_args: OptionalValue<MultiValueEncoded<ManagedBuffer>>,
+        args: MultiValueEncoded<ManagedBuffer>,
     ) -> OngoingUpgradeOperation<Self::Api> {
         let ongoing_operation_mapper = self.ongoing_upgrade_operation();
         if opt_template_address.is_none() {
@@ -265,10 +264,6 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             !contracts_by_template.is_empty(),
             "No contracts deployed with this template"
         );
-        let args = match opt_args.into_option() {
-            Some(args) => args,
-            None => MultiValueEncoded::new(),
-        };
 
         OngoingUpgradeOperation::new(
             template_address,
