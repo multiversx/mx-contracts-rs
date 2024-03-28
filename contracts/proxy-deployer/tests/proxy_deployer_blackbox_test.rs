@@ -166,7 +166,7 @@ impl ProxyDeployerTestState {
                 .call(self.proxy_deployer_contract.upgrade_contracts_by_template(
                     gas,
                     OptionalValue::Some(ManagedAddress::from_address(template_address)),
-                    OptionalValue::Some(args),
+                    args,
                 )),
         );
 
