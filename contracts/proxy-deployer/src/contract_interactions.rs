@@ -1,12 +1,15 @@
 multiversx_sc::imports!();
 
+use crate::events::{self};
 use multiversx_sc::api::CHANGE_OWNER_BUILTIN_FUNC_NAME;
 use multiversx_sc_modules::pause;
 
 use crate::config::{self, OngoingUpgradeOperation};
 
 #[multiversx_sc::module]
-pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule {
+pub trait ContractInteractionsModule:
+    config::ConfigModule + events::EventsModule + pause::PauseModule
+{
     #[endpoint(contractDeploy)]
     fn contract_deploy(
         &self,
@@ -61,8 +64,15 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
         };
         deployed_addresses.push(new_contract_address.clone());
         self.deployer_template_addresses(&caller)
-            .insert(template_address, deployed_addresses);
-        self.deployers_list().insert(caller);
+            .insert(template_address.clone(), deployed_addresses);
+        self.deployers_list().insert(caller.clone());
+
+        self.emit_deploy_contract_event(
+            caller,
+            template_address,
+            new_contract_address.clone(),
+            args.into_vec_of_buffers(),
+        );
 
         new_contract_address
     }
@@ -90,6 +100,13 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             self.blockchain().get_code_metadata(&contract_address),
             &args.to_arg_buffer(),
         );
+
+        self.emit_upgrade_contract_event(
+            self.blockchain().get_caller(),
+            template_address,
+            contract_address,
+            args.into_vec_of_buffers(),
+        );
     }
 
     #[endpoint(contractCallByAddress)]
@@ -109,11 +126,19 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
             "Use the dedicated change owner endpoint instead"
         );
 
-        self.send()
-            .contract_call::<()>(contract_address, function_name)
+        let () = self
+            .send()
+            .contract_call::<()>(contract_address.clone(), function_name.clone())
             .with_gas_limit(self.blockchain().get_gas_left())
             .with_raw_arguments(args.to_arg_buffer())
-            .execute_on_dest_context()
+            .execute_on_dest_context();
+
+        self.emit_contract_call_event(
+            self.blockchain().get_caller(),
+            contract_address,
+            function_name,
+            args.into_vec_of_buffers(),
+        );
     }
 
     /// Use this endpoint to transfer the ownership
@@ -172,8 +197,15 @@ pub trait ContractInteractionsModule: config::ConfigModule + pause::PauseModule 
 
         let () = self
             .send()
-            .change_owner_address(contract_address, &new_owner)
+            .change_owner_address(contract_address.clone(), &new_owner)
             .execute_on_dest_context();
+
+        self.emit_change_owner_event(
+            self.blockchain().get_caller(),
+            contract_address,
+            caller,
+            new_owner,
+        );
     }
 
     /// Allows the owner to bulk upgrade all the contracts by starting an ongoing upgrade operation
