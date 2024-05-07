@@ -7,12 +7,15 @@ multiversx_sc::derive_imports!();
 
 pub mod address_info;
 pub mod config;
+pub mod events;
 
 use crate::config::{MAX_REPAIR_GAP, SFT_AMOUNT};
 use multiversx_sc_modules::only_admin;
 
 #[multiversx_sc::contract]
-pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModule {
+pub trait OnChainClaimContract:
+    config::ConfigModule + events::EventsModule + only_admin::OnlyAdminModule
+{
     #[init]
     fn init(&self, repair_streak_token_id: TokenIdentifier) {
         self.internal_set_repair_streak_token_id(repair_streak_token_id);
@@ -156,25 +159,4 @@ pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModu
         self.repair_streak_token_identifier()
             .set(repair_streak_token_id);
     }
-
-    #[event("new_claim")]
-    fn new_claim_event(
-        &self,
-        #[indexed] address: &ManagedAddress,
-        info: &AddressInfo,
-    );
-
-    #[event("new_claim_and_repair")]
-    fn new_claim_and_repair_event(
-        &self,
-        #[indexed] address: &ManagedAddress,
-        info: &AddressInfo,
-    );
-
-    #[event("new_update_state")]
-    fn new_update_state_event(
-        &self,
-        #[indexed] address: &ManagedAddress,
-        info: &AddressInfo,
-    );
 }
