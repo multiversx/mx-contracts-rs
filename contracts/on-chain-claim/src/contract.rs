@@ -136,9 +136,9 @@ pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModu
             total_epochs_claimed,
             best_streak,
         );
-        self.address_info(address).set(address_info);
+        self.address_info(address).set(&address_info);
 
-        self.new_claim_event(&caller, &address_info);
+        self.new_claim_event(address, &address_info);
     }
 
     #[endpoint(setRepairStreakTokenId)]
