@@ -60,6 +60,8 @@ pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModu
             if address_info.best_streak < address_info.current_streak {
                 address_info.best_streak = address_info.current_streak;
             }
+
+            self.new_claim_event(&caller, address_info);
         });
     }
 
@@ -105,6 +107,8 @@ pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModu
             if address_info.best_streak < address_info.current_streak {
                 address_info.best_streak = address_info.current_streak;
             }
+
+            self.new_claim_event(&caller, address_info);
         });
 
         self.send().esdt_local_burn(
@@ -133,6 +137,8 @@ pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModu
             best_streak,
         );
         self.address_info(address).set(address_info);
+
+        self.new_claim_event(&caller, &address_info);
     }
 
     #[endpoint(setRepairStreakTokenId)]
@@ -150,4 +156,11 @@ pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModu
         self.repair_streak_token_identifier()
             .set(repair_streak_token_id);
     }
+
+    #[event("new_claim")]
+    fn new_claim_event(
+        &self,
+        #[indexed] address: &ManagedAddress,
+        info: &AddressInfo,
+    );
 }
