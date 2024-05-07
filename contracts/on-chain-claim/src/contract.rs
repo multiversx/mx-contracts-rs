@@ -138,7 +138,7 @@ pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModu
         );
         self.address_info(address).set(&address_info);
 
-        self.new_claim_event(address, &address_info);
+        self.new_update_state_event(address, &address_info);
     }
 
     #[endpoint(setRepairStreakTokenId)]
@@ -159,6 +159,13 @@ pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModu
 
     #[event("new_claim")]
     fn new_claim_event(
+        &self,
+        #[indexed] address: &ManagedAddress,
+        info: &AddressInfo,
+    );
+
+    #[event("new_update_state")]
+    fn new_update_state_event(
         &self,
         #[indexed] address: &ManagedAddress,
         info: &AddressInfo,
