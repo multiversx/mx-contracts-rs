@@ -7,12 +7,15 @@ multiversx_sc::derive_imports!();
 
 pub mod address_info;
 pub mod config;
+pub mod events;
 
 use crate::config::{MAX_REPAIR_GAP, SFT_AMOUNT};
 use multiversx_sc_modules::only_admin;
 
 #[multiversx_sc::contract]
-pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModule {
+pub trait OnChainClaimContract:
+    config::ConfigModule + events::EventsModule + only_admin::OnlyAdminModule
+{
     #[init]
     fn init(&self, repair_streak_token_id: TokenIdentifier) {
         self.internal_set_repair_streak_token_id(repair_streak_token_id);
@@ -60,6 +63,8 @@ pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModu
             if address_info.best_streak < address_info.current_streak {
                 address_info.best_streak = address_info.current_streak;
             }
+
+            self.new_claim_event(&caller, address_info);
         });
     }
 
@@ -105,6 +110,8 @@ pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModu
             if address_info.best_streak < address_info.current_streak {
                 address_info.best_streak = address_info.current_streak;
             }
+
+            self.new_claim_and_repair_event(&caller, address_info);
         });
 
         self.send().esdt_local_burn(
@@ -132,7 +139,9 @@ pub trait OnChainClaimContract: config::ConfigModule + only_admin::OnlyAdminModu
             total_epochs_claimed,
             best_streak,
         );
-        self.address_info(address).set(address_info);
+        self.address_info(address).set(&address_info);
+
+        self.new_update_state_event(address, &address_info);
     }
 
     #[endpoint(setRepairStreakTokenId)]
