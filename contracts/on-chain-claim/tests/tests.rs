@@ -436,7 +436,7 @@ fn check_claim_and_repair() {
             assert_eq!(address_info.last_epoch_claimed, 28);
             assert_eq!(address_info.best_streak, 9);
         })
-        .set_state_step(SetStateStep::new().block_epoch(35))
+        .set_state_step(SetStateStep::new().block_epoch(36))
         .whitebox_call_check(
             &on_chain_claim_whitebox,
             ScCallStep::new()
