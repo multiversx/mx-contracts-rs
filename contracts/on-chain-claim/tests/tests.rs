@@ -436,7 +436,7 @@ fn check_claim_and_repair() {
             assert_eq!(address_info.last_epoch_claimed, 28);
             assert_eq!(address_info.best_streak, 9);
         })
-        .set_state_step(SetStateStep::new().block_epoch(35))
+        .set_state_step(SetStateStep::new().block_epoch(36))
         .whitebox_call_check(
             &on_chain_claim_whitebox,
             ScCallStep::new()
@@ -686,6 +686,13 @@ fn on_chain_claim_whitebox() {
             let can_be_repaired = sc.can_be_repaired(managed_address);
             assert!(!can_be_repaired);
         })
+        .set_state_step(SetStateStep::new().block_epoch(28))
+        .whitebox_query(&on_chain_claim_whitebox, |sc| {
+            let address = AddressValue::from(USER1_ADDR).to_address();
+            let managed_address = &ManagedAddress::from(address);
+            let can_be_repaired = sc.can_be_repaired(managed_address);
+            assert!(!can_be_repaired);
+        })
         .whitebox_call_check(
             &on_chain_claim_whitebox,
             ScCallStep::new()
@@ -711,7 +718,7 @@ fn on_chain_claim_whitebox() {
             let address_info = sc.address_info(managed_address).get();
             assert_eq!(address_info.current_streak, 1);
             assert_eq!(address_info.total_epochs_claimed, 2);
-            assert_eq!(address_info.last_epoch_claimed, 27);
+            assert_eq!(address_info.last_epoch_claimed, 28);
             assert_eq!(address_info.best_streak, 1);
         })
         .whitebox_call(
@@ -727,7 +734,7 @@ fn on_chain_claim_whitebox() {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
             let can_be_repaired = sc.can_be_repaired(managed_address);
-            assert!(can_be_repaired);
+            assert!(!can_be_repaired);
         })
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
@@ -752,9 +759,9 @@ fn on_chain_claim_whitebox() {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
             let address_info = sc.address_info(managed_address).get();
-            assert_eq!(address_info.current_streak, 11);
-            assert_eq!(address_info.total_epochs_claimed, 13);
-            assert_eq!(address_info.last_epoch_claimed, 27);
-            assert_eq!(address_info.best_streak, 11);
+            assert_eq!(address_info.current_streak, 12);
+            assert_eq!(address_info.total_epochs_claimed, 14);
+            assert_eq!(address_info.last_epoch_claimed, 28);
+            assert_eq!(address_info.best_streak, 12);
         });
 }

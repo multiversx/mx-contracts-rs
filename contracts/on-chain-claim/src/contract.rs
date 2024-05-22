@@ -99,8 +99,10 @@ pub trait OnChainClaimContract:
             let missed_epochs =
                 self.get_missed_epochs(current_epoch, address_info.last_epoch_claimed);
 
+            // Allow MAX_REPAIR_GAP + 1 in order to not have failed transaction when the user sends the claimAndRepair transaction 
+            // in the last round of the allowed epoch. From UI, we allow MAX_REPAIR_GAP = 5 (using canBeRepaired view)
             require!(
-                missed_epochs > 0 && missed_epochs <= MAX_REPAIR_GAP,
+                missed_epochs > 0 && missed_epochs <= MAX_REPAIR_GAP + 1,
                 "can't repair streak for current epoch"
             );
 
