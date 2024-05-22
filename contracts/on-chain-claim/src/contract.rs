@@ -100,7 +100,7 @@ pub trait OnChainClaimContract:
                 self.get_missed_epochs(current_epoch, address_info.last_epoch_claimed);
 
             require!(
-                missed_epochs > 0 && missed_epochs <= MAX_REPAIR_GAP,
+                missed_epochs > 0 && missed_epochs <= MAX_REPAIR_GAP + 1,
                 "can't repair streak for current epoch"
             );
 
