@@ -81,13 +81,8 @@ pub trait OnChainClaimContract:
         let payment = self.call_value().single_esdt();
         let repair_streak_payment = self.repair_streak_payment().get();
         require!(
-            payment.token_identifier == repair_streak_payment.token_identifier
-                && payment.token_nonce == repair_streak_payment.token_nonce,
-            "Bad payment token"
-        );
-        require!(
-            payment.amount == repair_streak_payment.amount,
-            "Bad payment amount"
+            payment == repair_streak_payment,
+            "Bad payment token/amount"
         );
 
         let current_epoch = self.blockchain().get_block_epoch();

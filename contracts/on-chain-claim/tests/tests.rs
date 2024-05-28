@@ -388,7 +388,7 @@ fn check_claim_and_repair() {
                 sc.claim_and_repair();
             },
             |r| {
-                r.assert_user_error("Bad payment token");
+                r.assert_user_error("Bad payment token/amount");
             },
         )
         .whitebox_call_check(
@@ -402,7 +402,7 @@ fn check_claim_and_repair() {
                 sc.claim_and_repair();
             },
             |r| {
-                r.assert_user_error("Bad payment amount");
+                r.assert_user_error("Bad payment token/amount");
             },
         )
         .whitebox_call(

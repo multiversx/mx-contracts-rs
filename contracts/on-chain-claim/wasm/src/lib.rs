@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           13
+// Endpoints:                           12
 // Async Callback (empty):               1
-// Total number of exported functions:  15
+// Total number of exported functions:  14
 
 #![no_std]
 #![allow(internal_features)]
@@ -27,7 +27,6 @@ multiversx_sc_wasm_adapter::endpoints! {
         setRepairStreakPayment => set_repair_streak_payment
         getAddressInfo => get_address_info
         canBeRepaired => can_be_repaired
-        getRepairStreakTokenIdentifier => repair_streak_token_identifier
         getRepairStreakPayment => repair_streak_payment
         isAdmin => is_admin
         addAdmin => add_admin
