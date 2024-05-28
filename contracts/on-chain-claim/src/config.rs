@@ -3,7 +3,6 @@ multiversx_sc::derive_imports!();
 
 use crate::address_info::*;
 
-pub const SFT_AMOUNT: u64 = 1;
 pub const MAX_REPAIR_GAP: u64 = 5;
 
 #[multiversx_sc::module]
@@ -56,7 +55,7 @@ pub trait ConfigModule {
     #[storage_mapper("repair_streak_token_identifier")]
     fn repair_streak_token_identifier(&self) -> SingleValueMapper<TokenIdentifier>;
 
-    #[view(getRepairStreakTokenNonce)]
-    #[storage_mapper("repair_streak_token_nonce")]
-    fn repair_streak_token_nonce(&self) -> SingleValueMapper<u64>;
+    #[view(getRepairStreakPayment)]
+    #[storage_mapper("repair_streak_payment")]
+    fn repair_streak_payment(&self) -> SingleValueMapper<EsdtTokenPayment>;
 }

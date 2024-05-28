@@ -9,7 +9,7 @@ pub mod address_info;
 pub mod config;
 pub mod events;
 
-use crate::config::{MAX_REPAIR_GAP, SFT_AMOUNT};
+use crate::config::MAX_REPAIR_GAP;
 use multiversx_sc_modules::only_admin;
 
 #[multiversx_sc::contract]
@@ -18,9 +18,7 @@ pub trait OnChainClaimContract:
 {
     #[init]
     fn init(&self, repair_streak_token_id: TokenIdentifier, repair_streak_token_nonce: u64) {
-        self.internal_set_repair_streak_token_id(repair_streak_token_id);
-        self.repair_streak_token_nonce()
-            .set(repair_streak_token_nonce);
+        self.internal_set_repair_streak_payment(repair_streak_token_id, repair_streak_token_nonce);
 
         let caller = self.blockchain().get_caller();
         self.add_admin(caller);
@@ -81,14 +79,16 @@ pub trait OnChainClaimContract:
         self.require_same_shard(&caller);
 
         let payment = self.call_value().single_esdt();
-        let repair_streak_token_identifier = self.repair_streak_token_identifier().get();
-        let repair_streak_token_nonce = self.repair_streak_token_nonce().get();
+        let repair_streak_payment = self.repair_streak_payment().get();
         require!(
-            payment.token_identifier == repair_streak_token_identifier
-                && payment.token_nonce == repair_streak_token_nonce,
+            payment.token_identifier == repair_streak_payment.token_identifier
+                && payment.token_nonce == repair_streak_payment.token_nonce,
             "Bad payment token"
         );
-        require!(payment.amount == SFT_AMOUNT, "Bad payment amount");
+        require!(
+            payment.amount == repair_streak_payment.amount,
+            "Bad payment amount"
+        );
 
         let current_epoch = self.blockchain().get_block_epoch();
 
@@ -150,25 +150,30 @@ pub trait OnChainClaimContract:
         self.new_update_state_event(address, &address_info);
     }
 
-    #[endpoint(setRepairStreakTokenId)]
-    fn set_repair_streak_token_id(
+    #[endpoint(setRepairStreakPayment)]
+    fn set_repair_streak_payment(
         &self,
-        repair_streak_token_id: TokenIdentifier,
+        repair_streak_token_identifier: TokenIdentifier,
         repair_streak_token_nonce: u64,
     ) {
         self.require_caller_is_admin();
 
-        self.internal_set_repair_streak_token_id(repair_streak_token_id);
-        self.repair_streak_token_nonce()
-            .set(repair_streak_token_nonce);
+        self.internal_set_repair_streak_payment(
+            repair_streak_token_identifier,
+            repair_streak_token_nonce,
+        );
     }
 
-    fn internal_set_repair_streak_token_id(&self, repair_streak_token_id: TokenIdentifier) {
-        require!(
-            repair_streak_token_id.is_valid_esdt_identifier(),
-            "Invalid token ID"
+    fn internal_set_repair_streak_payment(
+        &self,
+        repair_streak_token_identifier: TokenIdentifier,
+        repair_streak_token_nonce: u64,
+    ) {
+        let payment = EsdtTokenPayment::new(
+            repair_streak_token_identifier,
+            repair_streak_token_nonce,
+            BigUint::from(1u64),
         );
-        self.repair_streak_token_identifier()
-            .set(repair_streak_token_id);
+        self.repair_streak_payment().set(payment);
     }
 }
