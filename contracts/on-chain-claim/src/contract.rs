@@ -17,8 +17,10 @@ pub trait OnChainClaimContract:
     config::ConfigModule + events::EventsModule + only_admin::OnlyAdminModule
 {
     #[init]
-    fn init(&self, repair_streak_token_id: TokenIdentifier) {
+    fn init(&self, repair_streak_token_id: TokenIdentifier, repair_streak_token_nonce: u64) {
         self.internal_set_repair_streak_token_id(repair_streak_token_id);
+        self.repair_streak_token_nonce()
+            .set(repair_streak_token_nonce);
 
         let caller = self.blockchain().get_caller();
         self.add_admin(caller);
@@ -80,8 +82,10 @@ pub trait OnChainClaimContract:
 
         let payment = self.call_value().single_esdt();
         let repair_streak_token_identifier = self.repair_streak_token_identifier().get();
+        let repair_streak_token_nonce = self.repair_streak_token_nonce().get();
         require!(
-            payment.token_identifier == repair_streak_token_identifier,
+            payment.token_identifier == repair_streak_token_identifier
+                && payment.token_nonce == repair_streak_token_nonce,
             "Bad payment token"
         );
         require!(payment.amount == SFT_AMOUNT, "Bad payment amount");
@@ -99,7 +103,7 @@ pub trait OnChainClaimContract:
             let missed_epochs =
                 self.get_missed_epochs(current_epoch, address_info.last_epoch_claimed);
 
-            // Allow MAX_REPAIR_GAP + 1 in order to not have failed transaction when the user sends the claimAndRepair transaction 
+            // Allow MAX_REPAIR_GAP + 1 in order to not have failed transaction when the user sends the claimAndRepair transaction
             // in the last round of the allowed epoch. From UI, we allow MAX_REPAIR_GAP = 5 (using canBeRepaired view)
             require!(
                 missed_epochs > 0 && missed_epochs <= MAX_REPAIR_GAP + 1,
@@ -147,10 +151,16 @@ pub trait OnChainClaimContract:
     }
 
     #[endpoint(setRepairStreakTokenId)]
-    fn set_repair_streak_token_id(&self, repair_streak_token_id: TokenIdentifier) {
+    fn set_repair_streak_token_id(
+        &self,
+        repair_streak_token_id: TokenIdentifier,
+        repair_streak_token_nonce: u64,
+    ) {
         self.require_caller_is_admin();
 
         self.internal_set_repair_streak_token_id(repair_streak_token_id);
+        self.repair_streak_token_nonce()
+            .set(repair_streak_token_nonce);
     }
 
     fn internal_set_repair_streak_token_id(&self, repair_streak_token_id: TokenIdentifier) {

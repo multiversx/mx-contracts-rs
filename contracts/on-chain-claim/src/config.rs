@@ -55,4 +55,8 @@ pub trait ConfigModule {
     #[view(getRepairStreakTokenIdentifier)]
     #[storage_mapper("repair_streak_token_identifier")]
     fn repair_streak_token_identifier(&self) -> SingleValueMapper<TokenIdentifier>;
+
+    #[view(getRepairStreakTokenNonce)]
+    #[storage_mapper("repair_streak_token_nonce")]
+    fn repair_streak_token_nonce(&self) -> SingleValueMapper<u64>;
 }
