@@ -80,10 +80,7 @@ pub trait OnChainClaimContract:
 
         let payment = self.call_value().single_esdt();
         let repair_streak_payment = self.repair_streak_payment().get();
-        require!(
-            payment == repair_streak_payment,
-            "Bad payment token/amount"
-        );
+        require!(payment == repair_streak_payment, "Bad payment token/amount");
 
         let current_epoch = self.blockchain().get_block_epoch();
 
@@ -164,6 +161,11 @@ pub trait OnChainClaimContract:
         repair_streak_token_identifier: TokenIdentifier,
         repair_streak_token_nonce: u64,
     ) {
+        require!(
+            repair_streak_token_identifier.is_valid_esdt_identifier(),
+            "Invalid token ID",
+        );
+
         let payment = EsdtTokenPayment::new(
             repair_streak_token_identifier,
             repair_streak_token_nonce,
