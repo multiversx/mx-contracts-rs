@@ -15,6 +15,7 @@ jobs:
     name: Contracts
     uses: multiversx/mx-sc-actions/.github/workflows/contracts.yml@v3.2.0
     with:
+      sc-meta-version: 0.50.1
       rust-toolchain: nightly-2024-05-22
       enable-contracts-size-report: false
     secrets:
