@@ -1,4 +1,4 @@
-use crate::state::{ActionId, ActionStatus, GroupId};
+use crate::common_types::action::{ActionId, ActionStatus, GroupId};
 
 multiversx_sc::imports!();
 
@@ -149,6 +149,7 @@ pub trait SignModule:
                 }
             }
         }
+
         for member in board_members_to_remove.iter() {
             self.action_signer_ids(action_id).swap_remove(&member);
         }

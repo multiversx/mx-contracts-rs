@@ -1,4 +1,4 @@
-use crate::state::{ActionId, ActionStatus};
+use crate::common_types::action::{ActionId, ActionStatus};
 
 multiversx_sc::imports!();
 

@@ -1,9 +1,8 @@
 use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
 use crate::{
-    common_types::action::{ActionFullInfo, GasLimit},
+    common_types::action::{ActionFullInfo, ActionId, GasLimit},
     common_types::user_role::UserRole,
-    state::ActionId,
 };
 
 multiversx_sc::imports!();

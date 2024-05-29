@@ -1,14 +1,26 @@
 use multiversx_sc::{
-    api::ManagedTypeApi,
+    api::{ErrorApiImpl, ManagedTypeApi},
+    codec::NestedEncode,
     types::{BigUint, CodeMetadata, ManagedAddress, ManagedBuffer, ManagedVec},
 };
 use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
-use crate::state::{ActionId, GroupId};
-
 multiversx_sc::derive_imports!();
 
 pub type GasLimit = u64;
+pub type Nonce = u64;
+
+pub type ActionId = usize;
+pub type GroupId = usize;
+pub type UserId = usize;
+
+#[derive(
+    TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Eq, Clone, Copy, Debug,
+)]
+pub enum ActionStatus {
+    Available,
+    Aborted,
+}
 
 #[derive(NestedEncode, NestedDecode, TypeAbi, Clone)]
 pub struct CallActionData<M: ManagedTypeApi> {
@@ -77,6 +89,21 @@ impl<M: ManagedTypeApi> Action<M> {
                 args: _
             }
         )
+    }
+
+    pub fn serialize(&self, signer: &ManagedAddress<M>, user_nonce: Nonce) -> ManagedBuffer<M> {
+        let mut all_data = signer.as_managed_buffer().clone();
+        let nonce_encode_reuslt = user_nonce.dep_encode(&mut all_data);
+        if nonce_encode_reuslt.is_err() {
+            M::error_api_impl().signal_error(b"Error encoding user nonce to buffer");
+        }
+
+        let action_encode_result = self.dep_encode(&mut all_data);
+        if action_encode_result.is_err() {
+            M::error_api_impl().signal_error(b"Error encoding action to buffer");
+        }
+
+        all_data
     }
 }
 

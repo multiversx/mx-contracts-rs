@@ -1,19 +1,8 @@
 use crate::action_types::perform::MAX_BOARD_MEMBERS;
+use crate::common_types::action::{ActionId, ActionStatus, GroupId, UserId};
 use crate::common_types::{action::Action, user_role::UserRole};
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
-
-pub type ActionId = usize;
-pub type GroupId = usize;
-pub type UserId = usize;
-
-#[derive(
-    TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Eq, Clone, Copy, Debug,
-)]
-pub enum ActionStatus {
-    Available,
-    Aborted,
-}
 
 /// Contains all events that can be emitted by the contract.
 #[multiversx_sc::module]

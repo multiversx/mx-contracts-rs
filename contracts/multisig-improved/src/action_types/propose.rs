@@ -1,8 +1,8 @@
 use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
-use crate::{
-    common_types::action::{Action, CallActionData, DeployArgs, EsdtTransferExecuteData, GasLimit},
-    state::{ActionId, ActionStatus, GroupId},
+use crate::common_types::action::{
+    Action, ActionId, ActionStatus, CallActionData, DeployArgs, EsdtTransferExecuteData, GasLimit,
+    GroupId,
 };
 
 multiversx_sc::imports!();

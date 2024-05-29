@@ -1,7 +1,6 @@
 use crate::{
-    common_types::action::{Action, ActionFullInfo, GasLimit},
+    common_types::action::{Action, ActionFullInfo, ActionId, ActionStatus, GasLimit, GroupId},
     common_types::user_role::UserRole,
-    state::{ActionId, ActionStatus, GroupId},
 };
 
 multiversx_sc::imports!();
