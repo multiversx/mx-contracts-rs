@@ -28,7 +28,6 @@ multiversx_sc_wasm_adapter::endpoints! {
         getNumProposers => num_proposers
         getActionGroup => action_groups
         getLastGroupActionId => last_action_group_id
-        getActionLastIndex => get_action_last_index
         proposeAddBoardMember => propose_add_board_member
         proposeAddProposer => propose_add_proposer
         proposeRemoveUser => propose_remove_user
@@ -52,15 +51,16 @@ multiversx_sc_wasm_adapter::endpoints! {
         performBatch => perform_batch
         discardAction => discard_action_endpoint
         discardBatch => discard_batch
+        getActionLastIndex => get_action_last_index
         dnsRegister => dns_register
-        getActionData => get_action_data
-        getActionSigners => get_action_signers
         getActionSignerCount => get_action_signer_count
         getActionValidSignerCount => get_action_valid_signer_count
+        getActionSigners => get_action_signers
         getPendingActionFullInfo => get_pending_action_full_info
         userRole => user_role
         getAllBoardMembers => get_all_board_members
         getAllProposers => get_all_proposers
+        getActionData => get_action_data
     )
 }
 

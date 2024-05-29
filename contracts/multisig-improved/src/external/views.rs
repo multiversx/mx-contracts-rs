@@ -1,4 +1,7 @@
-use crate::common_types::{action::ActionFullInfo, user_role::UserRole};
+use crate::common_types::{
+    action::{Action, ActionFullInfo, ActionId},
+    user_role::UserRole,
+};
 
 multiversx_sc::imports!();
 
@@ -81,6 +84,20 @@ pub trait ViewsModule:
     #[view(getAllProposers)]
     fn get_all_proposers(&self) -> MultiValueEncoded<ManagedAddress> {
         self.get_all_users_with_role(UserRole::Proposer)
+    }
+
+    /// The index of the last proposed action.
+    /// 0 means that no action was ever proposed yet.
+    #[view(getActionLastIndex)]
+    fn get_action_last_index(&self) -> ActionId {
+        self.action_mapper().len()
+    }
+
+    /// Serialized action data of an action with index.
+    #[label("multisig-external-view")]
+    #[view(getActionData)]
+    fn get_action_data(&self, action_id: ActionId) -> Action<Self::Api> {
+        self.action_mapper().get(action_id)
     }
 
     fn get_all_users_with_role(&self, role: UserRole) -> MultiValueEncoded<ManagedAddress> {
