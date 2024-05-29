@@ -13,8 +13,9 @@ permissions:
 jobs:
   contracts:
     name: Contracts
-    uses: multiversx/mx-sc-actions/.github/workflows/contracts.yml@v3.0.0
+    uses: multiversx/mx-sc-actions/.github/workflows/contracts.yml@v3.2.0
     with:
-      rust-toolchain: nightly-2023-12-11
+      rust-toolchain: nightly-2024-05-22
+      enable-contracts-size-report: false
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
