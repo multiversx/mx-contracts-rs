@@ -1,7 +1,7 @@
 use crate::{
-    action::{Action, ActionFullInfo, GasLimit},
-    multisig_state::{ActionId, ActionStatus, GroupId},
-    user_role::UserRole,
+    common_types::action::{Action, ActionFullInfo, GasLimit},
+    common_types::user_role::UserRole,
+    state::{ActionId, ActionStatus, GroupId},
 };
 
 multiversx_sc::imports!();
@@ -16,9 +16,7 @@ fn usize_add_isize(value: &mut usize, delta: isize) {
 
 /// Contains all events that can be emitted by the contract.
 #[multiversx_sc::module]
-pub trait MultisigPerformModule:
-    crate::multisig_state::MultisigStateModule + crate::multisig_events::MultisigEventsModule
-{
+pub trait PerformModule: crate::state::StateModule + crate::external::events::EventsModule {
     fn ensure_and_get_gas_for_transfer_exec(&self) -> GasLimit {
         let gas_left = self.blockchain().get_gas_left();
         require!(

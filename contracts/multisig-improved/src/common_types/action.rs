@@ -4,7 +4,7 @@ use multiversx_sc::{
 };
 use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
-use crate::multisig_state::{ActionId, GroupId};
+use crate::state::{ActionId, GroupId};
 
 multiversx_sc::derive_imports!();
 

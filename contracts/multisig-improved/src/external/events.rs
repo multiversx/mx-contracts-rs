@@ -1,16 +1,16 @@
 use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
 use crate::{
-    action::{ActionFullInfo, GasLimit},
-    multisig_state::ActionId,
-    user_role::UserRole,
+    common_types::action::{ActionFullInfo, GasLimit},
+    common_types::user_role::UserRole,
+    state::ActionId,
 };
 
 multiversx_sc::imports!();
 
 /// Contains all events that can be emitted by the contract.
 #[multiversx_sc::module]
-pub trait MultisigEventsModule {
+pub trait EventsModule {
     #[event("startPerformAction")]
     fn start_perform_action_event(&self, data: &ActionFullInfo<Self::Api>);
 
