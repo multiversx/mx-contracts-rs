@@ -28,6 +28,14 @@ pub struct EsdtTransferExecuteData<M: ManagedTypeApi> {
     pub arguments: ManagedVec<M, ManagedBuffer<M>>,
 }
 
+#[derive(NestedEncode, NestedDecode, TypeAbi, Clone)]
+pub struct DeployArgs<M: ManagedTypeApi> {
+    pub amount: BigUint<M>,
+    pub source: ManagedAddress<M>,
+    pub code_metadata: CodeMetadata,
+    pub arguments: ManagedVec<M, ManagedBuffer<M>>,
+}
+
 #[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, TypeAbi, Clone)]
 pub enum Action<M: ManagedTypeApi> {
     Nothing,
@@ -38,18 +46,10 @@ pub enum Action<M: ManagedTypeApi> {
     SendTransferExecuteEgld(CallActionData<M>),
     SendTransferExecuteEsdt(EsdtTransferExecuteData<M>),
     SendAsyncCall(CallActionData<M>),
-    SCDeployFromSource {
-        amount: BigUint<M>,
-        source: ManagedAddress<M>,
-        code_metadata: CodeMetadata,
-        arguments: ManagedVec<M, ManagedBuffer<M>>,
-    },
+    SCDeployFromSource(DeployArgs<M>),
     SCUpgradeFromSource {
         sc_address: ManagedAddress<M>,
-        amount: BigUint<M>,
-        source: ManagedAddress<M>,
-        code_metadata: CodeMetadata,
-        arguments: ManagedVec<M, ManagedBuffer<M>>,
+        args: DeployArgs<M>,
     },
 }
 
@@ -74,10 +74,7 @@ impl<M: ManagedTypeApi> Action<M> {
             self,
             Action::SCUpgradeFromSource {
                 sc_address: _,
-                amount: _,
-                source: _,
-                code_metadata: _,
-                arguments: _
+                args: _
             }
         )
     }

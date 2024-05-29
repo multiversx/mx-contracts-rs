@@ -1,7 +1,7 @@
 use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
 use crate::{
-    action::{Action, CallActionData, EsdtTransferExecuteData, GasLimit},
+    action::{Action, CallActionData, DeployArgs, EsdtTransferExecuteData, GasLimit},
     multisig_state::{ActionId, ActionStatus, GroupId},
 };
 
@@ -139,12 +139,12 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
         code_metadata: CodeMetadata,
         arguments: MultiValueEncoded<ManagedBuffer>,
     ) -> ActionId {
-        self.propose_action(Action::SCDeployFromSource {
+        self.propose_action(Action::SCDeployFromSource(DeployArgs {
             amount,
             source,
             code_metadata,
             arguments: arguments.into_vec_of_buffers(),
-        })
+        }))
     }
 
     #[endpoint(proposeSCUpgradeFromSource)]
@@ -158,10 +158,12 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
     ) -> ActionId {
         self.propose_action(Action::SCUpgradeFromSource {
             sc_address,
-            amount,
-            source,
-            code_metadata,
-            arguments: arguments.into_vec_of_buffers(),
+            args: DeployArgs {
+                amount,
+                source,
+                code_metadata,
+                arguments: arguments.into_vec_of_buffers(),
+            },
         })
     }
 
