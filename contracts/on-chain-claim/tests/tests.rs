@@ -462,7 +462,7 @@ fn check_claim_and_repair() {
 }
 
 #[test]
-fn best_streak() {
+fn test_best_streak() {
     let mut world = world();
     let on_chain_claim_whitebox = WhiteboxContract::new(SC_ADDR, on_chain_claim::contract_obj);
     let on_chain_claim_code = world.code_expression(ON_CHAIN_CLAIM_PATH_EXPR);
