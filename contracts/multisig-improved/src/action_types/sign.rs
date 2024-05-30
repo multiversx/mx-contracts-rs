@@ -111,18 +111,6 @@ pub trait SignModule:
         let _ = self.action_signer_ids(action_id).swap_remove(&caller_id);
     }
 
-    /// Returns `true` (`1`) if the user has signed the action.
-    /// Does not check whether or not the user is still a board member and the signature valid.
-    #[view]
-    fn signed(&self, user: ManagedAddress, action_id: ActionId) -> bool {
-        let user_id = self.user_ids().get_id(&user);
-        if user_id != 0 {
-            self.action_signer_ids(action_id).contains(&user_id)
-        } else {
-            false
-        }
-    }
-
     #[endpoint(unsignForOutdatedBoardMembers)]
     fn unsign_for_outdated_board_members(
         &self,

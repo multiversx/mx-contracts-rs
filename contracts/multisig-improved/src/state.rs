@@ -7,21 +7,6 @@ multiversx_sc::derive_imports!();
 /// Contains all events that can be emitted by the contract.
 #[multiversx_sc::module]
 pub trait StateModule {
-    /// Gets addresses of all users who signed an action and are still board members.
-    /// All these signatures are currently valid.
-    #[label("multisig-external-view")]
-    #[view(getActionSignerCount)]
-    fn get_action_signer_count(&self, action_id: ActionId) -> usize {
-        self.action_signer_ids(action_id).len()
-    }
-
-    /// It is possible for board members to lose their role.
-    /// They are not automatically removed from all actions when doing so,
-    /// therefore the contract needs to re-check every time when actions are performed.
-    /// This function is used to validate the signers before performing an action.
-    /// It also makes it easy to check before performing an action.
-    #[label("multisig-external-view")]
-    #[view(getActionValidSignerCount)]
     fn get_action_valid_signer_count(&self, action_id: ActionId) -> usize {
         let signer_ids = self.action_signer_ids(action_id);
         signer_ids
@@ -33,11 +18,6 @@ pub trait StateModule {
             .count()
     }
 
-    /// Gets addresses of all users who signed an action.
-    /// Does not check if those users are still board members or not,
-    /// so the result may contain invalid signers.
-    #[label("multisig-external-view")]
-    #[view(getActionSigners)]
     fn get_action_signers(&self, action_id: ActionId) -> ManagedVec<ManagedAddress> {
         let signer_ids = self.action_signer_ids(action_id);
         let mut signers = ManagedVec::new();

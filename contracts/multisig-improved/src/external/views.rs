@@ -57,6 +57,34 @@ pub trait ViewsModule:
         result
     }
 
+    /// Gets addresses of all users who signed an action and are still board members.
+    /// All these signatures are currently valid.
+    #[label("multisig-external-view")]
+    #[view(getActionSignerCount)]
+    fn get_action_signer_count(&self, action_id: ActionId) -> usize {
+        self.action_signer_ids(action_id).len()
+    }
+
+    /// It is possible for board members to lose their role.
+    /// They are not automatically removed from all actions when doing so,
+    /// therefore the contract needs to re-check every time when actions are performed.
+    /// This function is used to validate the signers before performing an action.
+    /// It also makes it easy to check before performing an action.
+    #[label("multisig-external-view")]
+    #[view(getActionValidSignerCount)]
+    fn get_action_valid_signer_count_view(&self, action_id: ActionId) -> usize {
+        self.get_action_valid_signer_count(action_id)
+    }
+
+    /// Gets addresses of all users who signed an action.
+    /// Does not check if those users are still board members or not,
+    /// so the result may contain invalid signers.
+    #[label("multisig-external-view")]
+    #[view(getActionSigners)]
+    fn get_action_signers_view(&self, action_id: ActionId) -> ManagedVec<ManagedAddress> {
+        self.get_action_signers(action_id)
+    }
+
     /// Indicates user rights.
     /// `0` = no rights,
     /// `1` = can propose, but not sign,
@@ -91,6 +119,18 @@ pub trait ViewsModule:
     #[view(getActionData)]
     fn get_action_data(&self, action_id: ActionId) -> Action<Self::Api> {
         self.action_mapper().get(action_id)
+    }
+
+    /// Returns `true` (`1`) if the user has signed the action.
+    /// Does not check whether or not the user is still a board member and the signature valid.
+    #[view]
+    fn signed(&self, user: ManagedAddress, action_id: ActionId) -> bool {
+        let user_id = self.user_ids().get_id(&user);
+        if user_id != 0 {
+            self.action_signer_ids(action_id).contains(&user_id)
+        } else {
+            false
+        }
     }
 
     /// The index of the last proposed action.

@@ -44,13 +44,13 @@ multiversx_sc_wasm_adapter::endpoints! {
         signBatchAndPerform => sign_batch_and_perform
         unsign => unsign
         unsignBatch => unsign_batch
-        signed => signed
         unsignForOutdatedBoardMembers => unsign_for_outdated_board_members
         quorumReached => quorum_reached
         performAction => perform_action_endpoint
         performBatch => perform_batch
         discardAction => discard_action_endpoint
         discardBatch => discard_batch
+        signed => signed
         getActionLastIndex => get_action_last_index
         getUserNonce => get_user_nonce
         dnsRegister => dns_register

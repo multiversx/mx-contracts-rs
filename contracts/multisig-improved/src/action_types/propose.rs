@@ -10,21 +10,6 @@ multiversx_sc::imports!();
 /// Contains all events that can be emitted by the contract.
 #[multiversx_sc::module]
 pub trait ProposeModule: crate::state::StateModule {
-    fn propose_action(&self, action: Action<Self::Api>) -> ActionId {
-        let (caller_id, caller_role) = self.get_caller_id_and_role();
-        caller_role.require_can_propose::<Self::Api>();
-
-        let action_id = self.action_mapper().push(&action);
-        self.quorum_for_action(action_id).set(self.quorum().get());
-        if caller_role.can_sign() {
-            // also sign
-            // since the action is newly created, the caller can be the only signer
-            let _ = self.action_signer_ids(action_id).insert(caller_id);
-        }
-
-        action_id
-    }
-
     /// Initiates board member addition process.
     /// Can also be used to promote a proposer to board member.
     #[endpoint(proposeAddBoardMember)]
@@ -196,6 +181,21 @@ pub trait ProposeModule: crate::state::StateModule {
         }
         self.last_action_group_id().set(group_id);
         group_id
+    }
+
+    fn propose_action(&self, action: Action<Self::Api>) -> ActionId {
+        let (caller_id, caller_role) = self.get_caller_id_and_role();
+        caller_role.require_can_propose::<Self::Api>();
+
+        let action_id = self.action_mapper().push(&action);
+        self.quorum_for_action(action_id).set(self.quorum().get());
+        if caller_role.can_sign() {
+            // also sign
+            // since the action is newly created, the caller can be the only signer
+            let _ = self.action_signer_ids(action_id).insert(caller_id);
+        }
+
+        action_id
     }
 
     fn require_valid_action_type(&self, action: &Action<Self::Api>) {
