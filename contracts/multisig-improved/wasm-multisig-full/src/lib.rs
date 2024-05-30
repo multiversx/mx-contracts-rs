@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           41
+// Endpoints:                           42
 // Async Callback:                       1
-// Total number of exported functions:  43
+// Total number of exported functions:  44
 
 #![no_std]
 #![allow(internal_features)]
@@ -52,6 +52,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         discardAction => discard_action_endpoint
         discardBatch => discard_batch
         getActionLastIndex => get_action_last_index
+        getUserNonce => get_user_nonce
         dnsRegister => dns_register
         getActionSignerCount => get_action_signer_count
         getActionValidSignerCount => get_action_valid_signer_count

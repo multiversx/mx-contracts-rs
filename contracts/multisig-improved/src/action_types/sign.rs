@@ -70,15 +70,14 @@ pub trait SignModule:
             "only board members and proposers can perform actions"
         );
 
-        let mut quorums_reached = true;
-
+        let mut quorum_reached = true;
         for action_id in self.action_groups(group_id).iter() {
             if !self.quorum_reached(action_id) {
-                quorums_reached = false;
+                quorum_reached = false;
             }
         }
 
-        if quorums_reached {
+        if quorum_reached {
             for action_id in self.action_groups(group_id).iter() {
                 let _ = self.perform_action(action_id);
             }
@@ -91,6 +90,7 @@ pub trait SignModule:
     fn unsign(&self, action_id: ActionId) {
         let (caller_id, caller_role) = self.get_caller_id_and_role();
         require!(caller_role.can_sign(), "only board members can un-sign");
+
         self.unsign_action(action_id, caller_id);
     }
 
@@ -108,7 +108,7 @@ pub trait SignModule:
         }
     }
 
-    fn unsign_action(&self, action_id: ActionId, caller_id: usize) {
+    fn unsign_action(&self, action_id: ActionId, caller_id: AddressId) {
         require!(
             !self.action_mapper().item_is_empty_unchecked(action_id),
             "action does not exist"
@@ -121,11 +121,11 @@ pub trait SignModule:
     /// Does not check whether or not the user is still a board member and the signature valid.
     #[view]
     fn signed(&self, user: ManagedAddress, action_id: ActionId) -> bool {
-        let user_id = self.user_mapper().get_user_id(&user);
-        if user_id == 0 {
-            false
-        } else {
+        let user_id = self.user_ids().get_id(&user);
+        if user_id != 0 {
             self.action_signer_ids(action_id).contains(&user_id)
+        } else {
+            false
         }
     }
 
@@ -133,9 +133,9 @@ pub trait SignModule:
     fn unsign_for_outdated_board_members(
         &self,
         action_id: ActionId,
-        outdated_board_members: MultiValueEncoded<usize>,
+        outdated_board_members: MultiValueEncoded<AddressId>,
     ) {
-        let mut board_members_to_remove: ManagedVec<usize> = ManagedVec::new();
+        let mut board_members_to_remove = ManagedVec::<Self::Api, u64>::new();
         if outdated_board_members.is_empty() {
             for signer_id in self.action_signer_ids(action_id).iter() {
                 if !self.user_id_to_role(signer_id).get().can_sign() {

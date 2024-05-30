@@ -39,13 +39,14 @@ pub trait PerformModule: crate::state::StateModule + crate::external::events::Ev
     ) {
         let user_id = if new_role == UserRole::None {
             // avoid creating a new user just to delete it
-            let user_id = self.user_mapper().get_user_id(&user_address);
+            let user_id = self.user_ids().get_id(&user_address);
             if user_id == 0 {
                 return;
             }
+
             user_id
         } else {
-            self.user_mapper().get_or_create_user(&user_address)
+            self.user_ids().get_id_or_insert(&user_address)
         };
 
         let user_id_to_role_mapper = self.user_id_to_role(user_id);

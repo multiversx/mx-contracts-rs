@@ -1,7 +1,7 @@
 use multiversx_sc::{
-    api::{ErrorApiImpl, ManagedTypeApi},
+    api::{CryptoApi, CryptoApiImpl, ErrorApiImpl, ManagedTypeApi},
     codec::NestedEncode,
-    types::{BigUint, CodeMetadata, ManagedAddress, ManagedBuffer, ManagedVec},
+    types::{BigUint, CodeMetadata, ManagedAddress, ManagedBuffer, ManagedType, ManagedVec},
 };
 use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
@@ -12,7 +12,6 @@ pub type Nonce = u64;
 
 pub type ActionId = usize;
 pub type GroupId = usize;
-pub type UserId = usize;
 
 #[derive(
     TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Eq, Clone, Copy, Debug,
@@ -65,7 +64,7 @@ pub enum Action<M: ManagedTypeApi> {
     },
 }
 
-impl<M: ManagedTypeApi> Action<M> {
+impl<M: ManagedTypeApi + CryptoApi> Action<M> {
     /// Only pending actions are kept in storage,
     /// both executed and discarded actions are removed (converted to `Nothing`).
     /// So this is equivalent to `action != Action::Nothing`.
@@ -91,10 +90,14 @@ impl<M: ManagedTypeApi> Action<M> {
         )
     }
 
-    pub fn serialize(&self, signer: &ManagedAddress<M>, user_nonce: Nonce) -> ManagedBuffer<M> {
+    pub fn serialize_and_hash(
+        &self,
+        signer: &ManagedAddress<M>,
+        user_nonce: Nonce,
+    ) -> ManagedBuffer<M> {
         let mut all_data = signer.as_managed_buffer().clone();
-        let nonce_encode_reuslt = user_nonce.dep_encode(&mut all_data);
-        if nonce_encode_reuslt.is_err() {
+        let nonce_encode_result = user_nonce.dep_encode(&mut all_data);
+        if nonce_encode_result.is_err() {
             M::error_api_impl().signal_error(b"Error encoding user nonce to buffer");
         }
 
@@ -103,7 +106,10 @@ impl<M: ManagedTypeApi> Action<M> {
             M::error_api_impl().signal_error(b"Error encoding action to buffer");
         }
 
-        all_data
+        let output_hash = ManagedBuffer::new();
+        M::crypto_api_impl().sha256_managed(output_hash.get_handle(), all_data.get_handle());
+
+        output_hash
     }
 }
 

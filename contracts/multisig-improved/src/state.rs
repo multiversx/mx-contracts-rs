@@ -1,5 +1,5 @@
 use crate::action_types::perform::MAX_BOARD_MEMBERS;
-use crate::common_types::action::{ActionId, ActionStatus, GroupId, UserId};
+use crate::common_types::action::{ActionId, ActionStatus, GroupId, Nonce};
 use crate::common_types::{action::Action, user_role::UserRole};
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
@@ -42,35 +42,32 @@ pub trait StateModule {
         let signer_ids = self.action_signer_ids(action_id);
         let mut signers = ManagedVec::new();
         for signer_id in signer_ids.iter() {
-            signers.push(self.user_mapper().get_user_address_unchecked(signer_id));
+            let opt_user_address = self.user_ids().get_address(signer_id);
+            let address = unsafe { opt_user_address.unwrap_unchecked() };
+            signers.push(address);
         }
+
         signers
     }
 
-    fn get_caller_id_and_role(&self) -> (UserId, UserRole) {
+    fn get_caller_id_and_role(&self) -> (AddressId, UserRole) {
         let caller_address = self.blockchain().get_caller();
-        let caller_id = self.user_mapper().get_user_id(&caller_address);
+        let caller_id = self.user_ids().get_id(&caller_address);
         let caller_role = self.user_id_to_role(caller_id).get();
         (caller_id, caller_role)
     }
 
     fn add_multiple_board_members(&self, new_board_members: ManagedVec<ManagedAddress>) -> usize {
-        let mut duplicates = false;
         require!(
             self.num_board_members().get() + new_board_members.len() <= MAX_BOARD_MEMBERS,
             "board size cannot exceed limit"
         );
 
-        self.user_mapper().get_or_create_users(
-            new_board_members.into_iter(),
-            |user_id, new_user| {
-                if !new_user {
-                    duplicates = true;
-                }
-                self.user_id_to_role(user_id).set(UserRole::BoardMember);
-            },
-        );
-        require!(!duplicates, "duplicate board member");
+        let mapper = self.user_ids();
+        for new_member in &new_board_members {
+            let user_id = mapper.insert_new(&new_member);
+            self.user_id_to_role(user_id).set(UserRole::BoardMember);
+        }
 
         let num_board_members_mapper = self.num_board_members();
         let new_num_board_members = num_board_members_mapper.get() + new_board_members.len();
@@ -79,19 +76,34 @@ pub trait StateModule {
         new_num_board_members
     }
 
+    fn get_and_increment_user_nonce(&self, user_address: &ManagedAddress) -> Nonce {
+        let user_id = self.user_ids().get_id_non_zero(user_address);
+
+        let mut output_nonce = 0;
+        self.user_nonce(user_id).update(|user_nonce| {
+            output_nonce = *user_nonce;
+            *user_nonce += 1;
+        });
+
+        output_nonce
+    }
+
     /// Minimum number of signatures needed to perform any action.
     #[view(getQuorum)]
     #[storage_mapper("quorum_ids")]
     fn quorum(&self) -> SingleValueMapper<usize>;
 
     #[storage_mapper("user_ids")]
-    fn user_mapper(&self) -> UserMapper;
+    fn user_ids(&self) -> AddressToIdMapper<Self::Api>;
+
+    #[storage_mapper("userNonce")]
+    fn user_nonce(&self, user_id: AddressId) -> SingleValueMapper<Nonce>;
 
     #[storage_mapper("quorum_for_action")]
     fn quorum_for_action(&self, action_id: ActionId) -> SingleValueMapper<usize>;
 
     #[storage_mapper("user_role")]
-    fn user_id_to_role(&self, user_id: UserId) -> SingleValueMapper<UserRole>;
+    fn user_id_to_role(&self, user_id: AddressId) -> SingleValueMapper<UserRole>;
 
     /// Denormalized board member count.
     /// It is kept in sync with the user list by the contract.
@@ -128,5 +140,5 @@ pub trait StateModule {
     fn group_for_action(&self, action_id: ActionId) -> SingleValueMapper<GroupId>;
 
     #[storage_mapper("action_signer_ids")]
-    fn action_signer_ids(&self, action_id: ActionId) -> UnorderedSetMapper<UserId>;
+    fn action_signer_ids(&self, action_id: ActionId) -> UnorderedSetMapper<AddressId>;
 }

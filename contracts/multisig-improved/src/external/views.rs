@@ -1,5 +1,5 @@
 use crate::common_types::{
-    action::{Action, ActionFullInfo, ActionId},
+    action::{Action, ActionFullInfo, ActionId, Nonce},
     user_role::UserRole,
 };
 
@@ -64,7 +64,7 @@ pub trait ViewsModule:
     #[label("multisig-external-view")]
     #[view(userRole)]
     fn user_role(&self, user: ManagedAddress) -> UserRole {
-        let user_id = self.user_mapper().get_user_id(&user);
+        let user_id = self.user_ids().get_id(&user);
         if user_id == 0 {
             return UserRole::None;
         }
@@ -86,13 +86,6 @@ pub trait ViewsModule:
         self.get_all_users_with_role(UserRole::Proposer)
     }
 
-    /// The index of the last proposed action.
-    /// 0 means that no action was ever proposed yet.
-    #[view(getActionLastIndex)]
-    fn get_action_last_index(&self) -> ActionId {
-        self.action_mapper().len()
-    }
-
     /// Serialized action data of an action with index.
     #[label("multisig-external-view")]
     #[view(getActionData)]
@@ -100,12 +93,25 @@ pub trait ViewsModule:
         self.action_mapper().get(action_id)
     }
 
+    /// The index of the last proposed action.
+    /// 0 means that no action was ever proposed yet.
+    #[view(getActionLastIndex)]
+    fn get_action_last_index(&self) -> ActionId {
+        self.action_mapper().len()
+    }
+
+    #[view(getUserNonce)]
+    fn get_user_nonce(&self, user_address: ManagedAddress) -> Nonce {
+        let user_id = self.user_ids().get_id_non_zero(&user_address);
+        self.user_nonce(user_id).get()
+    }
+
     fn get_all_users_with_role(&self, role: UserRole) -> MultiValueEncoded<ManagedAddress> {
         let mut result = MultiValueEncoded::new();
-        let num_users = self.user_mapper().get_user_count();
+        let num_users = self.user_ids().get_last_id();
         for user_id in 1..=num_users {
             if self.user_id_to_role(user_id).get() == role {
-                if let Some(address) = self.user_mapper().get_user_address(user_id) {
+                if let Some(address) = self.user_ids().get_address(user_id) {
                     result.push(address);
                 }
             }
