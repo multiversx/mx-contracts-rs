@@ -88,6 +88,13 @@ pub trait StateModule {
         output_nonce
     }
 
+    fn require_action_exists(&self, action_id: ActionId) {
+        require!(
+            !self.action_mapper().item_is_empty_unchecked(action_id),
+            "action does not exist"
+        );
+    }
+
     /// Minimum number of signatures needed to perform any action.
     #[view(getQuorum)]
     #[storage_mapper("quorum_ids")]

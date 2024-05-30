@@ -12,10 +12,8 @@ pub trait SignModule:
     /// Used by board members to sign actions.
     #[endpoint]
     fn sign(&self, action_id: ActionId) {
-        require!(
-            !self.action_mapper().item_is_empty_unchecked(action_id),
-            "action does not exist"
-        );
+        self.require_action_exists(action_id);
+
         let group_id = self.group_for_action(action_id).get();
         if group_id != 0 {
             let group_status = self.action_group_status(group_id).get();
@@ -24,8 +22,9 @@ pub trait SignModule:
                 "cannot sign actions of an aborted batch"
             );
         }
+
         let (caller_id, caller_role) = self.get_caller_id_and_role();
-        require!(caller_role.can_sign(), "only board members can sign");
+        caller_role.require_can_sign::<Self::Api>();
 
         let _ = self.action_signer_ids(action_id).insert(caller_id);
     }
@@ -34,21 +33,19 @@ pub trait SignModule:
     #[endpoint(signBatch)]
     fn sign_batch(&self, group_id: GroupId) {
         let (caller_id, caller_role) = self.get_caller_id_and_role();
-        require!(caller_role.can_sign(), "only board members can sign");
+        caller_role.require_can_sign::<Self::Api>();
 
         let group_status = self.action_group_status(group_id).get();
         require!(
             group_status == ActionStatus::Available,
             "cannot sign actions of an aborted batch"
         );
+
         let mapper = self.action_groups(group_id);
         require!(!mapper.is_empty(), "Invalid group ID");
 
         for action_id in mapper.iter() {
-            require!(
-                !self.action_mapper().item_is_empty_unchecked(action_id),
-                "action does not exist"
-            );
+            self.require_action_exists(action_id);
 
             let _ = self.action_signer_ids(action_id).insert(caller_id);
         }
@@ -89,7 +86,7 @@ pub trait SignModule:
     #[endpoint]
     fn unsign(&self, action_id: ActionId) {
         let (caller_id, caller_role) = self.get_caller_id_and_role();
-        require!(caller_role.can_sign(), "only board members can un-sign");
+        caller_role.require_can_unsign::<Self::Api>();
 
         self.unsign_action(action_id, caller_id);
     }
@@ -98,7 +95,7 @@ pub trait SignModule:
     #[endpoint(unsignBatch)]
     fn unsign_batch(&self, group_id: GroupId) {
         let (caller_id, caller_role) = self.get_caller_id_and_role();
-        require!(caller_role.can_sign(), "only board members can un-sign");
+        caller_role.require_can_unsign::<Self::Api>();
 
         let mapper = self.action_groups(group_id);
         require!(!mapper.is_empty(), "Invalid group ID");
@@ -109,10 +106,7 @@ pub trait SignModule:
     }
 
     fn unsign_action(&self, action_id: ActionId, caller_id: AddressId) {
-        require!(
-            !self.action_mapper().item_is_empty_unchecked(action_id),
-            "action does not exist"
-        );
+        self.require_action_exists(action_id);
 
         let _ = self.action_signer_ids(action_id).swap_remove(&caller_id);
     }

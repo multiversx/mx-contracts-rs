@@ -12,10 +12,7 @@ multiversx_sc::imports!();
 pub trait ProposeModule: crate::state::StateModule {
     fn propose_action(&self, action: Action<Self::Api>) -> ActionId {
         let (caller_id, caller_role) = self.get_caller_id_and_role();
-        require!(
-            caller_role.can_propose(),
-            "only board members and proposers can propose"
-        );
+        caller_role.require_can_propose::<Self::Api>();
 
         let action_id = self.action_mapper().push(&action);
         self.quorum_for_action(action_id).set(self.quorum().get());
@@ -173,10 +170,7 @@ pub trait ProposeModule: crate::state::StateModule {
         require!(!actions.is_empty(), "No actions");
 
         let (caller_id, caller_role) = self.get_caller_id_and_role();
-        require!(
-            caller_role.can_propose(),
-            "only board members and proposers can propose"
-        );
+        caller_role.require_can_propose::<Self::Api>();
 
         let mut action_mapper = self.action_mapper();
         let mut action_groups_mapper = self.action_groups(group_id);
@@ -225,11 +219,13 @@ pub trait ProposeModule: crate::state::StateModule {
                 own_shard == other_sc_shard,
                 "All transfer exec must be to the same shard"
             );
+
             return;
         }
 
         if let Action::SendTransferExecuteEsdt(call_data) = &action {
             require!(!call_data.tokens.is_empty(), "No tokens to transfer");
+
             let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
             require!(
                 own_shard == other_sc_shard,

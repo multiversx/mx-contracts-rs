@@ -16,10 +16,7 @@ pub trait DiscardActionModule:
     #[endpoint(discardAction)]
     fn discard_action_endpoint(&self, action_id: ActionId) {
         let (_, caller_role) = self.get_caller_id_and_role();
-        require!(
-            caller_role.can_discard_action(),
-            "only board members and proposers can discard actions"
-        );
+        caller_role.require_can_discard_action::<Self::Api>();
 
         self.discard_action(action_id);
     }
@@ -28,10 +25,7 @@ pub trait DiscardActionModule:
     #[endpoint(discardBatch)]
     fn discard_batch(&self, action_ids: MultiValueEncoded<ActionId>) {
         let (_, caller_role) = self.get_caller_id_and_role();
-        require!(
-            caller_role.can_discard_action(),
-            "only board members and proposers can discard actions"
-        );
+        caller_role.require_can_discard_action::<Self::Api>();
 
         for action_id in action_ids {
             self.discard_action(action_id);
