@@ -11,6 +11,7 @@ pub trait ViewsModule:
     + crate::action_types::propose::ProposeModule
     + crate::action_types::sign::SignModule
     + crate::action_types::perform::PerformModule
+    + crate::check_signature::CheckSignatureModule
     + super::events::EventsModule
 {
     /// Iterates through all actions and retrieves those that are still pending.

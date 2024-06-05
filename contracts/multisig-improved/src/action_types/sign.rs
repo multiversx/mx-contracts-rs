@@ -1,4 +1,7 @@
-use crate::common_types::action::{ActionId, ActionStatus, GroupId};
+use crate::common_types::{
+    action::{ActionId, ActionStatus, GroupId},
+    signature::SignatureMultiArg,
+};
 
 multiversx_sc::imports!();
 
@@ -8,10 +11,16 @@ pub trait SignModule:
     + crate::action_types::propose::ProposeModule
     + crate::action_types::perform::PerformModule
     + crate::external::events::EventsModule
+    + crate::check_signature::CheckSignatureModule
 {
     /// Used by board members to sign actions.
+    /// Pairs of Board member, internal user nonce, action type (SimpleAction or Batch), SignatureType (Ed25519, Secp256r1 or Secp256k1) and raw signature
     #[endpoint]
-    fn sign(&self, action_id: ActionId) {
+    fn sign(
+        &self,
+        action_id: ActionId,
+        signatures: MultiValueEncoded<SignatureMultiArg<Self::Api>>,
+    ) {
         self.require_action_exists(action_id);
 
         let group_id = self.group_for_action(action_id).get();
@@ -23,16 +32,19 @@ pub trait SignModule:
             );
         }
 
-        let (caller_id, caller_role) = self.get_caller_id_and_role();
-        caller_role.require_can_sign::<Self::Api>();
-
-        let _ = self.action_signer_ids(action_id).insert(caller_id);
+        let user_ids = self.check_single_action_signatures(action_id, signatures);
+        self.add_signatures(action_id, &user_ids);
     }
 
     /// Sign all the actions in the given batch
+    /// Signatures must be given in order of the action IDs inside batch, even if it was already signed
     #[endpoint(signBatch)]
-    fn sign_batch(&self, group_id: GroupId) {
-        let (caller_id, caller_role) = self.get_caller_id_and_role();
+    fn sign_batch(
+        &self,
+        group_id: GroupId,
+        signatures: MultiValueEncoded<SignatureMultiArg<Self::Api>>,
+    ) {
+        let (_, caller_role) = self.get_caller_id_and_role();
         caller_role.require_can_sign::<Self::Api>();
 
         let group_status = self.action_group_status(group_id).get();
@@ -44,22 +56,31 @@ pub trait SignModule:
         let mapper = self.action_groups(group_id);
         require!(!mapper.is_empty(), "Invalid group ID");
 
+        let user_ids = self.check_group_signatures(group_id, signatures);
         for action_id in mapper.iter() {
             self.require_action_exists(action_id);
 
-            let _ = self.action_signer_ids(action_id).insert(caller_id);
+            self.add_signatures(action_id, &user_ids);
         }
     }
 
     #[endpoint(signAndPerform)]
-    fn sign_and_perform(&self, action_id: ActionId) -> OptionalValue<ManagedAddress> {
-        self.sign(action_id);
+    fn sign_and_perform(
+        &self,
+        action_id: ActionId,
+        signatures: MultiValueEncoded<SignatureMultiArg<Self::Api>>,
+    ) -> OptionalValue<ManagedAddress> {
+        self.sign(action_id, signatures);
         self.try_perform_action(action_id)
     }
 
     #[endpoint(signBatchAndPerform)]
-    fn sign_batch_and_perform(&self, group_id: GroupId) {
-        self.sign_batch(group_id);
+    fn sign_batch_and_perform(
+        &self,
+        group_id: GroupId,
+        signatures: MultiValueEncoded<SignatureMultiArg<Self::Api>>,
+    ) {
+        self.sign_batch(group_id, signatures);
 
         let (_, caller_role) = self.get_caller_id_and_role();
         require!(
@@ -134,6 +155,13 @@ pub trait SignModule:
 
         for member in board_members_to_remove.iter() {
             self.action_signer_ids(action_id).swap_remove(&member);
+        }
+    }
+
+    fn add_signatures(&self, action_id: ActionId, board_members: &ManagedVec<AddressId>) {
+        let mut mapper = self.action_signer_ids(action_id);
+        for board_member in board_members {
+            let _ = mapper.insert(board_member);
         }
     }
 }

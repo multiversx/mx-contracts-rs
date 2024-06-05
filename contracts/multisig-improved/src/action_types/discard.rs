@@ -8,6 +8,7 @@ pub trait DiscardActionModule:
     + crate::action_types::propose::ProposeModule
     + crate::action_types::sign::SignModule
     + crate::action_types::perform::PerformModule
+    + crate::check_signature::CheckSignatureModule
     + crate::external::events::EventsModule
 {
     /// Clears storage pertaining to an action that is no longer supposed to be executed.

@@ -1,10 +1,6 @@
-use multiversx_sc::{
-    api::{CryptoApi, CryptoApiImpl, ErrorApiImpl, ManagedTypeApi},
-    codec::NestedEncode,
-    types::{BigUint, CodeMetadata, ManagedAddress, ManagedBuffer, ManagedType, ManagedVec},
-};
 use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
+multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
 pub type GasLimit = u64;
@@ -64,7 +60,7 @@ pub enum Action<M: ManagedTypeApi> {
     },
 }
 
-impl<M: ManagedTypeApi + CryptoApi> Action<M> {
+impl<M: ManagedTypeApi> Action<M> {
     /// Only pending actions are kept in storage,
     /// both executed and discarded actions are removed (converted to `Nothing`).
     /// So this is equivalent to `action != Action::Nothing`.
@@ -88,28 +84,6 @@ impl<M: ManagedTypeApi + CryptoApi> Action<M> {
                 args: _
             }
         )
-    }
-
-    pub fn serialize_and_hash(
-        &self,
-        signer: &ManagedAddress<M>,
-        user_nonce: Nonce,
-    ) -> ManagedBuffer<M> {
-        let mut all_data = signer.as_managed_buffer().clone();
-        let nonce_encode_result = user_nonce.dep_encode(&mut all_data);
-        if nonce_encode_result.is_err() {
-            M::error_api_impl().signal_error(b"Error encoding user nonce to buffer");
-        }
-
-        let action_encode_result = self.dep_encode(&mut all_data);
-        if action_encode_result.is_err() {
-            M::error_api_impl().signal_error(b"Error encoding action to buffer");
-        }
-
-        let output_hash = ManagedBuffer::new();
-        M::crypto_api_impl().sha256_managed(output_hash.get_handle(), all_data.get_handle());
-
-        output_hash
     }
 }
 

@@ -32,9 +32,14 @@ pub trait StateModule {
 
     fn get_caller_id_and_role(&self) -> (AddressId, UserRole) {
         let caller_address = self.blockchain().get_caller();
-        let caller_id = self.user_ids().get_id(&caller_address);
-        let caller_role = self.user_id_to_role(caller_id).get();
-        (caller_id, caller_role)
+        self.get_id_and_role(&caller_address)
+    }
+
+    fn get_id_and_role(&self, user_address: &ManagedAddress) -> (AddressId, UserRole) {
+        let user_id = self.user_ids().get_id(user_address);
+        let user_role = self.user_id_to_role(user_id).get();
+
+        (user_id, user_role)
     }
 
     fn add_multiple_board_members(&self, new_board_members: ManagedVec<ManagedAddress>) -> usize {
