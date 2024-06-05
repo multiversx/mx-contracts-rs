@@ -51,7 +51,7 @@ pub struct Signature<M: ManagedTypeApi> {
 }
 
 impl<M: ManagedTypeApi + CryptoApi> Signature<M> {
-    #[cfg(not(debug_assertions))]
+    //#[cfg(not(debug_assertions))]
     pub fn check_signature_by_type(
         &self,
         user_address: &ManagedAddress<M>,
@@ -77,11 +77,11 @@ impl<M: ManagedTypeApi + CryptoApi> Signature<M> {
         }
     }
 
-    #[cfg(debug_assertions)]
-    pub fn check_signature_by_type(
-        &self,
-        _user_address: &ManagedAddress<M>,
-        _bytes_to_sign: &ManagedBuffer<M>,
-    ) {
-    }
+    // #[cfg(debug_assertions)]
+    // pub fn check_signature_by_type(
+    //     &self,
+    //     _user_address: &ManagedAddress<M>,
+    //     _bytes_to_sign: &ManagedBuffer<M>,
+    // ) {
+    // }
 }
