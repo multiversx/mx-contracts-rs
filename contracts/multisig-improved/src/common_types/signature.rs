@@ -25,7 +25,7 @@ pub enum SignatureType {
     Secp256k1,
 }
 
-#[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode)]
+#[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode, PartialEq, Eq)]
 pub enum ActionType {
     SimpleAction,
     Group,
@@ -38,7 +38,7 @@ pub enum ItemToSign<'a, M: ManagedTypeApi> {
 
 impl ActionType {
     pub fn require_is_type<M: ManagedTypeApi>(&self, action_type: Self) {
-        if !matches!(self, action_type) {
+        if self != &action_type {
             M::error_api_impl().signal_error(b"Wrong action type signed");
         }
     }
