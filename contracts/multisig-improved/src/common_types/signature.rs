@@ -7,7 +7,7 @@ multiversx_sc::derive_imports!();
 
 #[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode)]
 pub struct SignatureArg<M: ManagedTypeApi> {
-    pub board_member: ManagedAddress<M>,
+    pub user_address: ManagedAddress<M>,
     pub nonce: Nonce,
     pub action_type: ActionType,
     pub signature_type: SignatureType,
@@ -22,13 +22,16 @@ pub enum SignatureType {
     Secp256k1,
 }
 
-#[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode, PartialEq, Eq)]
+#[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode, PartialEq, Eq, Clone, Copy)]
 pub enum ActionType {
+    Propose,
     SimpleAction,
     Group,
 }
 
+#[derive(Clone)]
 pub enum ItemToSign<'a, M: ManagedTypeApi> {
+    Propose(&'a Action<M>),
     Action(&'a Action<M>),
     Group(GroupId),
 }
