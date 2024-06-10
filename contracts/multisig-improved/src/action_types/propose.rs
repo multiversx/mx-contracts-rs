@@ -61,6 +61,7 @@ pub trait ProposeModule:
     /// Can send EGLD without calling anything.
     /// Can call smart contract endpoints directly.
     /// Doesn't really work with builtin functions.
+    #[allow_multiple_var_args]
     #[endpoint(proposeTransferExecute)]
     fn propose_transfer_execute(
         &self,
@@ -86,6 +87,7 @@ pub trait ProposeModule:
         self.propose_action(Action::SendTransferExecuteEgld(call_data), opt_signature)
     }
 
+    #[allow_multiple_var_args]
     #[endpoint(proposeTransferExecuteEsdt)]
     fn propose_transfer_execute_esdt(
         &self,
@@ -113,6 +115,7 @@ pub trait ProposeModule:
     /// Can use ESDTTransfer/ESDTNFTTransfer/MultiESDTTransfer to send tokens, while also optionally calling endpoints.
     /// Works well with builtin functions.
     /// Cannot simply send EGLD directly without calling anything.
+    #[allow_multiple_var_args]
     #[endpoint(proposeAsyncCall)]
     fn propose_async_call(
         &self,
@@ -138,6 +141,7 @@ pub trait ProposeModule:
         self.propose_action(Action::SendAsyncCall(call_data), opt_signature)
     }
 
+    #[allow_multiple_var_args]
     #[endpoint(proposeSCDeployFromSource)]
     fn propose_sc_deploy_from_source(
         &self,
@@ -158,6 +162,7 @@ pub trait ProposeModule:
         )
     }
 
+    #[allow_multiple_var_args]
     #[endpoint(proposeSCUpgradeFromSource)]
     fn propose_sc_upgrade_from_source(
         &self,
