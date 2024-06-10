@@ -22,8 +22,6 @@ multiversx_sc_wasm_adapter::endpoints! {
         init => init
         upgrade => upgrade
         deposit => deposit
-        discardAction => discard_action_endpoint
-        discardBatch => discard_batch
         getQuorum => quorum
         getNumBoardMembers => num_board_members
         getNumGroups => num_groups
@@ -52,6 +50,8 @@ multiversx_sc_wasm_adapter::endpoints! {
         quorumReached => quorum_reached
         performAction => perform_action_endpoint
         performBatch => perform_batch
+        discardAction => discard_action_endpoint
+        discardBatch => discard_batch
         dnsRegister => dns_register
     )
 }

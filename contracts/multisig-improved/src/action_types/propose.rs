@@ -1,15 +1,15 @@
 use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
 use crate::{
-    action::{Action, CallActionData, EsdtTransferExecuteData, GasLimit},
-    multisig_state::{ActionId, ActionStatus, GroupId},
+    common_types::action::{Action, CallActionData, DeployArgs, EsdtTransferExecuteData, GasLimit},
+    state::{ActionId, ActionStatus, GroupId},
 };
 
 multiversx_sc::imports!();
 
 /// Contains all events that can be emitted by the contract.
 #[multiversx_sc::module]
-pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
+pub trait ProposeModule: crate::state::StateModule {
     fn propose_action(&self, action: Action<Self::Api>) -> ActionId {
         let (caller_id, caller_role) = self.get_caller_id_and_role();
         require!(
@@ -139,12 +139,12 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
         code_metadata: CodeMetadata,
         arguments: MultiValueEncoded<ManagedBuffer>,
     ) -> ActionId {
-        self.propose_action(Action::SCDeployFromSource {
+        self.propose_action(Action::SCDeployFromSource(DeployArgs {
             amount,
             source,
             code_metadata,
             arguments: arguments.into_vec_of_buffers(),
-        })
+        }))
     }
 
     #[endpoint(proposeSCUpgradeFromSource)]
@@ -158,10 +158,12 @@ pub trait MultisigProposeModule: crate::multisig_state::MultisigStateModule {
     ) -> ActionId {
         self.propose_action(Action::SCUpgradeFromSource {
             sc_address,
-            amount,
-            source,
-            code_metadata,
-            arguments: arguments.into_vec_of_buffers(),
+            args: DeployArgs {
+                amount,
+                source,
+                code_metadata,
+                arguments: arguments.into_vec_of_buffers(),
+            },
         })
     }
 

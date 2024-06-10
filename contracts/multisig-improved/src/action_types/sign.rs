@@ -1,13 +1,13 @@
-use crate::multisig_state::{ActionId, ActionStatus, GroupId};
+use crate::state::{ActionId, ActionStatus, GroupId};
 
 multiversx_sc::imports!();
 
 #[multiversx_sc::module]
-pub trait MultisigSignModule:
-    crate::multisig_state::MultisigStateModule
-    + crate::multisig_propose::MultisigProposeModule
-    + crate::multisig_perform::MultisigPerformModule
-    + crate::multisig_events::MultisigEventsModule
+pub trait SignModule:
+    crate::state::StateModule
+    + crate::action_types::propose::ProposeModule
+    + crate::action_types::perform::PerformModule
+    + crate::external::events::EventsModule
 {
     /// Used by board members to sign actions.
     #[endpoint]
