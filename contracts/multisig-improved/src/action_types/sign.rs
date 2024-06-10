@@ -14,7 +14,6 @@ pub trait SignModule:
     + crate::check_signature::CheckSignatureModule
 {
     /// Used by board members to sign actions.
-    /// Pairs of Board member, internal user nonce, action type (SimpleAction or Batch), SignatureType (Ed25519, Secp256r1 or Secp256k1) and raw signature
     #[endpoint]
     fn sign(&self, action_id: ActionId, signatures: MultiValueEncoded<SignatureArg<Self::Api>>) {
         self.require_action_exists(action_id);
