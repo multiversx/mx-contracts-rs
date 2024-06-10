@@ -2,7 +2,7 @@ use multiversx_sc::api::SHA256_RESULT_LEN;
 
 use crate::common_types::{
     action::{Action, ActionId, GroupId, Nonce},
-    signature::{ActionType, DecomposeResultType, ItemToSign, Signature, SignatureMultiArg},
+    signature::{ActionType, ItemToSign, Signature, SignatureArg},
 };
 
 multiversx_sc::imports!();
@@ -14,17 +14,17 @@ pub trait CheckSignatureModule: crate::state::StateModule {
     fn check_single_action_signatures(
         &self,
         action_id: ActionId,
-        signatures: MultiValueEncoded<SignatureMultiArg<Self::Api>>,
+        signatures: MultiValueEncoded<SignatureArg<Self::Api>>,
     ) -> ManagedVec<AddressId> {
         let mut board_members = ManagedVec::new();
 
+        let id_mapper = self.user_ids();
         let action = self.action_mapper().get_unchecked(action_id);
-        for sig_multi_arg in signatures {
-            let decompose_result =
-                self.decompose_and_check_action_type(sig_multi_arg, ActionType::SimpleAction);
+        for sig_arg in signatures {
+            let user_id = id_mapper.get_id_non_zero(&sig_arg.board_member);
 
-            let user_id = decompose_result.user_id;
-            self.check_signature_by_item_to_sign(decompose_result, ItemToSign::Action(&action));
+            self.check_base_signature_validity(&sig_arg, ActionType::SimpleAction);
+            self.check_signature_by_item_to_sign(sig_arg, ItemToSign::Action(&action));
 
             board_members.push(user_id);
         }
@@ -35,16 +35,16 @@ pub trait CheckSignatureModule: crate::state::StateModule {
     fn check_group_signatures(
         &self,
         group_id: GroupId,
-        signatures: MultiValueEncoded<SignatureMultiArg<Self::Api>>,
+        signatures: MultiValueEncoded<SignatureArg<Self::Api>>,
     ) -> ManagedVec<AddressId> {
         let mut board_members = ManagedVec::new();
 
-        for sig_multi_arg in signatures {
-            let decompose_result =
-                self.decompose_and_check_action_type(sig_multi_arg, ActionType::Group);
+        let id_mapper = self.user_ids();
+        for sig_arg in signatures {
+            let user_id = id_mapper.get_id_non_zero(&sig_arg.board_member);
 
-            let user_id = decompose_result.user_id;
-            self.check_signature_by_item_to_sign(decompose_result, ItemToSign::Group(group_id));
+            self.check_base_signature_validity(&sig_arg, ActionType::Group);
+            self.check_signature_by_item_to_sign(sig_arg, ItemToSign::Group(group_id));
 
             board_members.push(user_id);
         }
@@ -52,55 +52,41 @@ pub trait CheckSignatureModule: crate::state::StateModule {
         board_members
     }
 
-    fn decompose_and_check_action_type(
+    fn check_base_signature_validity(
         &self,
-        sig_multi_arg: SignatureMultiArg<Self::Api>,
+        sig_arg: &SignatureArg<Self::Api>,
         requested_action_type: ActionType,
-    ) -> DecomposeResultType<Self::Api> {
-        let (board_member, nonce, action_type, signature_type, raw_sig_bytes) =
-            sig_multi_arg.into_tuple();
-        let (user_id, user_role) = self.get_id_and_role(&board_member);
+    ) {
+        let (_, user_role) = self.get_id_and_role(&sig_arg.board_member);
         user_role.require_can_sign::<Self::Api>();
 
-        let next_user_nonce = self.get_and_increment_user_nonce(&board_member);
-        require!(nonce == next_user_nonce, "Invalid nonce");
+        let next_user_nonce = self.get_and_increment_user_nonce(&sig_arg.board_member);
+        require!(sig_arg.nonce == next_user_nonce, "Invalid nonce");
 
-        action_type.require_is_type::<Self::Api>(requested_action_type);
-
-        DecomposeResultType {
-            board_member,
-            user_id,
-            nonce,
-            signature_type,
-            raw_sig_bytes,
-        }
+        sig_arg
+            .action_type
+            .require_is_type::<Self::Api>(requested_action_type);
     }
 
     fn check_signature_by_item_to_sign(
         &self,
-        decompose_result: DecomposeResultType<Self::Api>,
+        sig_arg: SignatureArg<Self::Api>,
         item_to_sign: ItemToSign<Self::Api>,
     ) {
         let bytes_to_sign = match item_to_sign {
-            ItemToSign::Action(action) => self.serialize_and_hash_action(
-                action,
-                &decompose_result.board_member,
-                decompose_result.nonce,
-            ),
-            ItemToSign::Group(group_id) => self.serialize_and_hash_group(
-                group_id,
-                &decompose_result.board_member,
-                decompose_result.nonce,
-            ),
+            ItemToSign::Action(action) => {
+                self.serialize_and_hash_action(action, &sig_arg.board_member, sig_arg.nonce)
+            }
+            ItemToSign::Group(group_id) => {
+                self.serialize_and_hash_group(group_id, &sig_arg.board_member, sig_arg.nonce)
+            }
         };
         let signature_struct = Signature {
-            signature_type: decompose_result.signature_type,
-            raw_sig_bytes: decompose_result.raw_sig_bytes,
+            signature_type: sig_arg.signature_type,
+            raw_sig_bytes: sig_arg.raw_sig_bytes,
         };
-        signature_struct.check_signature_by_type(
-            &decompose_result.board_member,
-            bytes_to_sign.as_managed_buffer(),
-        );
+        signature_struct
+            .check_signature_by_type(&sig_arg.board_member, bytes_to_sign.as_managed_buffer());
     }
 
     fn serialize_and_hash_action(

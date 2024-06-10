@@ -5,14 +5,11 @@ use super::action::{Action, GroupId, Nonce};
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
-/// Board member, internal user nonce, action type (SimpleAction or Batch), SignatureType (Ed25519, Secp256r1 or Secp256k1) and raw signature
-pub type SignatureMultiArg<M> =
-    MultiValue5<ManagedAddress<M>, Nonce, ActionType, SignatureType, ManagedBuffer<M>>;
-
-pub struct DecomposeResultType<M: ManagedTypeApi> {
+#[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode)]
+pub struct SignatureArg<M: ManagedTypeApi> {
     pub board_member: ManagedAddress<M>,
-    pub user_id: AddressId,
     pub nonce: Nonce,
+    pub action_type: ActionType,
     pub signature_type: SignatureType,
     pub raw_sig_bytes: ManagedBuffer<M>,
 }

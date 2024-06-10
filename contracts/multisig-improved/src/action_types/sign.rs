@@ -1,6 +1,6 @@
 use crate::common_types::{
     action::{ActionId, ActionStatus, GroupId},
-    signature::SignatureMultiArg,
+    signature::SignatureArg,
 };
 
 multiversx_sc::imports!();
@@ -16,11 +16,7 @@ pub trait SignModule:
     /// Used by board members to sign actions.
     /// Pairs of Board member, internal user nonce, action type (SimpleAction or Batch), SignatureType (Ed25519, Secp256r1 or Secp256k1) and raw signature
     #[endpoint]
-    fn sign(
-        &self,
-        action_id: ActionId,
-        signatures: MultiValueEncoded<SignatureMultiArg<Self::Api>>,
-    ) {
+    fn sign(&self, action_id: ActionId, signatures: MultiValueEncoded<SignatureArg<Self::Api>>) {
         self.require_action_exists(action_id);
 
         let group_id = self.group_for_action(action_id).get();
@@ -42,7 +38,7 @@ pub trait SignModule:
     fn sign_batch(
         &self,
         group_id: GroupId,
-        signatures: MultiValueEncoded<SignatureMultiArg<Self::Api>>,
+        signatures: MultiValueEncoded<SignatureArg<Self::Api>>,
     ) {
         let (_, caller_role) = self.get_caller_id_and_role();
         caller_role.require_can_sign::<Self::Api>();
@@ -68,7 +64,7 @@ pub trait SignModule:
     fn sign_and_perform(
         &self,
         action_id: ActionId,
-        signatures: MultiValueEncoded<SignatureMultiArg<Self::Api>>,
+        signatures: MultiValueEncoded<SignatureArg<Self::Api>>,
     ) -> OptionalValue<ManagedAddress> {
         self.sign(action_id, signatures);
         self.try_perform_action(action_id)
@@ -78,7 +74,7 @@ pub trait SignModule:
     fn sign_batch_and_perform(
         &self,
         group_id: GroupId,
-        signatures: MultiValueEncoded<SignatureMultiArg<Self::Api>>,
+        signatures: MultiValueEncoded<SignatureArg<Self::Api>>,
     ) {
         self.sign_batch(group_id, signatures);
 
