@@ -8,6 +8,7 @@ use crate::common_types::{
 multiversx_sc::imports!();
 
 static ENCODING_NONCE_ERR_MSG: &[u8] = b"Error encoding user nonce to buffer";
+static ENCODING_ACTION_TYPE_ERR_MSG: &[u8] = b"Error encoding action type to buffer";
 
 #[multiversx_sc::module]
 pub trait CheckSignatureModule: crate::state::StateModule {
@@ -105,6 +106,12 @@ pub trait CheckSignatureModule: crate::state::StateModule {
             "Error encoding action to buffer"
         );
 
+        let action_type_encode_result = ActionType::SimpleAction.dep_encode(&mut all_data);
+        require!(
+            action_type_encode_result.is_ok(),
+            ENCODING_ACTION_TYPE_ERR_MSG
+        );
+
         self.crypto().sha256(all_data)
     }
 
@@ -122,6 +129,12 @@ pub trait CheckSignatureModule: crate::state::StateModule {
         require!(
             group_encode_result.is_ok(),
             "Error encoding Group ID to buffer"
+        );
+
+        let action_type_encode_result = ActionType::Group.dep_encode(&mut all_data);
+        require!(
+            action_type_encode_result.is_ok(),
+            ENCODING_ACTION_TYPE_ERR_MSG
         );
 
         self.crypto().sha256(all_data)
