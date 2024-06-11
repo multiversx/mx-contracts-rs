@@ -1,5 +1,5 @@
-use crate::multisig_perform::MAX_BOARD_MEMBERS;
-use crate::{action::Action, user_role::UserRole};
+use crate::action_types::perform::MAX_BOARD_MEMBERS;
+use crate::common_types::{action::Action, user_role::UserRole};
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
@@ -17,7 +17,7 @@ pub enum ActionStatus {
 
 /// Contains all events that can be emitted by the contract.
 #[multiversx_sc::module]
-pub trait MultisigStateModule {
+pub trait StateModule {
     /// Minimum number of signatures needed to perform any action.
     #[view(getQuorum)]
     #[storage_mapper("quorum_ids")]

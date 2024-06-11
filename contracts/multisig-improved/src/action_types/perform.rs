@@ -1,7 +1,7 @@
 use crate::{
-    action::{Action, ActionFullInfo, GasLimit},
-    multisig_state::{ActionId, ActionStatus, GroupId},
-    user_role::UserRole,
+    common_types::action::{Action, ActionFullInfo, GasLimit},
+    common_types::user_role::UserRole,
+    state::{ActionId, ActionStatus, GroupId},
 };
 
 multiversx_sc::imports!();
@@ -16,9 +16,7 @@ fn usize_add_isize(value: &mut usize, delta: isize) {
 
 /// Contains all events that can be emitted by the contract.
 #[multiversx_sc::module]
-pub trait MultisigPerformModule:
-    crate::multisig_state::MultisigStateModule + crate::multisig_events::MultisigEventsModule
-{
+pub trait PerformModule: crate::state::StateModule + crate::external::events::EventsModule {
     fn ensure_and_get_gas_for_transfer_exec(&self) -> GasLimit {
         let gas_left = self.blockchain().get_gas_left();
         require!(
@@ -307,54 +305,43 @@ pub trait MultisigPerformModule:
                     .with_callback(self.callbacks().perform_async_call_callback())
                     .call_and_exit()
             }
-            Action::SCDeployFromSource {
-                amount,
-                source,
-                code_metadata,
-                arguments,
-            } => {
+            Action::SCDeployFromSource(args) => {
                 let gas_left = self.blockchain().get_gas_left();
                 self.perform_deploy_from_source_event(
                     action_id,
-                    &amount,
-                    &source,
-                    code_metadata,
+                    &args.amount,
+                    &args.source,
+                    args.code_metadata,
                     gas_left,
-                    arguments.as_multi(),
+                    args.arguments.as_multi(),
                 );
                 let (new_address, _) = self.send_raw().deploy_from_source_contract(
                     gas_left,
-                    &amount,
-                    &source,
-                    code_metadata,
-                    &arguments.into(),
+                    &args.amount,
+                    &args.source,
+                    args.code_metadata,
+                    &args.arguments.into(),
                 );
                 OptionalValue::Some(new_address)
             }
-            Action::SCUpgradeFromSource {
-                sc_address,
-                amount,
-                source,
-                code_metadata,
-                arguments,
-            } => {
+            Action::SCUpgradeFromSource { sc_address, args } => {
                 let gas_left = self.blockchain().get_gas_left();
                 self.perform_upgrade_from_source_event(
                     action_id,
                     &sc_address,
-                    &amount,
-                    &source,
-                    code_metadata,
+                    &args.amount,
+                    &args.source,
+                    args.code_metadata,
                     gas_left,
-                    arguments.as_multi(),
+                    args.arguments.as_multi(),
                 );
                 self.send_raw().upgrade_from_source_contract(
                     &sc_address,
                     gas_left,
-                    &amount,
-                    &source,
-                    code_metadata,
-                    &arguments.into(),
+                    &args.amount,
+                    &args.source,
+                    args.code_metadata,
+                    &args.arguments.into(),
                 );
                 OptionalValue::None
             }
