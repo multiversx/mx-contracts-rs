@@ -41,7 +41,8 @@ pub trait OnChainClaimContract:
         let address_info_mapper = self.address_info(&caller);
         if address_info_mapper.is_empty() {
             let address_info = AddressInfo::new_with_epoch(current_epoch);
-            self.address_info(&caller).set(address_info);
+            self.address_info(&caller).set(&address_info);
+            self.new_claim_event(&caller, &address_info);
             return;
         }
 
