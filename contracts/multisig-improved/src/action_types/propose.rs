@@ -1,8 +1,8 @@
 use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
-use crate::{
-    common_types::action::{Action, CallActionData, DeployArgs, EsdtTransferExecuteData, GasLimit},
-    state::{ActionId, ActionStatus, GroupId},
+use crate::common_types::action::{
+    Action, ActionId, ActionStatus, CallActionData, DeployArgs, EsdtTransferExecuteData, GasLimit,
+    GroupId,
 };
 
 multiversx_sc::imports!();
@@ -10,24 +10,6 @@ multiversx_sc::imports!();
 /// Contains all events that can be emitted by the contract.
 #[multiversx_sc::module]
 pub trait ProposeModule: crate::state::StateModule {
-    fn propose_action(&self, action: Action<Self::Api>) -> ActionId {
-        let (caller_id, caller_role) = self.get_caller_id_and_role();
-        require!(
-            caller_role.can_propose(),
-            "only board members and proposers can propose"
-        );
-
-        let action_id = self.action_mapper().push(&action);
-        self.quorum_for_action(action_id).set(self.quorum().get());
-        if caller_role.can_sign() {
-            // also sign
-            // since the action is newly created, the caller can be the only signer
-            let _ = self.action_signer_ids(action_id).insert(caller_id);
-        }
-
-        action_id
-    }
-
     /// Initiates board member addition process.
     /// Can also be used to promote a proposer to board member.
     #[endpoint(proposeAddBoardMember)]
@@ -173,10 +155,7 @@ pub trait ProposeModule: crate::state::StateModule {
         require!(!actions.is_empty(), "No actions");
 
         let (caller_id, caller_role) = self.get_caller_id_and_role();
-        require!(
-            caller_role.can_propose(),
-            "only board members and proposers can propose"
-        );
+        caller_role.require_can_propose::<Self::Api>();
 
         let mut action_mapper = self.action_mapper();
         let mut action_groups_mapper = self.action_groups(group_id);
@@ -204,6 +183,21 @@ pub trait ProposeModule: crate::state::StateModule {
         group_id
     }
 
+    fn propose_action(&self, action: Action<Self::Api>) -> ActionId {
+        let (caller_id, caller_role) = self.get_caller_id_and_role();
+        caller_role.require_can_propose::<Self::Api>();
+
+        let action_id = self.action_mapper().push(&action);
+        self.quorum_for_action(action_id).set(self.quorum().get());
+        if caller_role.can_sign() {
+            // also sign
+            // since the action is newly created, the caller can be the only signer
+            let _ = self.action_signer_ids(action_id).insert(caller_id);
+        }
+
+        action_id
+    }
+
     fn require_valid_action_type(&self, action: &Action<Self::Api>) {
         require!(
             !action.is_nothing() && !action.is_async_call() && !action.is_sc_upgrade(),
@@ -225,11 +219,13 @@ pub trait ProposeModule: crate::state::StateModule {
                 own_shard == other_sc_shard,
                 "All transfer exec must be to the same shard"
             );
+
             return;
         }
 
         if let Action::SendTransferExecuteEsdt(call_data) = &action {
             require!(!call_data.tokens.is_empty(), "No tokens to transfer");
+
             let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
             require!(
                 own_shard == other_sc_shard,

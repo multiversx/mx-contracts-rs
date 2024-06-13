@@ -1,7 +1,6 @@
 use crate::{
-    common_types::action::{Action, ActionFullInfo, GasLimit},
+    common_types::action::{Action, ActionFullInfo, ActionId, ActionStatus, GasLimit, GroupId},
     common_types::user_role::UserRole,
-    state::{ActionId, ActionStatus, GroupId},
 };
 
 multiversx_sc::imports!();
@@ -40,13 +39,14 @@ pub trait PerformModule: crate::state::StateModule + crate::external::events::Ev
     ) {
         let user_id = if new_role == UserRole::None {
             // avoid creating a new user just to delete it
-            let user_id = self.user_mapper().get_user_id(&user_address);
+            let user_id = self.user_ids().get_id(&user_address);
             if user_id == 0 {
                 return;
             }
+
             user_id
         } else {
-            self.user_mapper().get_or_create_user(&user_address)
+            self.user_ids().get_id_or_insert(&user_address)
         };
 
         let user_id_to_role_mapper = self.user_id_to_role(user_id);
@@ -103,10 +103,8 @@ pub trait PerformModule: crate::state::StateModule + crate::external::events::Ev
     #[endpoint(performAction)]
     fn perform_action_endpoint(&self, action_id: ActionId) -> OptionalValue<ManagedAddress> {
         let (_, caller_role) = self.get_caller_id_and_role();
-        require!(
-            caller_role.can_perform_action(),
-            "only board members and proposers can perform actions"
-        );
+        caller_role.require_can_perform_action::<Self::Api>();
+
         require!(
             self.quorum_reached(action_id),
             "quorum has not been reached"
@@ -120,27 +118,23 @@ pub trait PerformModule: crate::state::StateModule + crate::external::events::Ev
 
     fn try_perform_action(&self, action_id: ActionId) -> OptionalValue<ManagedAddress> {
         let (_, caller_role) = self.get_caller_id_and_role();
-        require!(
-            caller_role.can_perform_action(),
-            "only board members and proposers can perform actions"
-        );
-        if self.quorum_reached(action_id) {
-            let group_id = self.group_for_action(action_id).get();
-            require!(group_id == 0, "May not execute this action by itself");
+        caller_role.require_can_perform_action::<Self::Api>();
 
-            return self.perform_action(action_id);
+        if !self.quorum_reached(action_id) {
+            return OptionalValue::None;
         }
-        OptionalValue::None
+
+        let group_id = self.group_for_action(action_id).get();
+        require!(group_id == 0, "May not execute this action by itself");
+
+        self.perform_action(action_id)
     }
 
     /// Perform all the actions in the given batch
     #[endpoint(performBatch)]
     fn perform_batch(&self, group_id: GroupId) {
         let (_, caller_role) = self.get_caller_id_and_role();
-        require!(
-            caller_role.can_perform_action(),
-            "only board members and proposers can perform actions"
-        );
+        caller_role.require_can_perform_action::<Self::Api>();
 
         let group_status = self.action_group_status(group_id).get();
         require!(

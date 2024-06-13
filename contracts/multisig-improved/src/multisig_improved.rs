@@ -1,6 +1,7 @@
 #![no_std]
 
 pub mod action_types;
+pub mod check_signature;
 pub mod common_types;
 pub mod external;
 pub mod state;
@@ -13,6 +14,7 @@ multiversx_sc::imports!();
 #[multiversx_sc::contract]
 pub trait Multisig:
     state::StateModule
+    + check_signature::CheckSignatureModule
     + action_types::propose::ProposeModule
     + action_types::sign::SignModule
     + action_types::perform::PerformModule
