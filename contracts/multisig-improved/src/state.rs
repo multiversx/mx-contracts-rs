@@ -7,6 +7,14 @@ multiversx_sc::derive_imports!();
 /// Contains all events that can be emitted by the contract.
 #[multiversx_sc::module]
 pub trait StateModule {
+    /// Returns `true` (`1`) if `getActionValidSignerCount >= getQuorum`.
+    #[view(quorumReached)]
+    fn quorum_reached(&self, action_id: ActionId) -> bool {
+        let quorum = self.quorum_for_action(action_id).get();
+        let valid_signers_count = self.get_action_valid_signer_count(action_id);
+        valid_signers_count >= quorum
+    }
+
     fn get_action_valid_signer_count(&self, action_id: ActionId) -> usize {
         let signer_ids = self.action_signer_ids(action_id);
         signer_ids

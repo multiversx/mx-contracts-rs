@@ -15,6 +15,8 @@ multiversx_sc::imports!();
 pub trait Multisig:
     state::StateModule
     + check_signature::CheckSignatureModule
+    + action_types::propose_endpoints::ProposeEndpointsModule
+    + action_types::perform_endpoints::PerformEndpointsModule
     + action_types::propose::ProposeModule
     + action_types::sign::SignModule
     + action_types::perform::PerformModule
