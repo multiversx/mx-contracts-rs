@@ -1349,29 +1349,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "multisig-improved"
-version = "1.0.0"
-dependencies = [
- "adder",
- "factorial",
- "hex",
- "multiversx-sc",
- "multiversx-sc-modules",
- "multiversx-sc-scenario",
- "multiversx-wegld-swap-sc 0.47.2",
- "num-bigint",
- "num-traits",
-]
-
-[[package]]
-name = "multisig-improved-meta"
-version = "0.0.0"
-dependencies = [
- "multisig-improved",
- "multiversx-sc-meta",
-]
-
-[[package]]
 name = "multisig-interact"
 version = "0.0.0"
 dependencies = [
