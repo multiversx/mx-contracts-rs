@@ -94,10 +94,9 @@ pub trait PerformModule: crate::state::StateModule + crate::external::events::Ev
         change_user_role(self, action_id, proposer_address, UserRole::Proposer);
 
         // validation required for the scenario when a board member becomes a proposer
-        require!(
-            self.quorum().get() <= self.num_board_members().get(),
-            "quorum cannot exceed board size"
-        );
+        let quorum = self.quorum().get();
+        let board_members = self.num_board_members().get();
+        self.require_valid_quorum(quorum, board_members);
     }
 
     fn remove_user(&self, action_id: ActionId, user_address: ManagedAddress) {
@@ -109,17 +108,14 @@ pub trait PerformModule: crate::state::StateModule + crate::external::events::Ev
             num_board_members + num_proposers > 0,
             "cannot remove all board members and proposers"
         );
-        require!(
-            self.quorum().get() <= num_board_members,
-            "quorum cannot exceed board size"
-        );
+
+        let quorum = self.quorum().get();
+        self.require_valid_quorum(quorum, num_board_members);
     }
 
     fn change_quorum(&self, action_id: ActionId, new_quorum: usize) {
-        require!(
-            new_quorum <= self.num_board_members().get(),
-            "quorum cannot exceed board size"
-        );
+        let board_members = self.num_board_members().get();
+        self.require_valid_quorum(new_quorum, board_members);
 
         self.quorum().set(new_quorum);
         self.perform_change_quorum_event(action_id, new_quorum);
@@ -290,6 +286,13 @@ pub trait PerformModule: crate::state::StateModule + crate::external::events::Ev
         require!(group_id == 0, "May not execute this action by itself");
 
         self.perform_action(action_id)
+    }
+
+    fn require_valid_quorum(&self, quorum: usize, num_board_members: usize) {
+        require!(
+            quorum <= num_board_members,
+            "quorum cannot exceed board size"
+        );
     }
 
     /// Callback only performs logging.
