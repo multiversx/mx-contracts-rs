@@ -9,6 +9,7 @@ pub trait DiscardActionModule:
     + super::sign::SignModule
     + super::perform::PerformModule
     + super::execute_action::ExecuteActionModule
+    + super::callbacks::CallbacksModule
     + crate::check_signature::CheckSignatureModule
     + crate::external::events::EventsModule
 {

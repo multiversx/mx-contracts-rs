@@ -8,6 +8,7 @@ pub trait PerformEndpointsModule:
     + crate::external::events::EventsModule
     + super::perform::PerformModule
     + super::execute_action::ExecuteActionModule
+    + super::callbacks::CallbacksModule
 {
     /// Proposers and board members use this to launch signed actions.
     #[endpoint(performAction)]

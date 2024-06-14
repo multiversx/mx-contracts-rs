@@ -7,6 +7,7 @@ pub trait PerformModule:
     crate::state::StateModule
     + crate::external::events::EventsModule
     + super::execute_action::ExecuteActionModule
+    + super::callbacks::CallbacksModule
 {
     fn perform_action(&self, action_id: ActionId) -> OptionalValue<ManagedAddress> {
         let action = self.action_mapper().get(action_id);
@@ -19,6 +20,7 @@ pub trait PerformModule:
                 "cannot perform actions of an aborted batch"
             );
         }
+
         self.start_perform_action_event(&ActionFullInfo {
             action_id,
             action_data: action.clone(),

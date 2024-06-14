@@ -3,6 +3,8 @@ use crate::common_types::{
     user_role::{change_user_role, UserRole},
 };
 
+use super::callbacks::CallbackProxy as _;
+
 multiversx_sc::imports!();
 
 /// Gas required to finish transaction after transfer-execute.
@@ -11,7 +13,9 @@ pub const MAX_BOARD_MEMBERS: usize = 30;
 
 #[multiversx_sc::module]
 pub trait ExecuteActionModule:
-    crate::state::StateModule + crate::external::events::EventsModule
+    crate::state::StateModule
+    + crate::external::events::EventsModule
+    + super::callbacks::CallbacksModule
 {
     fn execute_action_by_type(&self, action_id: ActionId, action: Action<Self::Api>) {
         match action {
@@ -245,26 +249,4 @@ pub trait ExecuteActionModule:
             "quorum cannot exceed board size"
         );
     }
-
-    /// Callback only performs logging.
-    #[callback]
-    fn perform_async_call_callback(
-        &self,
-        #[call_result] call_result: ManagedAsyncCallResult<MultiValueEncoded<ManagedBuffer>>,
-    ) {
-        match call_result {
-            ManagedAsyncCallResult::Ok(results) => {
-                self.async_call_success(results);
-            }
-            ManagedAsyncCallResult::Err(err) => {
-                self.async_call_error(err.err_code, err.err_msg);
-            }
-        }
-    }
-
-    #[event("asyncCallSuccess")]
-    fn async_call_success(&self, #[indexed] results: MultiValueEncoded<ManagedBuffer>);
-
-    #[event("asyncCallError")]
-    fn async_call_error(&self, #[indexed] err_code: u32, #[indexed] err_message: ManagedBuffer);
 }

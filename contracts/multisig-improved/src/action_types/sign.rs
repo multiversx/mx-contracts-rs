@@ -11,6 +11,7 @@ pub trait SignModule:
     + super::propose::ProposeModule
     + super::perform::PerformModule
     + super::execute_action::ExecuteActionModule
+    + super::callbacks::CallbacksModule
     + crate::external::events::EventsModule
     + crate::check_signature::CheckSignatureModule
 {

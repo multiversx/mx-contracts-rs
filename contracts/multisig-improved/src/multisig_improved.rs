@@ -22,6 +22,7 @@ pub trait Multisig:
     + action_types::sign::SignModule
     + action_types::perform::PerformModule
     + action_types::discard::DiscardActionModule
+    + action_types::callbacks::CallbacksModule
     + external::events::EventsModule
     + external::views::ViewsModule
     + multiversx_sc_modules::dns::DnsModule
