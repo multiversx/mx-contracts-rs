@@ -4,7 +4,10 @@ multiversx_sc::imports!();
 
 #[multiversx_sc::module]
 pub trait PerformEndpointsModule:
-    crate::state::StateModule + crate::external::events::EventsModule + super::perform::PerformModule
+    crate::state::StateModule
+    + crate::external::events::EventsModule
+    + super::perform::PerformModule
+    + super::execute_action::ExecuteActionModule
 {
     /// Proposers and board members use this to launch signed actions.
     #[endpoint(performAction)]

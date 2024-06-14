@@ -1,4 +1,4 @@
-use crate::action_types::perform::MAX_BOARD_MEMBERS;
+use crate::action_types::execute_action::MAX_BOARD_MEMBERS;
 use crate::common_types::action::{ActionId, ActionStatus, GroupId, Nonce};
 use crate::common_types::{action::Action, user_role::UserRole};
 multiversx_sc::imports!();

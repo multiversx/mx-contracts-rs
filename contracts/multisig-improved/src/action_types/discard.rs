@@ -5,9 +5,10 @@ multiversx_sc::imports!();
 #[multiversx_sc::module]
 pub trait DiscardActionModule:
     crate::state::StateModule
-    + crate::action_types::propose::ProposeModule
-    + crate::action_types::sign::SignModule
-    + crate::action_types::perform::PerformModule
+    + super::propose::ProposeModule
+    + super::sign::SignModule
+    + super::perform::PerformModule
+    + super::execute_action::ExecuteActionModule
     + crate::check_signature::CheckSignatureModule
     + crate::external::events::EventsModule
 {

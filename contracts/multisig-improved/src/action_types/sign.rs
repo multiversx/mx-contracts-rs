@@ -8,8 +8,9 @@ multiversx_sc::imports!();
 #[multiversx_sc::module]
 pub trait SignModule:
     crate::state::StateModule
-    + crate::action_types::propose::ProposeModule
-    + crate::action_types::perform::PerformModule
+    + super::propose::ProposeModule
+    + super::perform::PerformModule
+    + super::execute_action::ExecuteActionModule
     + crate::external::events::EventsModule
     + crate::check_signature::CheckSignatureModule
 {
