@@ -3,7 +3,7 @@ use crate::common_types::{
     user_role::{change_user_role, UserRole},
 };
 
-use super::callbacks::CallbackProxy as _;
+use crate::ms_endpoints::callbacks::CallbackProxy as _;
 
 multiversx_sc::imports!();
 
@@ -15,7 +15,7 @@ pub const MAX_BOARD_MEMBERS: usize = 30;
 pub trait ExecuteActionModule:
     crate::state::StateModule
     + crate::external::events::EventsModule
-    + super::callbacks::CallbacksModule
+    + crate::ms_endpoints::callbacks::CallbacksModule
 {
     fn execute_action_by_type(&self, action_id: ActionId, action: Action<Self::Api>) {
         match action {

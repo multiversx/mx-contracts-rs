@@ -12,7 +12,7 @@ pub trait ViewsModule:
     + crate::action_types::sign::SignModule
     + crate::action_types::perform::PerformModule
     + crate::action_types::execute_action::ExecuteActionModule
-    + crate::action_types::callbacks::CallbacksModule
+    + crate::ms_endpoints::callbacks::CallbacksModule
     + crate::check_signature::CheckSignatureModule
     + super::events::EventsModule
 {

@@ -14,7 +14,7 @@ multiversx_sc::imports!();
 pub trait ProposeEndpointsModule:
     crate::check_signature::CheckSignatureModule
     + crate::state::StateModule
-    + super::propose::ProposeModule
+    + crate::action_types::propose::ProposeModule
 {
     /// Initiates board member addition process.
     /// Can also be used to promote a proposer to board member.

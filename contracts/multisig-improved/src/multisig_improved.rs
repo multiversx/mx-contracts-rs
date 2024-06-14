@@ -4,6 +4,7 @@ pub mod action_types;
 pub mod check_signature;
 pub mod common_types;
 pub mod external;
+pub mod ms_endpoints;
 pub mod state;
 
 multiversx_sc::imports!();
@@ -15,14 +16,16 @@ multiversx_sc::imports!();
 pub trait Multisig:
     state::StateModule
     + check_signature::CheckSignatureModule
-    + action_types::propose_endpoints::ProposeEndpointsModule
-    + action_types::perform_endpoints::PerformEndpointsModule
+    + ms_endpoints::propose_endpoints::ProposeEndpointsModule
+    + ms_endpoints::perform_endpoints::PerformEndpointsModule
+    + ms_endpoints::discard_endpoints::DiscardEndpointsModule
+    + ms_endpoints::sign_endpoints::SignEndpointsModule
+    + ms_endpoints::callbacks::CallbacksModule
     + action_types::execute_action::ExecuteActionModule
     + action_types::propose::ProposeModule
     + action_types::sign::SignModule
     + action_types::perform::PerformModule
     + action_types::discard::DiscardActionModule
-    + action_types::callbacks::CallbacksModule
     + external::events::EventsModule
     + external::views::ViewsModule
     + multiversx_sc_modules::dns::DnsModule

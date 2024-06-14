@@ -41,6 +41,8 @@ multiversx_sc_wasm_adapter::endpoints! {
         proposeBatch => propose_batch
         performAction => perform_action_endpoint
         performBatch => perform_batch
+        discardAction => discard_action_endpoint
+        discardBatch => discard_batch
         sign => sign
         signBatch => sign_batch
         signAndPerform => sign_and_perform
@@ -48,8 +50,6 @@ multiversx_sc_wasm_adapter::endpoints! {
         unsign => unsign
         unsignBatch => unsign_batch
         unsignForOutdatedBoardMembers => unsign_for_outdated_board_members
-        discardAction => discard_action_endpoint
-        discardBatch => discard_batch
         signed => signed
         getActionLastIndex => get_action_last_index
         getUserNonce => get_user_nonce

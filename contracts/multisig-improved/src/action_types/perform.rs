@@ -7,7 +7,7 @@ pub trait PerformModule:
     crate::state::StateModule
     + crate::external::events::EventsModule
     + super::execute_action::ExecuteActionModule
-    + super::callbacks::CallbacksModule
+    + crate::ms_endpoints::callbacks::CallbacksModule
 {
     fn perform_action(&self, action_id: ActionId) -> OptionalValue<ManagedAddress> {
         let action = self.action_mapper().get(action_id);

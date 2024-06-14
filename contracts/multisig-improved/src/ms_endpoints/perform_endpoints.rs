@@ -6,8 +6,8 @@ multiversx_sc::imports!();
 pub trait PerformEndpointsModule:
     crate::state::StateModule
     + crate::external::events::EventsModule
-    + super::perform::PerformModule
-    + super::execute_action::ExecuteActionModule
+    + crate::action_types::perform::PerformModule
+    + crate::action_types::execute_action::ExecuteActionModule
     + super::callbacks::CallbacksModule
 {
     /// Proposers and board members use this to launch signed actions.
