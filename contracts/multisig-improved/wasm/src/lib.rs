@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           40
+// Endpoints:                           41
 // Async Callback:                       1
-// Total number of exported functions:  42
+// Total number of exported functions:  43
 
 #![no_std]
 #![allow(internal_features)]
@@ -56,6 +56,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         disableModule => disable_module
         addAdditionalAllowedAddresses => add_additional_allowed_addresses
         removeAdditionalAllowedAddresses => remove_additional_allowed_addresses
+        getModuleStatus => get_module_status
         signed => signed
         getActionLastIndex => get_action_last_index
         getUserNonce => get_user_nonce

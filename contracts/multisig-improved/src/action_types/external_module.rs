@@ -76,6 +76,13 @@ pub trait ExternalModuleModule:
         }
     }
 
+    #[view(getModuleStatus)]
+    fn get_module_status(&self, module: ManagedAddress) -> ModuleStatus {
+        let module_id = self.module_id().get_id_non_zero(&module);
+
+        self.module_status(module_id).get()
+    }
+
     fn set_module_status_common(&self, module: ManagedAddress, status: ModuleStatus) {
         let module_id = self.module_id().get_id_non_zero(&module);
         self.require_module_owner_caller(module_id);
