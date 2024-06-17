@@ -49,15 +49,15 @@ pub trait ExecuteActionModule:
             Action::AddBoardMember(board_member_address) => {
                 self.add_board_member(action_id, board_member_address);
             }
-            Action::AddProposer(proposer_address) => {
-                self.add_proposer(action_id, proposer_address);
-            }
-            Action::RemoveUser(user_address) => {
-                self.remove_user(action_id, user_address);
-            }
-            Action::ChangeQuorum(new_quorum) => {
-                self.change_quorum(action_id, new_quorum);
-            }
+            Action::AddProposer(proposer_address) => self.add_proposer(action_id, proposer_address),
+            Action::RemoveUser(user_address) => self.remove_user(action_id, user_address),
+            Action::ChangeQuorum(new_quorum) => self.change_quorum(action_id, new_quorum),
+            _ => self.execute_external_call(action_id, action),
+        };
+    }
+
+    fn execute_external_call(&self, action_id: ActionId, action: Action<Self::Api>) {
+        match action {
             Action::SendTransferExecuteEgld(call_data) => {
                 self.send_transfer_execute_egld(action_id, call_data);
             }
@@ -77,7 +77,7 @@ pub trait ExecuteActionModule:
                 self.upgrade_from_source(action_id, sc_address, args);
             }
             _ => {} // Deploy cases handled in "try_execute_deploy" function
-        };
+        }
     }
 
     fn add_board_member(&self, action_id: ActionId, board_member_address: ManagedAddress) {
