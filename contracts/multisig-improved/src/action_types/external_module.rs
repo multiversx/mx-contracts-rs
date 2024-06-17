@@ -101,12 +101,11 @@ pub trait ExternalModuleModule:
         egld_value: BigUint,
         esdt_payments: PaymentsVec<Self::Api>,
     ) -> bool {
-        if !self.blockchain().is_smart_contract(&sc_address) {
-            return false;
-        }
-
         let module_id = self.module_id().get_id(&sc_address);
         if module_id == NULL_ID {
+            return false;
+        }
+        if self.module_status(module_id).get() == DISABLED {
             return false;
         }
 
