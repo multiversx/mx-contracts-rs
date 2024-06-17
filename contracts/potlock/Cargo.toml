@@ -1,0 +1,24 @@
+[package]
+name = "potlock"
+version = "0.0.0"
+authors = ["you"]
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/potlock.rs"
+
+[dependencies.multiversx-sc]
+version = "0.50.4"
+
+[dev-dependencies]
+num-bigint = "0.4"
+
+[dev-dependencies.multiversx-sc-scenario]
+version = "0.50.4"
+
+[workspace]
+members = [
+    ".",
+    "meta",
+]
