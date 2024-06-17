@@ -76,7 +76,7 @@ pub trait ExecuteActionModule:
 
                 self.upgrade_from_source(action_id, sc_address, args);
             }
-            _ => {} // Deploy cases handled in another function
+            _ => {} // Deploy cases handled in "try_execute_deploy" function
         };
     }
 
