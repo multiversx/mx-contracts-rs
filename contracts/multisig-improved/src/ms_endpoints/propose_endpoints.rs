@@ -13,6 +13,7 @@ multiversx_sc::imports!();
 #[multiversx_sc::module]
 pub trait ProposeEndpointsModule:
     crate::check_signature::CheckSignatureModule
+    + crate::common_functions::CommonFunctionsModule
     + crate::state::StateModule
     + crate::action_types::propose::ProposeModule
 {

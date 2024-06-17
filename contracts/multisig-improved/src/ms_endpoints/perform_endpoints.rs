@@ -4,7 +4,9 @@ multiversx_sc::imports!();
 
 #[multiversx_sc::module]
 pub trait PerformEndpointsModule:
-    crate::state::StateModule
+    crate::common_functions::CommonFunctionsModule
+    + crate::state::StateModule
+    + crate::action_types::external_module::ExternalModuleModule
     + crate::external::events::EventsModule
     + crate::action_types::perform::PerformModule
     + crate::action_types::execute_action::ExecuteActionModule

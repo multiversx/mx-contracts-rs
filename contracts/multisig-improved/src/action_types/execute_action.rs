@@ -5,6 +5,8 @@ use crate::common_types::{
 
 use crate::ms_endpoints::callbacks::CallbackProxy as _;
 
+use super::external_module::DISABLED;
+
 multiversx_sc::imports!();
 
 /// Gas required to finish transaction after transfer-execute.
@@ -13,7 +15,9 @@ pub const MAX_BOARD_MEMBERS: usize = 30;
 
 #[multiversx_sc::module]
 pub trait ExecuteActionModule:
-    crate::state::StateModule
+    crate::common_functions::CommonFunctionsModule
+    + crate::state::StateModule
+    + super::external_module::ExternalModuleModule
     + crate::external::events::EventsModule
     + crate::ms_endpoints::callbacks::CallbacksModule
 {
@@ -45,6 +49,15 @@ pub trait ExecuteActionModule:
                 // Can't reach this branch, I didn't use "_" so I get errors when I add a new action type
             }
             Action::SCUpgradeFromSource { sc_address, args } => {
+                self.upgrade_from_source(action_id, sc_address, args);
+            }
+            Action::DeployModuleFromSource(_) => {
+                // Can't reach this branch, I didn't use "_" so I get errors when I add a new action type
+            }
+            Action::UpgradeModuleFromSource { sc_address, args } => {
+                let module_id = self.module_id().get_id_non_zero(&sc_address);
+                self.module_status(module_id).set(DISABLED);
+
                 self.upgrade_from_source(action_id, sc_address, args);
             }
         };
@@ -169,7 +182,7 @@ pub trait ExecuteActionModule:
             .with_gas_limit(gas)
             .async_call()
             .with_callback(self.callbacks().perform_async_call_callback())
-            .call_and_exit()
+            .call_and_exit();
     }
 
     fn deploy_from_source(

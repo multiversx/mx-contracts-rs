@@ -4,7 +4,9 @@ multiversx_sc::imports!();
 
 #[multiversx_sc::module]
 pub trait PerformModule:
-    crate::state::StateModule
+    crate::common_functions::CommonFunctionsModule
+    + crate::state::StateModule
+    + super::external_module::ExternalModuleModule
     + crate::external::events::EventsModule
     + super::execute_action::ExecuteActionModule
     + crate::ms_endpoints::callbacks::CallbacksModule
@@ -33,13 +35,34 @@ pub trait PerformModule:
         // syntax aside, the async_call_raw kills contract execution so cleanup cannot happen afterwards
         self.clear_action(action_id);
 
-        if let Action::SCDeployFromSource(args) = action {
-            let new_address = self.deploy_from_source(action_id, args);
-
-            return OptionalValue::Some(new_address);
+        let opt_address = self.try_execute_deploy(action_id, &action);
+        if opt_address.is_some() {
+            return opt_address;
         }
 
         self.execute_action_by_type(action_id, action);
+
+        OptionalValue::None
+    }
+
+    fn try_execute_deploy(
+        &self,
+        action_id: ActionId,
+        action: &Action<Self::Api>,
+    ) -> OptionalValue<ManagedAddress> {
+        if let Action::SCDeployFromSource(args) = action {
+            let new_address = self.deploy_from_source(action_id, args.clone());
+
+            return OptionalValue::Some(new_address);
+        }
+        if let Action::DeployModuleFromSource(args) = action {
+            let new_address = self.deploy_from_source(action_id, args.clone());
+            let module_id = self.module_id().insert_new(&new_address);
+            let proposer_id = self.deploy_module_proposer(action_id).take();
+            self.module_owner(module_id).set(proposer_id);
+
+            return OptionalValue::Some(new_address);
+        }
 
         OptionalValue::None
     }

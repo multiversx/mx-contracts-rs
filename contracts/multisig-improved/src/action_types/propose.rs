@@ -9,7 +9,9 @@ static ALL_TRANSFER_EXEC_SAME_SHARD_ERR_MSG: &[u8] = b"All transfer exec must be
 
 #[multiversx_sc::module]
 pub trait ProposeModule:
-    crate::check_signature::CheckSignatureModule + crate::state::StateModule
+    crate::check_signature::CheckSignatureModule
+    + crate::common_functions::CommonFunctionsModule
+    + crate::state::StateModule
 {
     fn propose_action(
         &self,

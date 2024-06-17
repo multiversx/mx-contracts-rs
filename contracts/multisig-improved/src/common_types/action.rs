@@ -58,6 +58,11 @@ pub enum Action<M: ManagedTypeApi> {
         sc_address: ManagedAddress<M>,
         args: DeployArgs<M>,
     },
+    DeployModuleFromSource(DeployArgs<M>),
+    UpgradeModuleFromSource {
+        sc_address: ManagedAddress<M>,
+        args: DeployArgs<M>,
+    },
 }
 
 impl<M: ManagedTypeApi> Action<M> {
