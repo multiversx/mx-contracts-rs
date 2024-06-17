@@ -1,3 +1,5 @@
+use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
+
 use crate::common_types::action::ActionId;
 
 multiversx_sc::imports!();
@@ -7,6 +9,23 @@ pub type ModuleId = AddressId;
 pub type ModuleStatus = bool;
 pub const ENABLED: ModuleStatus = true;
 pub const DISABLED: ModuleStatus = false;
+
+mod external_module_proxy {
+    use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
+
+    multiversx_sc::imports!();
+
+    #[multiversx_sc::proxy]
+    pub trait ExternalModuleProxy {
+        #[view(canExecute)]
+        fn can_execute(
+            &self,
+            original_caller: ManagedAddress,
+            egld_value: BigUint,
+            esdt_payments: PaymentsVec<Self::Api>,
+        ) -> bool;
+    }
+}
 
 #[multiversx_sc::module]
 pub trait ExternalModuleModule:
@@ -75,6 +94,43 @@ pub trait ExternalModuleModule:
             "Only module owner can call this function"
         );
     }
+
+    fn can_execute_action(
+        &self,
+        sc_address: ManagedAddress,
+        egld_value: BigUint,
+        esdt_payments: PaymentsVec<Self::Api>,
+    ) -> bool {
+        if !self.blockchain().is_smart_contract(&sc_address) {
+            return false;
+        }
+
+        let module_id = self.module_id().get_id(&sc_address);
+        if module_id == NULL_ID {
+            return false;
+        }
+
+        let original_caller = self.blockchain().get_caller();
+        let caller_id = self.user_ids().get_id_non_zero(&original_caller);
+        let module_owner = self.module_owner(module_id).get();
+        if caller_id != module_owner
+            && !self
+                .additional_allowed_addresses(module_id)
+                .contains(&caller_id)
+        {
+            return false;
+        }
+
+        self.external_sc_proxy(sc_address)
+            .can_execute(original_caller, egld_value, esdt_payments)
+            .execute_on_dest_context()
+    }
+
+    #[proxy]
+    fn external_sc_proxy(
+        &self,
+        sc_address: ManagedAddress,
+    ) -> external_module_proxy::Proxy<Self::Api>;
 
     #[storage_mapper("moduleId")]
     fn module_id(&self) -> AddressToIdMapper<Self::Api>;

@@ -1,4 +1,8 @@
-use crate::common_types::action::{ActionFullInfo, ActionId, ActionStatus};
+use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
+
+use crate::common_types::action::{
+    ActionFullInfo, ActionId, ActionStatus, CallActionData, EsdtTransferExecuteData,
+};
 
 multiversx_sc::imports!();
 
@@ -11,7 +15,7 @@ pub trait PerformModule:
     + super::execute_action::ExecuteActionModule
     + crate::ms_endpoints::callbacks::CallbacksModule
 {
-    fn perform_action(&self, action_id: ActionId) -> OptionalValue<ManagedAddress> {
+    fn perform_action_by_id(&self, action_id: ActionId) -> OptionalValue<ManagedAddress> {
         let action = self.action_mapper().get(action_id);
 
         let group_id = self.group_for_action(action_id).get();
@@ -45,6 +49,44 @@ pub trait PerformModule:
         OptionalValue::None
     }
 
+    fn try_perform_egld_action_directly(
+        &self,
+        action_id: ActionId,
+        call_data: &CallActionData<Self::Api>,
+    ) -> bool {
+        let can_execute = self.can_execute_action(
+            call_data.to.clone(),
+            call_data.egld_amount.clone(),
+            PaymentsVec::new(),
+        );
+        if !can_execute {
+            return false;
+        }
+
+        let _ = self.perform_action_by_id(action_id);
+
+        true
+    }
+
+    fn try_perform_esdt_action_directly(
+        &self,
+        action_id: ActionId,
+        call_data: &EsdtTransferExecuteData<Self::Api>,
+    ) -> bool {
+        let can_execute = self.can_execute_action(
+            call_data.to.clone(),
+            BigUint::zero(),
+            call_data.tokens.clone(),
+        );
+        if !can_execute {
+            return false;
+        }
+
+        let _ = self.perform_action_by_id(action_id);
+
+        true
+    }
+
     fn try_perform_action(&self, action_id: ActionId) -> OptionalValue<ManagedAddress> {
         let (_, caller_role) = self.get_caller_id_and_role();
         caller_role.require_can_perform_action::<Self::Api>();
@@ -56,6 +98,6 @@ pub trait PerformModule:
         let group_id = self.group_for_action(action_id).get();
         require!(group_id == 0, "May not execute this action by itself");
 
-        self.perform_action(action_id)
+        self.perform_action_by_id(action_id)
     }
 }

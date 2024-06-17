@@ -17,6 +17,10 @@ pub trait ProposeEndpointsModule:
     + crate::state::StateModule
     + crate::action_types::external_module::ExternalModuleModule
     + crate::action_types::propose::ProposeModule
+    + crate::action_types::execute_action::ExecuteActionModule
+    + crate::action_types::perform::PerformModule
+    + crate::ms_endpoints::callbacks::CallbacksModule
+    + crate::external::events::EventsModule
 {
     /// Initiates board member addition process.
     /// Can also be used to promote a proposer to board member.
@@ -72,7 +76,7 @@ pub trait ProposeEndpointsModule:
         opt_gas_limit: Option<GasLimit>,
         function_call: FunctionCall,
         opt_signature: OptionalValue<SignatureArg<Self::Api>>,
-    ) -> ActionId {
+    ) -> OptionalValue<ActionId> {
         require!(
             egld_amount > 0 || !function_call.is_empty(),
             "proposed action has no effect"
@@ -85,8 +89,16 @@ pub trait ProposeEndpointsModule:
             endpoint_name: function_call.function_name,
             arguments: function_call.arg_buffer.into_vec_of_buffers(),
         };
+        let action_id = self.propose_action(
+            Action::SendTransferExecuteEgld(call_data.clone()),
+            opt_signature,
+        );
 
-        self.propose_action(Action::SendTransferExecuteEgld(call_data), opt_signature)
+        if self.try_perform_egld_action_directly(action_id, &call_data) {
+            return OptionalValue::None;
+        }
+
+        OptionalValue::Some(action_id)
     }
 
     #[allow_multiple_var_args]
@@ -98,7 +110,7 @@ pub trait ProposeEndpointsModule:
         opt_gas_limit: Option<GasLimit>,
         function_call: FunctionCall,
         opt_signature: OptionalValue<SignatureArg<Self::Api>>,
-    ) -> ActionId {
+    ) -> OptionalValue<ActionId> {
         require!(!tokens.is_empty(), "No tokens to transfer");
 
         let call_data = EsdtTransferExecuteData {
@@ -108,8 +120,16 @@ pub trait ProposeEndpointsModule:
             endpoint_name: function_call.function_name,
             arguments: function_call.arg_buffer.into_vec_of_buffers(),
         };
+        let action_id = self.propose_action(
+            Action::SendTransferExecuteEsdt(call_data.clone()),
+            opt_signature,
+        );
 
-        self.propose_action(Action::SendTransferExecuteEsdt(call_data), opt_signature)
+        if self.try_perform_esdt_action_directly(action_id, &call_data) {
+            return OptionalValue::None;
+        }
+
+        OptionalValue::Some(action_id)
     }
 
     /// Propose a transaction in which the contract will perform an async call call.

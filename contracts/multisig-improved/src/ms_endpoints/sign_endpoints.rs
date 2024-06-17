@@ -93,7 +93,7 @@ pub trait SignEndpointsModule:
         }
 
         for action_id in self.action_groups(group_id).iter() {
-            let _ = self.perform_action(action_id);
+            let _ = self.perform_action_by_id(action_id);
         }
     }
 

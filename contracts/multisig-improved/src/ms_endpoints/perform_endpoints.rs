@@ -26,7 +26,7 @@ pub trait PerformEndpointsModule:
         let group_id = self.group_for_action(action_id).get();
         require!(group_id == 0, "May not execute this action by itself");
 
-        self.perform_action(action_id)
+        self.perform_action_by_id(action_id)
     }
 
     /// Perform all the actions in the given batch
@@ -55,7 +55,7 @@ pub trait PerformEndpointsModule:
                 "quorum has not been reached"
             );
 
-            let _ = self.perform_action(action_id);
+            let _ = self.perform_action_by_id(action_id);
         }
     }
 }
