@@ -1,4 +1,4 @@
-use crate::common_types::action::{Action, ActionFullInfo, ActionId, ActionStatus};
+use crate::common_types::action::{ActionFullInfo, ActionId, ActionStatus};
 
 multiversx_sc::imports!();
 
@@ -41,28 +41,6 @@ pub trait PerformModule:
         }
 
         self.execute_action_by_type(action_id, action);
-
-        OptionalValue::None
-    }
-
-    fn try_execute_deploy(
-        &self,
-        action_id: ActionId,
-        action: &Action<Self::Api>,
-    ) -> OptionalValue<ManagedAddress> {
-        if let Action::SCDeployFromSource(args) = action {
-            let new_address = self.deploy_from_source(action_id, args.clone());
-
-            return OptionalValue::Some(new_address);
-        }
-        if let Action::DeployModuleFromSource(args) = action {
-            let new_address = self.deploy_from_source(action_id, args.clone());
-            let module_id = self.module_id().insert_new(&new_address);
-            let proposer_id = self.deploy_module_proposer(action_id).take();
-            self.module_owner(module_id).set(proposer_id);
-
-            return OptionalValue::Some(new_address);
-        }
 
         OptionalValue::None
     }
