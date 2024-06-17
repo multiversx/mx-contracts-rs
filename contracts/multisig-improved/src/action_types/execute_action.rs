@@ -45,14 +45,8 @@ pub trait ExecuteActionModule:
             Action::SendAsyncCall(call_data) => {
                 self.send_async_call(action_id, call_data);
             }
-            Action::SCDeployFromSource(_) => {
-                // Can't reach this branch, I didn't use "_" so I get errors when I add a new action type
-            }
             Action::SCUpgradeFromSource { sc_address, args } => {
                 self.upgrade_from_source(action_id, sc_address, args);
-            }
-            Action::DeployModuleFromSource(_) => {
-                // Can't reach this branch, I didn't use "_" so I get errors when I add a new action type
             }
             Action::UpgradeModuleFromSource { sc_address, args } => {
                 let module_id = self.module_id().get_id_non_zero(&sc_address);
@@ -60,6 +54,7 @@ pub trait ExecuteActionModule:
 
                 self.upgrade_from_source(action_id, sc_address, args);
             }
+            _ => {} // Deploy cases handled in another function
         };
     }
 

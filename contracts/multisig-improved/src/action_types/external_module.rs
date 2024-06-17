@@ -65,7 +65,6 @@ pub trait ExternalModuleModule:
     #[storage_mapper("moduleStatus")]
     fn module_status(&self, module_id: ModuleId) -> SingleValueMapper<ModuleStatus>;
 
-    // TODO: Set when proposing
     #[storage_mapper("deployModProposer")]
     fn deploy_module_proposer(&self, action_id: ActionId) -> SingleValueMapper<AddressId>;
 

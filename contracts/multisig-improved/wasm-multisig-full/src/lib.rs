@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           42
+// Endpoints:                           47
 // Async Callback:                       1
-// Total number of exported functions:  44
+// Total number of exported functions:  49
 
 #![no_std]
 #![allow(internal_features)]
@@ -22,13 +22,13 @@ multiversx_sc_wasm_adapter::endpoints! {
         init => init
         upgrade => upgrade
         deposit => deposit
-        quorumReached => quorum_reached
         getQuorum => quorum
         getNumBoardMembers => num_board_members
         getNumGroups => num_groups
         getNumProposers => num_proposers
         getActionGroup => action_groups
         getLastGroupActionId => last_action_group_id
+        quorumReached => quorum_reached
         proposeAddBoardMember => propose_add_board_member
         proposeAddProposer => propose_add_proposer
         proposeRemoveUser => propose_remove_user
@@ -38,6 +38,8 @@ multiversx_sc_wasm_adapter::endpoints! {
         proposeAsyncCall => propose_async_call
         proposeSCDeployFromSource => propose_sc_deploy_from_source
         proposeSCUpgradeFromSource => propose_sc_upgrade_from_source
+        proposeModuleDeployFromSource => propose_module_deploy_from_source
+        proposeModuleUpgradeFromSource => propose_module_upgrade_from_source
         proposeBatch => propose_batch
         performAction => perform_action_endpoint
         performBatch => perform_batch
@@ -50,6 +52,9 @@ multiversx_sc_wasm_adapter::endpoints! {
         unsign => unsign
         unsignBatch => unsign_batch
         unsignForOutdatedBoardMembers => unsign_for_outdated_board_members
+        enableModule => enable_module
+        disableModule => disable_module
+        addAdditionalAllowedAddresses => add_additional_allowed_addresses
         signed => signed
         getActionLastIndex => get_action_last_index
         getUserNonce => get_user_nonce
