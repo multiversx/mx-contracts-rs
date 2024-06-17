@@ -40,6 +40,23 @@ pub trait ExternalModuleModule:
         }
     }
 
+    #[endpoint(removeAdditionalAllowedAddresses)]
+    fn remove_additional_allowed_addresses(
+        &self,
+        module: ManagedAddress,
+        addresses: MultiValueEncoded<ManagedAddress>,
+    ) {
+        let module_id = self.module_id().get_id_non_zero(&module);
+        self.require_module_owner_caller(module_id);
+
+        let mut mapper = self.additional_allowed_addresses(module_id);
+        for addr in addresses {
+            let user_id = self.user_ids().get_id_non_zero(&addr);
+            let removed = mapper.swap_remove(&user_id);
+            require!(removed, "Address not in list");
+        }
+    }
+
     fn set_module_status_common(&self, module: ManagedAddress, status: ModuleStatus) {
         let module_id = self.module_id().get_id_non_zero(&module);
         self.require_module_owner_caller(module_id);
