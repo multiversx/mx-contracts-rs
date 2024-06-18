@@ -1,9 +1,10 @@
+use crate::potlock_storage::{self, PotlockId, ProjectId};
+
 multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
 
 #[multiversx_sc::module]
 pub trait PotlockSetup:
-    crate::potlock::PotlockStorage + multiversx_sc_modules::only_admin::OnlyAdminModule
+    potlock_storage::PotlockStorage + multiversx_sc_modules::only_admin::OnlyAdminModule
 {
     #[only_admin]
     #[endpoint(changeFeeForPots)]
@@ -22,9 +23,20 @@ pub trait PotlockSetup:
     }
 
     fn require_potlock_exists(&self, potlock_id: PotlockId) {
-        require(
-            self.is_valid_potlock_id(potlock_id) && !self.potlock().item_is_empty(potlock_id),
+        require!(
+            self.is_valid_potlock_id(potlock_id) && !self.potlocks().item_is_empty(potlock_id),
             "Potlock doesn't exist!",
+        )
+    }
+
+    fn is_valid_project_id(&self, project_id: ProjectId) -> bool {
+        project_id >= 1 && project_id <= self.projects().len()
+    }
+
+    fn require_project_exists(&self, project_id: ProjectId) {
+        require!(
+            self.is_valid_project_id(project_id) && !self.projects().item_is_empty(project_id),
+            "Project doesn't exist!",
         )
     }
 }

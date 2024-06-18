@@ -1,71 +1,95 @@
+use crate::{
+    potlock_setup,
+    potlock_storage::{self, PotlockId, ProjectId},
+};
+
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
-pub type ProjectPercentage = MultiValue2<usize, usize>;
+pub type ProjectPercentage = MultiValue2<usize, u64>;
 
 #[multiversx_sc::module]
 pub trait PotlockAdminInteractions:
-    crate::potlock::PotlockStorage + multiversx_sc_modules::only_admin::OnlyAdminModule
+    potlock_storage::PotlockStorage
+    + multiversx_sc_modules::only_admin::OnlyAdminModule
+    + potlock_setup::PotlockSetup
 {
     #[only_admin]
     #[endpoint(acceptPot)]
     fn accept_pot(&self, potlock_id: PotlockId) {
-        require_potlock_exists(potlock_id);
-        // TODO: Common fund is another contract?
-    }
+        self.require_potlock_exists(potlock_id);
+        let fee_amount = self.fee_amount().get();
 
-    #[only_admin]
-    #[endpoint(rejectPot)]
-    fn reject_pot(&self, potlock_id: PotlockId) {
-        require_potlock_exists(potlock_id);
-
-        //TODO: Common fund is another contract?
-        //TODO: "will return the fee back to the user"
-
-        //TODO: Should we remove the potlock?
-        self.potlocks().clear_entry(proposal_id);
+        self.fee_amount_accepted_pots()
+            .update(|amount| *amount += fee_amount);
+        self.fee_pot_proposer(potlock_id).clear();
     }
 
     #[only_admin]
     #[endpoint(removePot)]
     fn remove_pot(&self, potlock_id: PotlockId) {
-        let caller = self.blockchain().get_caller();
-        let payment = self.fee_pot_payments(potlock_id, caller).get();
+        let pot_proposer = self.fee_pot_proposer(potlock_id).get();
+        let fee_pot_payment = EsdtTokenPayment::new(
+            self.fee_token_identifier().get(),
+            0u64,
+            self.fee_amount().get(),
+        );
 
-        self.send().direct_non_zero_esdt_payment(&caller, &payment);
-        self.potlocks().clear_entry(proposal_id);
+        self.send()
+            .direct_non_zero_esdt_payment(&pot_proposer, &fee_pot_payment);
+        self.fee_pot_proposer(potlock_id).clear();
+        self.potlocks().clear_entry(potlock_id);
     }
 
     #[only_admin]
     #[endpoint(acceptApplication)]
-    fn accept_application(&self, project: Projectid) {
-        require_potlock_exists(potlock_id);
-        // TODO: How should we KYC verification in the SC?
+    fn accept_application(&self, project: ProjectId) {
+        self.require_project_exists(project);
+        // TODO: Mark project's status as accepted
     }
-    rejectDonation@userID@listOfTokens - returns tokens to the users.
 
     #[only_admin]
     #[endpoint(rejectDonation)]
-    fn reject_donation(&self, potlock: PotlockId, user: ManagedAddress) {
-        require_potlock_exists(potlock_id);
-        let fee_pot_payments = self.fee_pot_payments(potlock_id, user);
-        self.send().direct_non_zero_esdt_payment(&user, &fee_pot_payments);
-    }
+    fn reject_donation(&self, potlock_id: PotlockId, user: ManagedAddress) {
+        self.require_potlock_exists(potlock_id);
+        let opt_fee_pot_payments = self.pot_donations(potlock_id).get(&user);
 
+        require!(opt_fee_pot_payments.is_some(), "No donation for this user");
+        let fee_pot_payments = unsafe { opt_fee_pot_payments.unwrap_unchecked() };
+
+        self.send()
+            .direct_non_zero_esdt_payment(&user, &fee_pot_payments);
+        self.pot_donations(potlock_id).remove(&user);
+    }
 
     #[only_admin]
     #[endpoint(distributePotToProjects)]
-    fn distribute_pot_to_projects(&self, potlock: PotlockId, project_percentage: MultiValueEncoded<ProjectPercentage>) {
-        require_potlock_exists(potlock_id);
-        let potlock = self.potlocks().get();
+    fn distribute_pot_to_projects(
+        &self,
+        potlock_id: PotlockId,
+        project_percentage: MultiValueEncoded<ProjectPercentage>,
+    ) {
+        self.require_potlock_exists(potlock_id);
+        let pot_donations = self.pot_donations(potlock_id);
+
         for pp in project_percentage {
             let (project_id, percentage) = pp.into_tuple();
-
+            let mut output_payments = ManagedVec::new();
+            for (_, donation) in pot_donations.iter() {
+                let project_share_amount = donation.amount * percentage;
+                let project_share = EsdtTokenPayment::new(
+                    donation.token_identifier,
+                    donation.token_nonce,
+                    project_share_amount,
+                );
+                output_payments.push(project_share);
+            }
+            let project_owner = self.projects().get(project_id).owner;
+            self.send().direct_multi(&project_owner, &output_payments);
         }
-        // TODO: How should we KYC verification in the SC?
-    }
 
-    fn get_total_payments_for_pot(&self) {
-        let fee_pot_payments = self.fee_pot_payments().get();   
+        self.pot_donations(potlock_id).clear();
+
+        //TODO: Clear all info regarding the pot?
     }
 }
