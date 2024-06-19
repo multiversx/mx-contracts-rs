@@ -78,15 +78,15 @@ pub trait TransferModule:
             payments: payments.clone(),
             original_caller: caller,
         };
-
-        ContractCallNoPayment::<_, MultiValueEncoded<ManagedBuffer>>::new(dest, endpoint_name)
+        self.tx()
+            .to(dest)
+            .raw_call(endpoint_name)
+            .arguments_raw(ManagedArgBuffer::from(args))
             .with_multi_token_transfer(payments.clone())
-            .with_raw_arguments(ManagedArgBuffer::from(args))
-            .async_call()
             .with_callback(
                 <Self as TransferModule>::callbacks(self).transfer_to_sc_callback(cb_args),
             )
-            .call_and_exit();
+            .async_call_and_exit();
     }
 
     #[callback]

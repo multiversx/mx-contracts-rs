@@ -105,14 +105,6 @@ pub trait TransferModule:
             .arguments_raw(ManagedArgBuffer::from(args))
             .with_multi_token_transfer(take_fees_result.transfers.clone())
             .async_call_and_exit();
-        // ContractCallNoPayment::<_, MultiValueEncoded<ManagedBuffer>>::new(dest, endpoint_name)
-        //     .with_multi_token_transfer(take_fees_result.transfers.clone())
-        //     .with_raw_arguments(ManagedArgBuffer::from(args))
-        //     .async_call()
-        //     .with_callback(
-        //         <Self as TransferModule>::callbacks(self).transfer_to_sc_callback(take_fees_result),
-        //     )
-        //     .call_and_exit();
     }
 
     #[callback]
