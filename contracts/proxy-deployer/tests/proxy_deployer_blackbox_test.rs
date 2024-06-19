@@ -18,8 +18,8 @@
 // const OWNER_ADDRESS_EXPR: &str = "address:owner";
 // const USER_ADDRESS_EXPR: &str = "address:user";
 
-// const PROXY_DEPLOYER_PATH_EXPR: &str = "file:output/proxy-deployer.wasm";
-// const DEPLOYED_CONTRACT_PATH_EXPR: &str = "file:~/contracts/adder/output/adder.wasm";
+// const PROXY_DEPLOYER_PATH_EXPR: &str = "mxsc:output/proxy-deployer.mxsc.json";
+// const DEPLOYED_CONTRACT_PATH_EXPR: &str = "mxsc:../output/adder.mxsc.json";
 
 // type ProxyDeployerContract = ContractInfo<proxy_deployer::Proxy<StaticApi>>;
 // type TemplateContract = ContractInfo<adder::Proxy<StaticApi>>;
