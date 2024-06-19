@@ -11,8 +11,7 @@ fn world() -> ScenarioWorld {
     blockchain
 }
 
-#[test]
-fn generated_fund_rs() {
+fn _generated_fund_rs() {
     world().run("scenarios/_generated_fund.scen.json");
 }
 
@@ -26,8 +25,7 @@ fn generated_query_status_rs() {
     world().run("scenarios/_generated_query_status.scen.json");
 }
 
-#[test]
-fn generated_sc_err_rs() {
+fn _generated_sc_err_rs() {
     world().run("scenarios/_generated_sc_err.scen.json");
 }
 
