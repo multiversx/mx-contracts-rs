@@ -177,7 +177,7 @@ fn transfer_sc_ok_test() {
         .check_esdt_balance(cf_wrapper.address_ref(), TOKEN_ID, &rust_biguint!(600));
 
     fl_setup.b_mock.check_esdt_balance(
-        &fl_setup.fl_wrapper.address_ref(),
+        fl_setup.fl_wrapper.address_ref(),
         TOKEN_ID,
         &rust_biguint!(400),
     );
