@@ -124,7 +124,7 @@ pub trait ExchangeActionsModule:
             input_fees_percentage.push(endpoint_info.input_fee_percentage);
         }
 
-        let (_, back_transfers) = if !payments.is_empty() {
+        let back_transfers = if !payments.is_empty() {
             let take_fees_result =
                 self.take_fees(caller.clone(), payments.clone(), input_fees_percentage);
 
@@ -132,14 +132,20 @@ pub trait ExchangeActionsModule:
                 self.burn_all_tokens(&take_fees_result.fees);
             }
 
-            ContractCallNoPayment::<_, MultiValueEncoded<ManagedBuffer>>::new(dest, endpoint_name)
-                .with_multi_token_transfer(take_fees_result.transfers)
-                .with_raw_arguments(ManagedArgBuffer::from(extra_args.into_vec_of_buffers()))
-                .execute_on_dest_context_with_back_transfers::<MultiValueEncoded<ManagedBuffer>>()
+            self.tx()
+                .to(dest)
+                .raw_call(endpoint_name)
+                .arguments_raw(ManagedArgBuffer::from(extra_args.into_vec_of_buffers()))
+                .with_multi_token_transfer(take_fees_result.transfers.clone())
+                .returns(ReturnsBackTransfers)
+                .sync_call()
         } else {
-            ContractCallNoPayment::<_, MultiValueEncoded<ManagedBuffer>>::new(dest, endpoint_name)
-                .with_raw_arguments(ManagedArgBuffer::from(extra_args.into_vec_of_buffers()))
-                .execute_on_dest_context_with_back_transfers::<MultiValueEncoded<ManagedBuffer>>()
+            self.tx()
+                .to(dest)
+                .raw_call(endpoint_name)
+                .arguments_raw(ManagedArgBuffer::from(extra_args.into_vec_of_buffers()))
+                .returns(ReturnsBackTransfers)
+                .sync_call()
         };
 
         if !back_transfers.esdt_payments.is_empty() {

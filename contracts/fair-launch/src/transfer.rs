@@ -99,14 +99,12 @@ pub trait TransferModule:
         endpoint_name: ManagedBuffer,
         args: ManagedVec<ManagedBuffer>,
     ) -> ! {
-        ContractCallNoPayment::<_, MultiValueEncoded<ManagedBuffer>>::new(dest, endpoint_name)
+        self.tx()
+            .to(dest)
+            .raw_call(endpoint_name)
+            .arguments_raw(ManagedArgBuffer::from(args))
             .with_multi_token_transfer(take_fees_result.transfers.clone())
-            .with_raw_arguments(ManagedArgBuffer::from(args))
-            .async_call()
-            .with_callback(
-                <Self as TransferModule>::callbacks(self).transfer_to_sc_callback(take_fees_result),
-            )
-            .call_and_exit();
+            .async_call_and_exit();
     }
 
     #[callback]

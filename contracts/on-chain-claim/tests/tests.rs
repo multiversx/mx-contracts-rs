@@ -15,7 +15,6 @@ const SC_ADDR: &str = "sc:on-chain-claim";
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
-    blockchain.set_current_dir_from_workspace("contracts/on-chain-claim");
 
     blockchain.register_contract(
         "file:output/on-chain-claim.wasm",
