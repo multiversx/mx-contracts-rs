@@ -1,4 +1,7 @@
 {
+    "name": "stress-submit-with-gas-schedule",
+    "traceGas": true,
+    "gasSchedule": "v4",
     "steps": [
         {
             "step": "setState",
@@ -220,7 +223,6 @@
         },
         {
             "step": "scDeploy",
-            "id": "",
             "tx": {
                 "from": "address:owner",
                 "contractCode": "mxsc:../output/multiversx-price-aggregator-sc.mxsc.json",
@@ -285,12 +287,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle1",
                 "to": "sc:price-aggregator",
@@ -301,12 +303,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle2",
                 "to": "sc:price-aggregator",
@@ -317,12 +319,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle3",
                 "to": "sc:price-aggregator",
@@ -333,12 +335,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle4",
                 "to": "sc:price-aggregator",
@@ -349,12 +351,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle5",
                 "to": "sc:price-aggregator",
@@ -365,12 +367,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle6",
                 "to": "sc:price-aggregator",
@@ -381,12 +383,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle7",
                 "to": "sc:price-aggregator",
@@ -397,12 +399,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle8",
                 "to": "sc:price-aggregator",
@@ -413,12 +415,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle9",
                 "to": "sc:price-aggregator",
@@ -429,12 +431,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle10",
                 "to": "sc:price-aggregator",
@@ -445,12 +447,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle11",
                 "to": "sc:price-aggregator",
@@ -461,12 +463,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle12",
                 "to": "sc:price-aggregator",
@@ -477,12 +479,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle13",
                 "to": "sc:price-aggregator",
@@ -493,12 +495,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle14",
                 "to": "sc:price-aggregator",
@@ -509,12 +511,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle15",
                 "to": "sc:price-aggregator",
@@ -525,12 +527,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle16",
                 "to": "sc:price-aggregator",
@@ -541,12 +543,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle17",
                 "to": "sc:price-aggregator",
@@ -557,12 +559,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle18",
                 "to": "sc:price-aggregator",
@@ -573,12 +575,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle19",
                 "to": "sc:price-aggregator",
@@ -589,12 +591,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle20",
                 "to": "sc:price-aggregator",
@@ -605,12 +607,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle21",
                 "to": "sc:price-aggregator",
@@ -621,12 +623,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle22",
                 "to": "sc:price-aggregator",
@@ -637,12 +639,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle23",
                 "to": "sc:price-aggregator",
@@ -653,12 +655,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle24",
                 "to": "sc:price-aggregator",
@@ -669,12 +671,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle25",
                 "to": "sc:price-aggregator",
@@ -685,12 +687,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle26",
                 "to": "sc:price-aggregator",
@@ -701,12 +703,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle27",
                 "to": "sc:price-aggregator",
@@ -717,12 +719,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle28",
                 "to": "sc:price-aggregator",
@@ -733,12 +735,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle29",
                 "to": "sc:price-aggregator",
@@ -749,12 +751,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle30",
                 "to": "sc:price-aggregator",
@@ -765,12 +767,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle31",
                 "to": "sc:price-aggregator",
@@ -781,12 +783,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle32",
                 "to": "sc:price-aggregator",
@@ -797,12 +799,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle33",
                 "to": "sc:price-aggregator",
@@ -813,12 +815,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle34",
                 "to": "sc:price-aggregator",
@@ -829,12 +831,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle35",
                 "to": "sc:price-aggregator",
@@ -845,12 +847,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle36",
                 "to": "sc:price-aggregator",
@@ -861,12 +863,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle37",
                 "to": "sc:price-aggregator",
@@ -877,12 +879,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle38",
                 "to": "sc:price-aggregator",
@@ -893,12 +895,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle39",
                 "to": "sc:price-aggregator",
@@ -909,12 +911,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle40",
                 "to": "sc:price-aggregator",
@@ -925,12 +927,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle41",
                 "to": "sc:price-aggregator",
@@ -941,12 +943,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle42",
                 "to": "sc:price-aggregator",
@@ -957,12 +959,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle43",
                 "to": "sc:price-aggregator",
@@ -973,12 +975,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle44",
                 "to": "sc:price-aggregator",
@@ -989,12 +991,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle45",
                 "to": "sc:price-aggregator",
@@ -1005,12 +1007,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle46",
                 "to": "sc:price-aggregator",
@@ -1021,12 +1023,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle47",
                 "to": "sc:price-aggregator",
@@ -1037,12 +1039,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle48",
                 "to": "sc:price-aggregator",
@@ -1053,12 +1055,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle49",
                 "to": "sc:price-aggregator",
@@ -1069,12 +1071,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle50",
                 "to": "sc:price-aggregator",
@@ -1085,12 +1087,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:owner",
                 "to": "sc:price-aggregator",
@@ -1104,12 +1106,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:owner",
                 "to": "sc:price-aggregator",
@@ -1119,12 +1121,12 @@
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle1",
                 "to": "sc:price-aggregator",
@@ -1133,19 +1135,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x5f",
-                    "0xd7fd71920be3e621",
+                    "0x619911dbb570258c",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle2",
                 "to": "sc:price-aggregator",
@@ -1154,19 +1156,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x5a032236cff2ff06",
+                    "0x3cf8d3d3a05bf655",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle3",
                 "to": "sc:price-aggregator",
@@ -1175,19 +1177,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x2e874347688dffa1",
+                    "0x4d92440172e0bf71",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle4",
                 "to": "sc:price-aggregator",
@@ -1196,19 +1198,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x4c94033d5e15a73a",
+                    "0xd971ed41066daa08",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle5",
                 "to": "sc:price-aggregator",
@@ -1217,19 +1219,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x2bd5b88173750be6",
+                    "0x34a9348cb04afbd1",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle6",
                 "to": "sc:price-aggregator",
@@ -1238,19 +1240,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0xe4cb406e5f95d9d7",
+                    "0x6c01a77d55c0861f",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle7",
                 "to": "sc:price-aggregator",
@@ -1259,19 +1261,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0xfd4dd723ed0b256e",
+                    "0xea1e93f2b82ec0f6",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle8",
                 "to": "sc:price-aggregator",
@@ -1280,19 +1282,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x66b6bfe973064cfd",
+                    "0x2f067fee00bbd5bc",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle9",
                 "to": "sc:price-aggregator",
@@ -1301,19 +1303,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0xbc6a51b940c5c479",
+                    "0x1706fe5397a21f74",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle10",
                 "to": "sc:price-aggregator",
@@ -1322,19 +1324,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x47ca1962093887df",
+                    "0xbffd5631e9e448a8",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle11",
                 "to": "sc:price-aggregator",
@@ -1343,19 +1345,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0xa9657f2b7c255e3c",
+                    "0x1940496d3bc8934c",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle12",
                 "to": "sc:price-aggregator",
@@ -1364,19 +1366,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0xadaf4aaa5e63f2e5",
+                    "0xbd0af0d3aba30235",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle13",
                 "to": "sc:price-aggregator",
@@ -1385,19 +1387,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x153a1384b3d68656",
+                    "0xebcf9494ec0fac0c",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle14",
                 "to": "sc:price-aggregator",
@@ -1406,19 +1408,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x4ba5dda59b2ba4e9",
+                    "0x7aeb67c3eabe498c",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle15",
                 "to": "sc:price-aggregator",
@@ -1427,19 +1429,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x973e0d62157afb51",
+                    "0x5c758d17b8445f7f",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle16",
                 "to": "sc:price-aggregator",
@@ -1448,19 +1450,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0xe18cb77b44399b45",
+                    "0x6978fe48b9a58974",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle17",
                 "to": "sc:price-aggregator",
@@ -1469,19 +1471,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x30a1ed7ed6069074",
+                    "0x8692c26f665bc7ad",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle18",
                 "to": "sc:price-aggregator",
@@ -1490,19 +1492,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0xfbd288d325739548",
+                    "0x2d3a93b7522e72b6",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle19",
                 "to": "sc:price-aggregator",
@@ -1511,19 +1513,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x83ad3ad74745e6f5",
+                    "0x4faa49415e935688",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle20",
                 "to": "sc:price-aggregator",
@@ -1532,19 +1534,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x0cc85234d5ea00b2",
+                    "0x5cbca2cc253dbf54",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle21",
                 "to": "sc:price-aggregator",
@@ -1553,19 +1555,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x8dae036c75e9a62c",
+                    "0xdd20d194dd695735",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle22",
                 "to": "sc:price-aggregator",
@@ -1574,19 +1576,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x31549118c983eaa0",
+                    "0x32f039c1765a2ec3",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle23",
                 "to": "sc:price-aggregator",
@@ -1595,19 +1597,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x8228096b6388b4bd",
+                    "0x84372c9de3d535d9",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle24",
                 "to": "sc:price-aggregator",
@@ -1616,19 +1618,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x2dc8b16251c44710",
+                    "0x91b23ed59de93417",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle25",
                 "to": "sc:price-aggregator",
@@ -1637,19 +1639,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0xbc66b6f85858d98c",
+                    "0x4b81d1a55887f5f9",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle26",
                 "to": "sc:price-aggregator",
@@ -1658,19 +1660,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x2937c9b0c1073c0b",
+                    "0xd88e348ef6679e1d",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle27",
                 "to": "sc:price-aggregator",
@@ -1679,19 +1681,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0xa2b7bd06214aabc4",
+                    "0x2557834dc8059cc7",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle28",
                 "to": "sc:price-aggregator",
@@ -1700,19 +1702,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x61ae8ac001144476",
+                    "0x22d86f8317546033",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle29",
                 "to": "sc:price-aggregator",
@@ -1721,19 +1723,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x5f6de265c643495f",
+                    "0x5a775ddd32ca5367",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle30",
                 "to": "sc:price-aggregator",
@@ -1742,19 +1744,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x67430307e2f864f0",
+                    "0x59f049471cd2662c",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle31",
                 "to": "sc:price-aggregator",
@@ -1763,19 +1765,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x7de010a49d52cd3f",
+                    "0xb59fdc2aedbf845f",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle32",
                 "to": "sc:price-aggregator",
@@ -1784,19 +1786,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0xb27799264f3b84ec",
+                    "0xab13e96eb802f883",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle33",
                 "to": "sc:price-aggregator",
@@ -1805,19 +1807,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x53d7a1ade83e0f2e",
+                    "0xf6f152ab53ad7170",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle34",
                 "to": "sc:price-aggregator",
@@ -1826,19 +1828,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x2ec40e01673b8ad7",
+                    "0x5bae78b87d516979",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle35",
                 "to": "sc:price-aggregator",
@@ -1847,19 +1849,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0xfb616537f76f8ffb",
+                    "0xe47859cc0fdb0abe",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle36",
                 "to": "sc:price-aggregator",
@@ -1868,19 +1870,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x387268d229f4ec9a",
+                    "0x7c36ab1fa1a348b4",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle37",
                 "to": "sc:price-aggregator",
@@ -1889,19 +1891,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0xdea0f1c84325ea3a",
+                    "0x7fda3ef39b74e04b",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle38",
                 "to": "sc:price-aggregator",
@@ -1910,19 +1912,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x12eb7cb637de6e86",
+                    "0x461d81a84db50115",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle39",
                 "to": "sc:price-aggregator",
@@ -1931,19 +1933,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x5f6b1784511d622d",
+                    "0xcc0ab8ccc363dd0c",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle40",
                 "to": "sc:price-aggregator",
@@ -1952,19 +1954,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x1a41106366209d8d",
+                    "0x11c15058c7c6c1fa",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle41",
                 "to": "sc:price-aggregator",
@@ -1973,19 +1975,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x2324bca02526fec9",
+                    "0x293b700535555d4f",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle42",
                 "to": "sc:price-aggregator",
@@ -1994,19 +1996,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0xccf33fc47ef34300",
+                    "0x4e8d04d2f0e53efd",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle43",
                 "to": "sc:price-aggregator",
@@ -2015,19 +2017,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0xebfab26bff9c74a3",
+                    "0x42be3651d7b9499e",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle44",
                 "to": "sc:price-aggregator",
@@ -2036,19 +2038,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x116a45e410db659b",
+                    "0xb82a437fc87cd8a0",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle45",
                 "to": "sc:price-aggregator",
@@ -2057,19 +2059,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0xc9bddc2b06ba1f1e",
+                    "0xb12ebd0d9ff3f396",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle46",
                 "to": "sc:price-aggregator",
@@ -2078,19 +2080,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0xde7473b9bfdfe96c",
+                    "0x85b4d01e5a20d445",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle47",
                 "to": "sc:price-aggregator",
@@ -2099,19 +2101,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x91c2ff3a5c73267e",
+                    "0x92edaca582002375",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle48",
                 "to": "sc:price-aggregator",
@@ -2120,19 +2122,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x95bb44dffc62bb47",
+                    "0x351151b47fee6331",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle49",
                 "to": "sc:price-aggregator",
@@ -2141,19 +2143,19 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0x2f28d194b7659f9f",
+                    "0x9155d2992ceb6beb",
                     "0x"
                 ],
                 "gasLimit": "7,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         },
         {
             "step": "scCall",
-            "id": "",
             "tx": {
                 "from": "address:oracle50",
                 "to": "sc:price-aggregator",
@@ -2162,14 +2164,15 @@
                     "0x45474c44",
                     "0x55534443",
                     "0x64",
-                    "0xc1bd397146f3353e",
+                    "0xdbc0895ce5855dec",
                     "0x"
                 ],
-                "gasLimit": "7,000,000"
+                "gasLimit": "50,000,000"
             },
             "expect": {
                 "out": [],
-                "status": "0"
+                "status": "0",
+                "refund": "*"
             }
         }
     ]
