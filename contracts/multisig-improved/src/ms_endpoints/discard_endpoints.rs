@@ -4,7 +4,9 @@ multiversx_sc::imports!();
 
 #[multiversx_sc::module]
 pub trait DiscardEndpointsModule:
-    crate::state::StateModule
+    crate::common_functions::CommonFunctionsModule
+    + crate::state::StateModule
+    + crate::action_types::external_module::ExternalModuleModule
     + crate::action_types::propose::ProposeModule
     + crate::action_types::sign::SignModule
     + crate::action_types::perform::PerformModule

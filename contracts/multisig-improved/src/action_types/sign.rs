@@ -4,7 +4,9 @@ multiversx_sc::imports!();
 
 #[multiversx_sc::module]
 pub trait SignModule:
-    crate::state::StateModule
+    crate::common_functions::CommonFunctionsModule
+    + crate::state::StateModule
+    + super::external_module::ExternalModuleModule
     + super::propose::ProposeModule
     + super::perform::PerformModule
     + super::execute_action::ExecuteActionModule

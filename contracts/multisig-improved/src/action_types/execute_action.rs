@@ -5,6 +5,8 @@ use crate::common_types::{
 
 use crate::ms_endpoints::callbacks::CallbackProxy as _;
 
+use super::external_module::DISABLED;
+
 multiversx_sc::imports!();
 
 /// Gas required to finish transaction after transfer-execute.
@@ -13,25 +15,49 @@ pub const MAX_BOARD_MEMBERS: usize = 30;
 
 #[multiversx_sc::module]
 pub trait ExecuteActionModule:
-    crate::state::StateModule
+    crate::common_functions::CommonFunctionsModule
+    + crate::state::StateModule
+    + super::external_module::ExternalModuleModule
     + crate::external::events::EventsModule
     + crate::ms_endpoints::callbacks::CallbacksModule
 {
+    fn try_execute_deploy(
+        &self,
+        action_id: ActionId,
+        action: &Action<Self::Api>,
+    ) -> OptionalValue<ManagedAddress> {
+        if let Action::SCDeployFromSource(args) = action {
+            let new_address = self.deploy_from_source(action_id, args.clone());
+
+            return OptionalValue::Some(new_address);
+        }
+        if let Action::DeployModuleFromSource(args) = action {
+            let new_address = self.deploy_from_source(action_id, args.clone());
+            let module_id = self.module_id().insert_new(&new_address);
+            let proposer_id = self.deploy_module_proposer(action_id).take();
+            self.module_owner(module_id).set(proposer_id);
+
+            return OptionalValue::Some(new_address);
+        }
+
+        OptionalValue::None
+    }
+
     fn execute_action_by_type(&self, action_id: ActionId, action: Action<Self::Api>) {
         match action {
             Action::Nothing => {}
             Action::AddBoardMember(board_member_address) => {
                 self.add_board_member(action_id, board_member_address);
             }
-            Action::AddProposer(proposer_address) => {
-                self.add_proposer(action_id, proposer_address);
-            }
-            Action::RemoveUser(user_address) => {
-                self.remove_user(action_id, user_address);
-            }
-            Action::ChangeQuorum(new_quorum) => {
-                self.change_quorum(action_id, new_quorum);
-            }
+            Action::AddProposer(proposer_address) => self.add_proposer(action_id, proposer_address),
+            Action::RemoveUser(user_address) => self.remove_user(action_id, user_address),
+            Action::ChangeQuorum(new_quorum) => self.change_quorum(action_id, new_quorum),
+            _ => self.execute_external_call(action_id, action),
+        };
+    }
+
+    fn execute_external_call(&self, action_id: ActionId, action: Action<Self::Api>) {
+        match action {
             Action::SendTransferExecuteEgld(call_data) => {
                 self.send_transfer_execute_egld(action_id, call_data);
             }
@@ -41,13 +67,17 @@ pub trait ExecuteActionModule:
             Action::SendAsyncCall(call_data) => {
                 self.send_async_call(action_id, call_data);
             }
-            Action::SCDeployFromSource(_) => {
-                // Can't reach this branch, I didn't use "_" so I get errors when I add a new action type
-            }
             Action::SCUpgradeFromSource { sc_address, args } => {
                 self.upgrade_from_source(action_id, sc_address, args);
             }
-        };
+            Action::UpgradeModuleFromSource { sc_address, args } => {
+                let module_id = self.module_id().get_id_non_zero(&sc_address);
+                self.module_status(module_id).set(DISABLED);
+
+                self.upgrade_from_source(action_id, sc_address, args);
+            }
+            _ => {} // Deploy cases handled in "try_execute_deploy" function
+        }
     }
 
     fn add_board_member(&self, action_id: ActionId, board_member_address: ManagedAddress) {
@@ -169,7 +199,7 @@ pub trait ExecuteActionModule:
             .with_gas_limit(gas)
             .async_call()
             .with_callback(self.callbacks().perform_async_call_callback())
-            .call_and_exit()
+            .call_and_exit();
     }
 
     fn deploy_from_source(

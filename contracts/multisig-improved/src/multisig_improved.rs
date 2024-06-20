@@ -1,7 +1,11 @@
 #![no_std]
 
+use action_types::execute_action::MAX_BOARD_MEMBERS;
+use common_types::user_role::UserRole;
+
 pub mod action_types;
 pub mod check_signature;
+pub mod common_functions;
 pub mod common_types;
 pub mod external;
 pub mod ms_endpoints;
@@ -15,12 +19,14 @@ multiversx_sc::imports!();
 #[multiversx_sc::contract]
 pub trait Multisig:
     state::StateModule
+    + common_functions::CommonFunctionsModule
     + check_signature::CheckSignatureModule
     + ms_endpoints::propose_endpoints::ProposeEndpointsModule
     + ms_endpoints::perform_endpoints::PerformEndpointsModule
     + ms_endpoints::discard_endpoints::DiscardEndpointsModule
     + ms_endpoints::sign_endpoints::SignEndpointsModule
     + ms_endpoints::callbacks::CallbacksModule
+    + action_types::external_module::ExternalModuleModule
     + action_types::execute_action::ExecuteActionModule
     + action_types::propose::ProposeModule
     + action_types::sign::SignModule
@@ -55,4 +61,23 @@ pub trait Multisig:
     #[payable("*")]
     #[endpoint]
     fn deposit(&self) {}
+
+    fn add_multiple_board_members(&self, new_board_members: ManagedVec<ManagedAddress>) -> usize {
+        require!(
+            self.num_board_members().get() + new_board_members.len() <= MAX_BOARD_MEMBERS,
+            "board size cannot exceed limit"
+        );
+
+        let mapper = self.user_ids();
+        for new_member in &new_board_members {
+            let user_id = mapper.insert_new(&new_member);
+            self.user_id_to_role(user_id).set(UserRole::BoardMember);
+        }
+
+        let num_board_members_mapper = self.num_board_members();
+        let new_num_board_members = num_board_members_mapper.get() + new_board_members.len();
+        num_board_members_mapper.set(new_num_board_members);
+
+        new_num_board_members
+    }
 }

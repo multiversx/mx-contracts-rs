@@ -4,7 +4,9 @@ multiversx_sc::imports!();
 
 #[multiversx_sc::module]
 pub trait DiscardActionModule:
-    crate::state::StateModule
+    crate::common_functions::CommonFunctionsModule
+    + crate::state::StateModule
+    + super::external_module::ExternalModuleModule
     + super::propose::ProposeModule
     + super::sign::SignModule
     + super::perform::PerformModule
@@ -18,7 +20,7 @@ pub trait DiscardActionModule:
             self.get_action_valid_signer_count(action_id) == 0,
             "cannot discard action with valid signatures"
         );
-        
+
         self.abort_batch_of_action(action_id);
         self.clear_action(action_id);
     }
