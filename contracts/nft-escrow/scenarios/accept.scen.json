@@ -244,7 +244,7 @@
                     "storage": {
                         "str:lastOfferId": "1"
                     },
-                    "code": "file:../output/nft-escrow.wasm",
+                    "code": "mxsc:../output/nft-escrow.mxsc.json",
                     "owner": "address:owner"
                 },
                 "+": ""
