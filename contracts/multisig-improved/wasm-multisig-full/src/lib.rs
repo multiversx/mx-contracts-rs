@@ -22,6 +22,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         init => init
         upgrade => upgrade
         deposit => deposit
+        quorumReached => quorum_reached
         getQuorum => quorum
         getNumBoardMembers => num_board_members
         getNumGroups => num_groups
@@ -38,6 +39,10 @@ multiversx_sc_wasm_adapter::endpoints! {
         proposeSCDeployFromSource => propose_sc_deploy_from_source
         proposeSCUpgradeFromSource => propose_sc_upgrade_from_source
         proposeBatch => propose_batch
+        performAction => perform_action_endpoint
+        performBatch => perform_batch
+        discardAction => discard_action_endpoint
+        discardBatch => discard_batch
         sign => sign
         signBatch => sign_batch
         signAndPerform => sign_and_perform
@@ -45,11 +50,6 @@ multiversx_sc_wasm_adapter::endpoints! {
         unsign => unsign
         unsignBatch => unsign_batch
         unsignForOutdatedBoardMembers => unsign_for_outdated_board_members
-        quorumReached => quorum_reached
-        performAction => perform_action_endpoint
-        performBatch => perform_batch
-        discardAction => discard_action_endpoint
-        discardBatch => discard_batch
         signed => signed
         getActionLastIndex => get_action_last_index
         getUserNonce => get_user_nonce

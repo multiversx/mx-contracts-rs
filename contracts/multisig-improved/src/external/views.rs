@@ -11,6 +11,8 @@ pub trait ViewsModule:
     + crate::action_types::propose::ProposeModule
     + crate::action_types::sign::SignModule
     + crate::action_types::perform::PerformModule
+    + crate::action_types::execute_action::ExecuteActionModule
+    + crate::ms_endpoints::callbacks::CallbacksModule
     + crate::check_signature::CheckSignatureModule
     + super::events::EventsModule
 {
