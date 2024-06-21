@@ -1,12 +1,13 @@
 use crate::{
     potlock_setup,
-    potlock_storage::{self, PotlockId, ProjectId},
+    potlock_storage::{self, PotlockId, ProjectId, Status},
 };
 
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
 pub type ProjectPercentage = MultiValue2<usize, u64>;
+const MAX_PERCENTAGE: u64 = 10_000; // 100%
 
 #[multiversx_sc::module]
 pub trait PotlockAdminInteractions:
@@ -22,6 +23,9 @@ pub trait PotlockAdminInteractions:
 
         self.fee_amount_accepted_pots()
             .update(|amount| *amount += fee_amount);
+        let mut accepted_potlock = self.potlocks().get(potlock_id);
+        accepted_potlock.status = Status::Active;
+        self.potlocks().set(potlock_id, &accepted_potlock);
         self.fee_pot_proposer(potlock_id).clear();
     }
 
@@ -43,9 +47,11 @@ pub trait PotlockAdminInteractions:
 
     #[only_admin]
     #[endpoint(acceptApplication)]
-    fn accept_application(&self, project: ProjectId) {
-        self.require_project_exists(project);
-        // TODO: Mark project's status as accepted
+    fn accept_application(&self, project_id: ProjectId) {
+        self.require_project_exists(project_id);
+        let mut accepted_projects = self.projects().get(project_id);
+        accepted_projects.status = Status::Active;
+        self.projects().set(project_id, &accepted_projects);
     }
 
     #[only_admin]
@@ -76,7 +82,7 @@ pub trait PotlockAdminInteractions:
             let (project_id, percentage) = pp.into_tuple();
             let mut output_payments = ManagedVec::new();
             for (_, donation) in pot_donations.iter() {
-                let project_share_amount = donation.amount * percentage;
+                let project_share_amount = donation.amount * percentage / MAX_PERCENTAGE;
                 let project_share = EsdtTokenPayment::new(
                     donation.token_identifier,
                     donation.token_nonce,

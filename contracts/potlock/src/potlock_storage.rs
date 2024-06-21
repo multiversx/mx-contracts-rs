@@ -4,11 +4,10 @@ multiversx_sc::derive_imports!();
 pub type PotlockId = usize;
 pub type ProjectId = usize;
 
-#[derive(TypeAbi, TopEncode, TopDecode, PartialEq, Eq)]
-pub enum PotlockStatus {
-    None,
-    Active,
+#[derive(TypeAbi, TopEncode, TopDecode, PartialEq, Eq, Debug, NestedEncode, NestedDecode)]
+pub enum Status {
     Inactive,
+    Active,
 }
 
 #[derive(TypeAbi, NestedEncode, NestedDecode, PartialEq, Debug, TopEncode, TopDecode)]
@@ -18,8 +17,7 @@ pub struct Pot<M: ManagedTypeApi> {
     pub fee: BigUint<M>,
     pub name: ManagedBuffer<M>,
     pub description: ManagedBuffer<M>,
-    // pub status: PotlockStatus,
-    // pub payment: EsdtTokenPayment<M>,
+    pub status: Status,
 }
 
 impl<M: ManagedTypeApi> Pot<M> {
@@ -34,6 +32,7 @@ impl<M: ManagedTypeApi> Pot<M> {
             fee: BigUint::default(),
             name,
             description,
+            status: Status::Inactive,
         }
     }
 }
@@ -45,6 +44,7 @@ pub struct Project<M: ManagedTypeApi> {
     pub name: ManagedBuffer<M>,
     pub description: ManagedBuffer<M>,
     pub owner: ManagedAddress<M>,
+    pub status: Status,
 }
 
 impl<M: ManagedTypeApi> Project<M> {
@@ -61,6 +61,7 @@ impl<M: ManagedTypeApi> Project<M> {
             name,
             description,
             owner,
+            status: Status::Inactive,
         }
     }
 }
