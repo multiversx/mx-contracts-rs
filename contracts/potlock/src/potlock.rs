@@ -4,7 +4,6 @@ multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 pub mod potlock_admin_interactions;
 pub mod potlock_interactions;
-pub mod potlock_proxy;
 pub mod potlock_setup;
 pub mod potlock_storage;
 

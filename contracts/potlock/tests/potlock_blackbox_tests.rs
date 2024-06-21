@@ -1,7 +1,7 @@
-use std::fmt::Result;
-
 use multiversx_sc_scenario::{imports::*, ScenarioWorld};
-use potlock::{potlock_proxy, potlock_storage::PotlockId};
+use potlock::potlock_storage::{PotlockId, ProjectId};
+use potlock_proxy::Status;
+mod potlock_proxy;
 
 const POTLOCK_ADDRESS: TestSCAddress = TestSCAddress::new("potlock");
 const POTLOCK_CODE_PATH: MxscPath = MxscPath::new("output/potlock.mxsc.json");
@@ -12,7 +12,9 @@ const PROJECT_PROPOSER_ADDRESS: TestAddress = TestAddress::new("project_proposer
 const POT_DONOR_ADDRESS: TestAddress = TestAddress::new("pot_donor");
 const PROJECT_DONOR_ADDRESS: TestAddress = TestAddress::new("project_donor");
 const TOKEN_ID: TestTokenIdentifier = TestTokenIdentifier::new("POT-123456");
-const POT_FEE_CREATION: u64 = 1_000; // 1 week in seconds
+const POT_FEE_CREATION: u64 = 1_000;
+const INITIAL_BALANCE: u64 = 2_000;
+const DONATION_AMOUNT: u64 = 100; // 1 week in seconds
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
@@ -36,11 +38,15 @@ impl PotlockTestState {
             .nonce(1)
             .account(POT_PROPOSER_ADDRESS)
             .nonce(1)
-            .esdt_balance(TOKEN_ID, 1_000)
+            .esdt_balance(TOKEN_ID, INITIAL_BALANCE)
             .account(PROJECT_PROPOSER_ADDRESS)
             .nonce(1)
             .account(POT_DONOR_ADDRESS)
-            .nonce(1);
+            .nonce(1)
+            .esdt_balance(TOKEN_ID, INITIAL_BALANCE)
+            .account(PROJECT_DONOR_ADDRESS)
+            .nonce(1)
+            .esdt_balance(TOKEN_ID, INITIAL_BALANCE);
 
         Self { world }
     }
@@ -92,6 +98,16 @@ impl PotlockTestState {
             .run();
     }
 
+    fn accept_application(&mut self, project_id: ProjectId) {
+        self.world
+            .tx()
+            .from(OWNER_ADDRESS)
+            .to(POTLOCK_ADDRESS)
+            .typed(potlock_proxy::PotlockProxy)
+            .accept_application(project_id)
+            .run();
+    }
+
     fn remove_pot(&mut self, potlock_id: PotlockId) {
         self.world
             .tx()
@@ -112,6 +128,36 @@ impl PotlockTestState {
             .run();
     }
 
+    fn donate_to_pot(&mut self, potlock_id: PotlockId) {
+        self.world
+            .tx()
+            .from(POT_DONOR_ADDRESS)
+            .to(POTLOCK_ADDRESS)
+            .typed(potlock_proxy::PotlockProxy)
+            .donate_to_pot(potlock_id)
+            .egld_or_single_esdt(
+                &EgldOrEsdtTokenIdentifier::esdt(TOKEN_ID),
+                0u64,
+                &multiversx_sc::proxy_imports::BigUint::from(DONATION_AMOUNT),
+            )
+            .run();
+    }
+
+    fn donate_to_project(&mut self, project_id: ProjectId) {
+        self.world
+            .tx()
+            .from(PROJECT_DONOR_ADDRESS)
+            .to(POTLOCK_ADDRESS)
+            .typed(potlock_proxy::PotlockProxy)
+            .donate_to_project(project_id)
+            .egld_or_single_esdt(
+                &EgldOrEsdtTokenIdentifier::esdt(TOKEN_ID),
+                0u64,
+                &multiversx_sc::proxy_imports::BigUint::from(DONATION_AMOUNT),
+            )
+            .run();
+    }
+
     ////////// Checks //////////
     fn check_esdt_balance(&mut self, address: TestAddress, balance: u64) {
         self.world
@@ -125,7 +171,7 @@ impl PotlockTestState {
             .esdt_balance(TOKEN_ID, balance);
     }
 
-    fn check_potlock_id(&mut self, potlock_id: PotlockId) {
+    fn check_potlock_id_is_last(&mut self, potlock_id: PotlockId) {
         let potlocks = self
             .world
             .query()
@@ -134,6 +180,35 @@ impl PotlockTestState {
             .potlocks()
             .returns(ReturnsResult)
             .run();
+        assert_eq!(potlocks.len(), potlock_id);
+    }
+
+    fn check_project_id_is_last(&mut self, project_id: PotlockId) {
+        let projects = self
+            .world
+            .query()
+            .to(POTLOCK_ADDRESS)
+            .typed(potlock_proxy::PotlockProxy)
+            .projects()
+            .returns(ReturnsResult)
+            .run();
+        assert_eq!(projects.len(), project_id);
+    }
+
+    fn check_project_is_accepted(&mut self, project_id: PotlockId) {
+        let projects = self
+            .world
+            .query()
+            .to(POTLOCK_ADDRESS)
+            .typed(potlock_proxy::PotlockProxy)
+            .projects()
+            .returns(ReturnsResult)
+            .run();
+        for project in projects.into_iter() {
+            if project.project_id == project_id {
+                assert_eq!(project.status, Status::Active);
+            }
+        }
     }
 }
 
@@ -152,7 +227,10 @@ fn test_add_pot() {
 
     state.add_pot("Pot", "Pot Description");
 
-    state.check_esdt_balance(POT_PROPOSER_ADDRESS, 0);
+    let potlock_id = 1usize;
+    state.check_potlock_id_is_last(potlock_id);
+
+    state.check_esdt_balance(POT_PROPOSER_ADDRESS, INITIAL_BALANCE - POT_FEE_CREATION);
     state.check_sc_esdt_balance(POTLOCK_ADDRESS, POT_FEE_CREATION);
 }
 
@@ -163,10 +241,12 @@ fn test_accept_pot() {
     state.change_fee_for_pots(POT_FEE_CREATION);
 
     state.add_pot("Pot", "Pot Description");
+
     let potlock_id = 1usize;
+    state.check_potlock_id_is_last(potlock_id);
 
     state.accept_pot(potlock_id);
-    state.check_esdt_balance(POT_PROPOSER_ADDRESS, 0);
+    state.check_esdt_balance(POT_PROPOSER_ADDRESS, INITIAL_BALANCE - POT_FEE_CREATION);
     state.check_sc_esdt_balance(POTLOCK_ADDRESS, POT_FEE_CREATION);
 }
 
@@ -182,7 +262,7 @@ fn test_remove_pot() {
     state.remove_pot(potlock_id);
 
     // Funds were returned to user
-    state.check_esdt_balance(POT_PROPOSER_ADDRESS, POT_FEE_CREATION);
+    state.check_esdt_balance(POT_PROPOSER_ADDRESS, INITIAL_BALANCE);
     state.check_sc_esdt_balance(POTLOCK_ADDRESS, 0);
 }
 
@@ -194,12 +274,82 @@ fn test_apply_for_pot() {
 
     state.add_pot("Pot", "Pot Description");
     let potlock_id = 1usize;
+    let project_id = 1usize;
 
     state.apply_for_pot(potlock_id, "Project name", "Project description");
 
+    state.check_potlock_id_is_last(potlock_id);
+    state.check_project_id_is_last(project_id);
+
     // Funds were returned to user
+    state.check_esdt_balance(POT_PROPOSER_ADDRESS, INITIAL_BALANCE - POT_FEE_CREATION);
+    state.check_sc_esdt_balance(POTLOCK_ADDRESS, POT_FEE_CREATION);
+}
+
+#[test]
+fn test_donate_to_pot() {
+    let mut state = PotlockTestState::new();
+    state.deploy_potlock_contract();
+    state.change_fee_for_pots(POT_FEE_CREATION);
+
+    state.add_pot("Pot", "Pot Description");
+    let potlock_id = 1usize;
+    state.check_potlock_id_is_last(potlock_id);
+
+    state.check_esdt_balance(POT_PROPOSER_ADDRESS, INITIAL_BALANCE - POT_FEE_CREATION);
+    state.check_sc_esdt_balance(POTLOCK_ADDRESS, POT_FEE_CREATION);
+    state.check_esdt_balance(POT_DONOR_ADDRESS, INITIAL_BALANCE);
+
+    state.donate_to_pot(potlock_id);
+
+    state.check_sc_esdt_balance(POTLOCK_ADDRESS, POT_FEE_CREATION + DONATION_AMOUNT);
+    state.check_esdt_balance(POT_DONOR_ADDRESS, INITIAL_BALANCE - DONATION_AMOUNT);
+}
+
+#[test]
+fn test_donate_to_project() {
+    let mut state = PotlockTestState::new();
+    state.deploy_potlock_contract();
+    state.change_fee_for_pots(POT_FEE_CREATION);
+
+    state.add_pot("Pot", "Pot Description");
+    let potlock_id = 1usize;
+    state.check_potlock_id_is_last(potlock_id);
+
+    state.apply_for_pot(potlock_id, "Project name", "Project description");
+    let project_id = 1usize;
+    state.check_project_id_is_last(project_id);
+
+    state.check_esdt_balance(POT_PROPOSER_ADDRESS, INITIAL_BALANCE - POT_FEE_CREATION);
+    state.check_sc_esdt_balance(POTLOCK_ADDRESS, POT_FEE_CREATION);
+    state.check_esdt_balance(PROJECT_DONOR_ADDRESS, INITIAL_BALANCE);
+
+    state.donate_to_project(project_id);
+
+    state.check_sc_esdt_balance(POTLOCK_ADDRESS, POT_FEE_CREATION + DONATION_AMOUNT);
+    state.check_esdt_balance(PROJECT_DONOR_ADDRESS, INITIAL_BALANCE - DONATION_AMOUNT);
+}
+
+#[test]
+fn test_accept_application() {
+    let mut state = PotlockTestState::new();
+    state.deploy_potlock_contract();
+    state.change_fee_for_pots(POT_FEE_CREATION);
+
+    state.add_pot("Pot", "Pot Description");
+    let potlock_id: usize = 1usize;
+    state.check_potlock_id_is_last(potlock_id);
+
+    let project_id = 1usize;
+
+    state.apply_for_pot(potlock_id, "Project name", "Project description");
+
+    state.check_project_id_is_last(project_id);
     state.check_esdt_balance(POT_PROPOSER_ADDRESS, POT_FEE_CREATION);
-    state.check_sc_esdt_balance(POTLOCK_ADDRESS, 0);
+    state.check_sc_esdt_balance(POTLOCK_ADDRESS, POT_FEE_CREATION);
+
+    state.accept_application(project_id);
+    state.check_project_is_accepted(project_id);
 }
 
 ///////////// Negative tests //////////////
@@ -220,7 +370,7 @@ fn test_fail_add_pot() {
         .with_result(ExpectError(4, "incorrect number of ESDT transfers"))
         .run();
 
-    state.check_esdt_balance(POT_PROPOSER_ADDRESS, POT_FEE_CREATION);
+    state.check_esdt_balance(POT_PROPOSER_ADDRESS, INITIAL_BALANCE);
     state.check_sc_esdt_balance(POTLOCK_ADDRESS, 0);
 }
 
@@ -243,7 +393,7 @@ fn test_fail_accept_pot() {
         .with_result(ExpectError(4, "Endpoint can only be called by admins"))
         .run();
 
-    state.check_esdt_balance(POT_PROPOSER_ADDRESS, 0);
+    state.check_esdt_balance(POT_PROPOSER_ADDRESS, INITIAL_BALANCE - POT_FEE_CREATION);
     state.check_sc_esdt_balance(POTLOCK_ADDRESS, POT_FEE_CREATION);
 }
 
@@ -266,6 +416,36 @@ fn test_fail_remove_pot() {
         .with_result(ExpectError(4, "Endpoint can only be called by admins"))
         .run();
 
-    state.check_esdt_balance(POT_PROPOSER_ADDRESS, 0);
+    state.check_esdt_balance(POT_PROPOSER_ADDRESS, INITIAL_BALANCE - POT_FEE_CREATION);
     state.check_sc_esdt_balance(POTLOCK_ADDRESS, POT_FEE_CREATION);
+}
+
+#[test]
+fn test_fail_accept_application() {
+    let mut state = PotlockTestState::new();
+    state.deploy_potlock_contract();
+    state.change_fee_for_pots(POT_FEE_CREATION);
+
+    state.add_pot("Pot", "Pot Description");
+    let potlock_id = 1usize;
+    let project_id = 1usize;
+
+    state.apply_for_pot(potlock_id, "Project name", "Project description");
+
+    state.check_potlock_id_is_last(potlock_id);
+    state.check_project_id_is_last(project_id);
+
+    // Funds were returned to user
+    state.check_esdt_balance(POT_PROPOSER_ADDRESS, INITIAL_BALANCE - POT_FEE_CREATION);
+    state.check_sc_esdt_balance(POTLOCK_ADDRESS, POT_FEE_CREATION);
+
+    state
+        .world
+        .tx()
+        .from(POT_PROPOSER_ADDRESS)
+        .to(POTLOCK_ADDRESS)
+        .typed(potlock_proxy::PotlockProxy)
+        .accept_application(project_id)
+        .with_result(ExpectError(4, "Endpoint can only be called by admins"))
+        .run();
 }

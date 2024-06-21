@@ -115,12 +115,12 @@ where
         Arg0: ProxyArg<usize>,
     >(
         self,
-        project: Arg0,
+        project_id: Arg0,
     ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("acceptApplication")
-            .argument(&project)
+            .argument(&project_id)
             .original_result()
     }
 
@@ -374,6 +374,14 @@ where
     pub fee: BigUint<Api>,
     pub name: ManagedBuffer<Api>,
     pub description: ManagedBuffer<Api>,
+    pub status: Status,
+}
+
+#[type_abi]
+#[derive(TopEncode, TopDecode, PartialEq, Eq, Debug, NestedEncode, NestedDecode)]
+pub enum Status {
+    Inactive,
+    Active,
 }
 
 #[type_abi]
@@ -387,4 +395,5 @@ where
     pub name: ManagedBuffer<Api>,
     pub description: ManagedBuffer<Api>,
     pub owner: ManagedAddress<Api>,
+    pub status: Status,
 }

@@ -1,6 +1,6 @@
 use crate::{
     potlock_setup,
-    potlock_storage::{self, PotlockId, ProjectId},
+    potlock_storage::{self, PotlockId, ProjectId, Status},
 };
 
 multiversx_sc::imports!();
@@ -22,6 +22,9 @@ pub trait PotlockAdminInteractions:
 
         self.fee_amount_accepted_pots()
             .update(|amount| *amount += fee_amount);
+        let mut accepted_potlock = self.potlocks().get(potlock_id);
+        accepted_potlock.status = Status::Active;
+        self.potlocks().set(potlock_id, &accepted_potlock);
         self.fee_pot_proposer(potlock_id).clear();
     }
 
@@ -43,9 +46,11 @@ pub trait PotlockAdminInteractions:
 
     #[only_admin]
     #[endpoint(acceptApplication)]
-    fn accept_application(&self, project: ProjectId) {
-        self.require_project_exists(project);
-        // TODO: Mark project's status as accepted
+    fn accept_application(&self, project_id: ProjectId) {
+        self.require_project_exists(project_id);
+        let mut accepted_projects = self.projects().get(project_id);
+        accepted_projects.status = Status::Active;
+        self.projects().set(project_id, &accepted_projects);
     }
 
     #[only_admin]
