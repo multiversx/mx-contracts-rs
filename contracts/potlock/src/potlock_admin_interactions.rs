@@ -7,6 +7,7 @@ multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
 pub type ProjectPercentage = MultiValue2<usize, u64>;
+const MAX_PERCENTAGE: u64 = 10_000; // 100%
 
 #[multiversx_sc::module]
 pub trait PotlockAdminInteractions:
@@ -81,7 +82,7 @@ pub trait PotlockAdminInteractions:
             let (project_id, percentage) = pp.into_tuple();
             let mut output_payments = ManagedVec::new();
             for (_, donation) in pot_donations.iter() {
-                let project_share_amount = donation.amount * percentage;
+                let project_share_amount = donation.amount * percentage / MAX_PERCENTAGE;
                 let project_share = EsdtTokenPayment::new(
                     donation.token_identifier,
                     donation.token_nonce,
