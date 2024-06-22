@@ -378,7 +378,7 @@ where
 }
 
 #[type_abi]
-#[derive(TopEncode, TopDecode)]
+#[derive(TopEncode, TopDecode, PartialEq, Eq, Debug, NestedEncode, NestedDecode)]
 pub enum Status {
     Inactive,
     Active,

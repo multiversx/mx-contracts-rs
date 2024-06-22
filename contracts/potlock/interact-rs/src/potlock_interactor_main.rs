@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+mod potlock_interactor_config;
 mod proxy;
 
 use multiversx_sc_snippets::imports::*;
@@ -10,10 +11,12 @@ use std::{
     path::Path,
 };
 
-
 const GATEWAY: &str = sdk::blockchain::DEVNET_GATEWAY;
 const STATE_FILE: &str = "state.toml";
+const TOKEN_ID: &str = "WEGLD-a28c59";
+const FEE_AMOUNT: u64 = 50000000000000000; // 0.5
 
+use potlock_interactor_config::Config;
 
 #[tokio::main]
 async fn main() {
@@ -37,8 +40,6 @@ async fn main() {
         "changeFeeForPots" => interact.change_fee_for_pots().await,
         "getFeeTokenIdentifier" => interact.fee_token_identifier().await,
         "getFeeAmount" => interact.fee_amount().await,
-        "getPotlocks" => interact.potlocks().await,
-        "getProjects" => interact.projects().await,
         "feePotPayments" => interact.fee_pot_proposer().await,
         "feeAmountAcceptPots" => interact.fee_amount_accepted_pots().await,
         "potDonations" => interact.pot_donations().await,
@@ -51,59 +52,59 @@ async fn main() {
     }
 }
 
-
 #[derive(Debug, Default, Serialize, Deserialize)]
 struct State {
-    contract_address: Option<Bech32Address>
+    contract_address: Option<Bech32Address>,
 }
 
 impl State {
-        // Deserializes state from file
-        pub fn load_state() -> Self {
-            if Path::new(STATE_FILE).exists() {
-                let mut file = std::fs::File::open(STATE_FILE).unwrap();
-                let mut content = String::new();
-                file.read_to_string(&mut content).unwrap();
-                toml::from_str(&content).unwrap()
-            } else {
-                Self::default()
-            }
-        }
-    
-        /// Sets the contract address
-        pub fn set_address(&mut self, address: Bech32Address) {
-            self.contract_address = Some(address);
-        }
-    
-        /// Returns the contract address
-        pub fn current_address(&self) -> &Bech32Address {
-            self.contract_address
-                .as_ref()
-                .expect("no known contract, deploy first")
+    // Deserializes state from file
+    pub fn load_state() -> Self {
+        if Path::new(STATE_FILE).exists() {
+            let mut file = std::fs::File::open(STATE_FILE).unwrap();
+            let mut content = String::new();
+            file.read_to_string(&mut content).unwrap();
+            toml::from_str(&content).unwrap()
+        } else {
+            Self::default()
         }
     }
-    
-    impl Drop for State {
-        // Serializes state to file
-        fn drop(&mut self) {
-            let mut file = std::fs::File::create(STATE_FILE).unwrap();
-            file.write_all(toml::to_string(self).unwrap().as_bytes())
-                .unwrap();
-        }
+
+    /// Sets the contract address
+    pub fn set_address(&mut self, address: Bech32Address) {
+        self.contract_address = Some(address);
     }
+
+    /// Returns the contract address
+    pub fn current_address(&self) -> &Bech32Address {
+        self.contract_address
+            .as_ref()
+            .expect("no known contract, deploy first")
+    }
+}
+
+impl Drop for State {
+    // Serializes state to file
+    fn drop(&mut self) {
+        let mut file = std::fs::File::create(STATE_FILE).unwrap();
+        file.write_all(toml::to_string(self).unwrap().as_bytes())
+            .unwrap();
+    }
+}
 
 struct ContractInteract {
     interactor: Interactor,
     wallet_address: Address,
     contract_code: BytesValue,
-    state: State
+    state: State,
+    config: Config,
 }
 
 impl ContractInteract {
     async fn new() -> Self {
         let mut interactor = Interactor::new(GATEWAY).await;
         let wallet_address = interactor.register_wallet(test_wallets::alice());
-        
+
         let contract_code = BytesValue::interpret_from(
             "mxsc:../output/potlock.mxsc.json",
             &InterpreterContext::default(),
@@ -113,12 +114,13 @@ impl ContractInteract {
             interactor,
             wallet_address,
             contract_code,
-            state: State::load_state()
+            state: State::load_state(),
+            config: Config::load_config(),
         }
     }
 
     async fn deploy(&mut self) {
-        let admin = bech32::decode("");
+        let admin = &self.config.admin;
 
         let new_address = self
             .interactor
@@ -127,19 +129,21 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .init(admin)
             .code(&self.contract_code)
+            .gas(50_000_000)
             .returns(ReturnsNewAddress)
             .prepare_async()
             .run()
             .await;
         let new_address_bech32 = bech32::encode(&new_address);
-        self.state
-            .set_address(Bech32Address::from_bech32_string(new_address_bech32.clone()));
+        self.state.set_address(Bech32Address::from_bech32_string(
+            new_address_bech32.clone(),
+        ));
 
         println!("new address: {new_address_bech32}");
     }
 
     async fn accept_pot(&mut self) {
-        let potlock_id = 0u32;
+        let potlock_id = 1u32;
 
         let response = self
             .interactor
@@ -175,7 +179,7 @@ impl ContractInteract {
     }
 
     async fn accept_application(&mut self) {
-        let project_id = 0u32;
+        let project_id = 1u32;
 
         let response = self
             .interactor
@@ -212,8 +216,8 @@ impl ContractInteract {
     }
 
     async fn distribute_pot_to_projects(&mut self) {
-        let potlock_id = 0u32;
-        let project_percentage = MultiValueVec::from(vec![MultiValue2::from((0u32, 0u64))]);
+        let potlock_id = 1u32;
+        let project_percentage = MultiValueVec::from(vec![MultiValue2::from((1u32, 10_000u64))]);
 
         let response = self
             .interactor
@@ -231,12 +235,12 @@ impl ContractInteract {
     }
 
     async fn add_pot(&mut self) {
-        let token_id = String::new();
+        let token_id = TokenIdentifier::from_esdt_bytes(TOKEN_ID);
         let token_nonce = 0u64;
-        let token_amount = BigUint::<StaticApi>::from(0u128);
+        let token_amount = BigUint::<StaticApi>::from(FEE_AMOUNT);
 
-        let name = ManagedBuffer::new_from_bytes(&b""[..]);
-        let description = ManagedBuffer::new_from_bytes(&b""[..]);
+        let description = ManagedBuffer::new_from_bytes(b"Pot used for testing");
+        let name = ManagedBuffer::new_from_bytes(b"My Pot");
 
         let response = self
             .interactor
@@ -245,7 +249,7 @@ impl ContractInteract {
             .to(self.state.current_address())
             .typed(proxy::PotlockProxy)
             .add_pot(name, description)
-            .payment((TokenIdentifier::from(token_id.as_str()), token_nonce, token_amount))
+            .payment((TokenIdentifier::from(token_id), token_nonce, token_amount))
             .returns(ReturnsResultUnmanaged)
             .prepare_async()
             .run()
@@ -255,9 +259,9 @@ impl ContractInteract {
     }
 
     async fn apply_for_pot(&mut self) {
-        let potlock_id = 0u32;
-        let project_name = ManagedBuffer::new_from_bytes(&b""[..]);
-        let description = ManagedBuffer::new_from_bytes(&b""[..]);
+        let potlock_id = 1u32;
+        let project_name = ManagedBuffer::new_from_bytes(b"New Testing Project");
+        let description = ManagedBuffer::new_from_bytes(b"Project used for testing");
 
         let response = self
             .interactor
@@ -275,11 +279,11 @@ impl ContractInteract {
     }
 
     async fn donate_to_pot(&mut self) {
-        let token_id = String::new();
+        let token_id = TokenIdentifier::from_esdt_bytes(TOKEN_ID);
         let token_nonce = 0u64;
-        let token_amount = BigUint::<StaticApi>::from(0u128);
+        let token_amount = BigUint::<StaticApi>::from(3 * FEE_AMOUNT);
 
-        let potlock_id = 0u32;
+        let potlock_id = 1u32;
 
         let response = self
             .interactor
@@ -288,7 +292,7 @@ impl ContractInteract {
             .to(self.state.current_address())
             .typed(proxy::PotlockProxy)
             .donate_to_pot(potlock_id)
-            .payment((TokenIdentifier::from(token_id.as_str()), token_nonce, token_amount))
+            .payment((TokenIdentifier::from(token_id), token_nonce, token_amount))
             .returns(ReturnsResultUnmanaged)
             .prepare_async()
             .run()
@@ -298,11 +302,11 @@ impl ContractInteract {
     }
 
     async fn donate_to_project(&mut self) {
-        let token_id = String::new();
+        let token_id = TokenIdentifier::from_esdt_bytes(TOKEN_ID);
         let token_nonce = 0u64;
-        let token_amount = BigUint::<StaticApi>::from(0u128);
+        let token_amount = BigUint::<StaticApi>::from(3 * FEE_AMOUNT);
 
-        let project_id = 0u32;
+        let project_id = 1u32;
 
         let response = self
             .interactor
@@ -311,7 +315,7 @@ impl ContractInteract {
             .to(self.state.current_address())
             .typed(proxy::PotlockProxy)
             .donate_to_project(project_id)
-            .payment((TokenIdentifier::from(token_id.as_str()), token_nonce, token_amount))
+            .payment((TokenIdentifier::from(token_id), token_nonce, token_amount))
             .returns(ReturnsResultUnmanaged)
             .prepare_async()
             .run()
@@ -321,8 +325,8 @@ impl ContractInteract {
     }
 
     async fn change_fee_for_pots(&mut self) {
-        let token_identifier = TokenIdentifier::from_esdt_bytes(&b""[..]);
-        let fee = BigUint::<StaticApi>::from(0u128);
+        let token_identifier = TokenIdentifier::from_esdt_bytes(TOKEN_ID);
+        let fee = BigUint::<StaticApi>::from(FEE_AMOUNT);
 
         let response = self
             .interactor
@@ -361,36 +365,6 @@ impl ContractInteract {
             .to(self.state.current_address())
             .typed(proxy::PotlockProxy)
             .fee_amount()
-            .returns(ReturnsResultUnmanaged)
-            .prepare_async()
-            .run()
-            .await;
-
-        println!("Result: {result_value:?}");
-    }
-
-    async fn potlocks(&mut self) {
-        let result_value = self
-            .interactor
-            .query()
-            .to(self.state.current_address())
-            .typed(proxy::PotlockProxy)
-            .potlocks()
-            .returns(ReturnsResultUnmanaged)
-            .prepare_async()
-            .run()
-            .await;
-
-        println!("Result: {result_value:?}");
-    }
-
-    async fn projects(&mut self) {
-        let result_value = self
-            .interactor
-            .query()
-            .to(self.state.current_address())
-            .typed(proxy::PotlockProxy)
-            .projects()
             .returns(ReturnsResultUnmanaged)
             .prepare_async()
             .run()
@@ -532,5 +506,4 @@ impl ContractInteract {
 
         println!("Result: {result_value:?}");
     }
-
 }
