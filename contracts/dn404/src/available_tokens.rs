@@ -100,12 +100,13 @@ pub trait AvailableTokensModule:
 
         token_mapper.burn(&total_cost);
 
-        let caller = self.blockchain().get_caller();
         let remaining_tokens = payment_amount - total_cost;
         let remaining_tokens_payment = EsdtTokenPayment::new(payment_token, 0, remaining_tokens);
-        self.send()
-            .direct_non_zero_esdt_payment(&caller, &remaining_tokens_payment);
-        self.send().direct_multi(&caller, &tokens_vec);
+        self.tx()
+            .to(ToCaller)
+            .payment(&remaining_tokens_payment)
+            .transfer();
+        self.tx().to(ToCaller).payment(&tokens_vec).transfer();
     }
 
     fn add_tokens(

@@ -74,13 +74,17 @@ pub trait DigitalCash {
 
         let egld_funds = deposit.egld_funds + deposit.fees.value;
         if egld_funds > 0 {
-            self.send()
-                .direct_egld(&deposit.depositor_address, &egld_funds);
+            self.tx()
+                .to(&deposit.depositor_address)
+                .egld(egld_funds)
+                .transfer();
         }
 
         if !deposit.esdt_funds.is_empty() {
-            self.send()
-                .direct_multi(&deposit.depositor_address, &deposit.esdt_funds);
+            self.tx()
+                .to(&deposit.depositor_address)
+                .payment(&deposit.esdt_funds)
+                .transfer();
         }
     }
 
@@ -109,16 +113,22 @@ pub trait DigitalCash {
             .update(|collected_fees| *collected_fees += fee_cost);
 
         if deposit.egld_funds > 0 {
-            self.send()
-                .direct_egld(&caller_address, &deposit.egld_funds);
+            self.tx()
+                .to(&caller_address)
+                .egld(&deposit.egld_funds)
+                .transfer();
         }
         if !deposit.esdt_funds.is_empty() {
-            self.send()
-                .direct_multi(&caller_address, &deposit.esdt_funds);
+            self.tx()
+                .to(&caller_address)
+                .payment(&deposit.esdt_funds)
+                .transfer();
         }
         if deposit.fees.value > 0 {
-            self.send()
-                .direct_egld(&deposit.depositor_address, &deposit.fees.value);
+            self.tx()
+                .to(&deposit.depositor_address)
+                .egld(&deposit.fees.value)
+                .transfer();
         }
     }
 
@@ -130,8 +140,7 @@ pub trait DigitalCash {
             return;
         }
 
-        let caller_address = self.blockchain().get_caller();
-        self.send().direct_egld(&caller_address, &fees);
+        self.tx().to(ToCaller).egld(fees).transfer();
     }
 
     #[endpoint(depositFees)]
@@ -200,10 +209,10 @@ pub trait DigitalCash {
             .update(|collected_fees| *collected_fees += forward_fee);
 
         if forwarded_deposit.fees.value > 0 {
-            self.send().direct_egld(
-                &forwarded_deposit.depositor_address,
-                &forwarded_deposit.fees.value,
-            );
+            self.tx()
+                .to(&forwarded_deposit.depositor_address)
+                .egld(forwarded_deposit.fees.value)
+                .transfer();
         }
     }
 

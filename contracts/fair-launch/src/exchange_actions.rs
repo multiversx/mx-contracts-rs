@@ -161,10 +161,10 @@ pub trait ExchangeActionsModule:
                 self.burn_all_tokens(&take_fees_from_results.fees);
             }
 
-            self.send().direct_multi(
-                &take_fees_from_results.original_caller,
-                &take_fees_from_results.transfers,
-            );
+            self.tx()
+                .to(&take_fees_from_results.original_caller)
+                .payment(&take_fees_from_results.transfers)
+                .transfer();
         }
     }
 

@@ -98,7 +98,7 @@ pub trait RewardsDistribution:
             OperationCompletionStatus::Completed => {
                 self.completed_raffle_id_count().set(raffle.raffle_id + 1);
                 None
-            },
+            }
         };
 
         self.raffle_progress().set(raffle_progress);
@@ -247,7 +247,6 @@ pub trait RewardsDistribution:
         self.validate_nft_payments(&nfts);
         self.validate_raffle_id_range(raffle_id_start, raffle_id_end);
 
-        let caller = self.blockchain().get_caller();
         let mut rewards = ManagedVec::new();
         let mut total_egld_reward = BigUint::zero();
 
@@ -267,10 +266,9 @@ pub trait RewardsDistribution:
             }
         }
 
-        self.send()
-            .direct_non_zero_egld(&caller, &total_egld_reward);
-        self.send().direct_multi(&caller, &rewards);
-        self.send().direct_multi(&caller, &nfts);
+        self.tx().to(ToCaller).egld(&total_egld_reward).transfer();
+        self.tx().to(ToCaller).payment(&rewards).transfer();
+        self.tx().to(ToCaller).payment(nfts).transfer();
     }
 
     fn claim_reward_token(

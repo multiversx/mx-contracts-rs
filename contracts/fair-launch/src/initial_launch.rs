@@ -97,12 +97,10 @@ pub trait InitialLaunchModule:
         let fees = take_fee_result.fees.get(0);
         self.burn_tokens(&fees);
 
-        self.send().direct_esdt(
-            &take_fee_result.original_caller,
-            &received_tokens.token_identifier,
-            received_tokens.token_nonce,
-            &received_tokens.amount,
-        );
+        self.tx()
+            .to(&take_fee_result.original_caller)
+            .payment(&received_tokens)
+            .transfer();
 
         received_tokens
     }
@@ -149,12 +147,10 @@ pub trait InitialLaunchModule:
         let fees = take_fee_result.fees.get(0);
         self.burn_tokens(&fees);
 
-        self.send().direct_esdt(
-            &take_fee_result.original_caller,
-            &received_tokens.token_identifier,
-            received_tokens.token_nonce,
-            &received_tokens.amount,
-        );
+        self.tx()
+            .to(&take_fee_result.original_caller)
+            .payment(&received_tokens)
+            .transfer();
 
         received_tokens
     }

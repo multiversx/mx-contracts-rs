@@ -35,12 +35,16 @@ pub trait ForwardCall {
 
         // Send the original input tokens back to the original caller
         if !back_transfers.esdt_payments.is_empty() {
-            self.send()
-                .direct_multi(&original_caller, &back_transfers.esdt_payments);
+            self.tx()
+                .to(&original_caller)
+                .payment(&back_transfers.esdt_payments)
+                .transfer();
         }
         if back_transfers.total_egld_amount != BigUint::zero() {
-            self.send()
-                .direct_egld(&original_caller, &back_transfers.total_egld_amount)
+            self.tx()
+                .to(&original_caller)
+                .egld(back_transfers.total_egld_amount)
+                .transfer();
         }
 
         match result {

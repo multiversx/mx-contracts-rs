@@ -85,12 +85,14 @@ pub trait NftEscrowContract {
 
         self.offers(offer_id).clear();
 
-        self.send().direct_esdt(
-            &offer.creator,
-            &offer.nft,
-            offer.nonce,
-            &BigUint::from(1u64),
-        );
+        self.tx()
+            .to(&offer.creator)
+            .payment(EsdtTokenPayment::new(
+                offer.nft,
+                offer.nonce,
+                BigUint::from(1u64),
+            ))
+            .transfer();
     }
 
     #[payable("*")]
@@ -121,18 +123,15 @@ pub trait NftEscrowContract {
 
         self.offers(offer_id).clear();
 
-        self.send().direct_esdt(
-            &offer.creator,
-            &payment.token_identifier,
-            payment.token_nonce,
-            &payment.amount,
-        );
-        self.send().direct_esdt(
-            &offer.wanted_address,
-            &offer.nft,
-            offer.nonce,
-            &BigUint::from(1u64),
-        );
+        self.tx().to(&offer.creator).payment(payment).transfer();
+        self.tx()
+            .to(&offer.creator)
+            .payment(EsdtTokenPayment::new(
+                offer.nft,
+                offer.nonce,
+                BigUint::from(1u64),
+            ))
+            .transfer();
     }
 
     #[view(getCreatedOffers)]

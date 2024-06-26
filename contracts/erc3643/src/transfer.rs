@@ -46,7 +46,7 @@ pub trait TransferModule:
         );
 
         if !self.blockchain().is_smart_contract(&dest) {
-            self.send().direct_multi(&dest, &payments_after_hook);
+            self.tx().to(dest).payment(&payments_after_hook).transfer();
 
             return;
         }
@@ -96,8 +96,10 @@ pub trait TransferModule:
         #[call_result] call_result: ManagedAsyncCallResult<IgnoreValue>,
     ) {
         if call_result.is_err() {
-            self.send()
-                .direct_multi(&args.original_caller, &args.payments);
+            self.tx()
+                .to(&args.original_caller)
+                .payment(&args.payments)
+                .transfer();
         }
     }
 }

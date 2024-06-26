@@ -17,7 +17,6 @@ pub trait PairMock {
         _token_out: TokenIdentifier,
         _amount_out_min: BigUint,
     ) -> EsdtTokenPayment {
-        let caller = self.blockchain().get_caller();
         let payment = self.call_value().single_esdt();
         let first_token_id = self.first_token_id().get();
         let second_token_id = self.second_token_id().get();
@@ -27,8 +26,14 @@ pub trait PairMock {
             EsdtTokenPayment::new(first_token_id, 0, payment.amount / 2u32)
         };
 
-        self.send()
-            .direct_esdt(&caller, &output.token_identifier, 0, &output.amount);
+        self.tx()
+            .to(ToCaller)
+            .payment(EsdtTokenPayment::new(
+                output.token_identifier.clone(),
+                0,
+                output.amount.clone(),
+            ))
+            .transfer();
 
         output
     }

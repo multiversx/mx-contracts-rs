@@ -1,6 +1,6 @@
 [[bin]]
 name = "adder-interact"
-path = "src/adder_interact.rs"
+path = "src/basic_interact.rs"
 
 [package]
 name = "adder-interact"
