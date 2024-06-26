@@ -50,6 +50,8 @@ pub trait PotlockInteractions:
     fn donate_to_pot(&self, potlock_id: PotlockId) {
         let payment = self.call_value().single_esdt();
         let caller = self.blockchain().get_caller();
+        self.require_potlock_exists(potlock_id);
+        self.require_potlock_is_active(potlock_id);
         self.pot_donations(potlock_id).insert(caller, payment);
     }
 
@@ -59,6 +61,8 @@ pub trait PotlockInteractions:
         self.require_project_exists(project_id);
         let payment = self.call_value().single_esdt();
         let caller = self.blockchain().get_caller();
+        self.require_project_exists(project_id);
+        self.require_project_is_active(project_id);
         self.project_donations(project_id).insert(caller, payment);
     }
 }

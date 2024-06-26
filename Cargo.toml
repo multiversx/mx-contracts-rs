@@ -71,6 +71,7 @@ members = [
   "contracts/ping-pong-egld/meta",
   "contracts/potlock",
   "contracts/potlock/meta",
+  "contracts/potlock/interact-rs",
   "contracts/proxy-deployer",
   "contracts/proxy-deployer/meta",
   "contracts/proxy-pause",
