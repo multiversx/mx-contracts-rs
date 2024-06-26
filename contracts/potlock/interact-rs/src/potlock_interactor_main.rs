@@ -143,12 +143,13 @@ impl ContractInteract {
     }
 
     async fn accept_pot(&mut self) {
+        let admin = &self.config.admin;
         let potlock_id = 1u32;
 
         let response = self
             .interactor
             .tx()
-            .from(&self.wallet_address)
+            .from(admin)
             .to(self.state.current_address())
             .typed(proxy::PotlockProxy)
             .accept_pot(potlock_id)
@@ -161,12 +162,13 @@ impl ContractInteract {
     }
 
     async fn remove_pot(&mut self) {
+        let admin = &self.config.admin;
         let potlock_id = 0u32;
 
         let response = self
             .interactor
             .tx()
-            .from(&self.wallet_address)
+            .from(admin)
             .to(self.state.current_address())
             .typed(proxy::PotlockProxy)
             .remove_pot(potlock_id)
@@ -179,12 +181,13 @@ impl ContractInteract {
     }
 
     async fn accept_application(&mut self) {
+        let admin: &Bech32Address = &self.config.admin;
         let project_id = 1u32;
 
         let response = self
             .interactor
             .tx()
-            .from(&self.wallet_address)
+            .from(admin)
             .to(self.state.current_address())
             .typed(proxy::PotlockProxy)
             .accept_application(project_id)
@@ -197,13 +200,14 @@ impl ContractInteract {
     }
 
     async fn reject_donation(&mut self) {
+        let admin: &Bech32Address = &self.config.admin;
+        let user = &self.config.pot_donor;
         let potlock_id = 0u32;
-        let user = bech32::decode("");
 
         let response = self
             .interactor
             .tx()
-            .from(&self.wallet_address)
+            .from(admin)
             .to(self.state.current_address())
             .typed(proxy::PotlockProxy)
             .reject_donation(potlock_id, user)
@@ -216,13 +220,14 @@ impl ContractInteract {
     }
 
     async fn distribute_pot_to_projects(&mut self) {
+        let admin: &Bech32Address = &self.config.admin;
         let potlock_id = 1u32;
         let project_percentage = MultiValueVec::from(vec![MultiValue2::from((1u32, 10_000u64))]);
 
         let response = self
             .interactor
             .tx()
-            .from(&self.wallet_address)
+            .from(admin)
             .to(self.state.current_address())
             .typed(proxy::PotlockProxy)
             .distribute_pot_to_projects(potlock_id, project_percentage)
@@ -235,6 +240,7 @@ impl ContractInteract {
     }
 
     async fn add_pot(&mut self) {
+        let pot_proposer: &Bech32Address = &self.config.pot_proposer;
         let token_id = TokenIdentifier::from_esdt_bytes(TOKEN_ID);
         let token_nonce = 0u64;
         let token_amount = BigUint::<StaticApi>::from(FEE_AMOUNT);
@@ -245,7 +251,7 @@ impl ContractInteract {
         let response = self
             .interactor
             .tx()
-            .from(&self.wallet_address)
+            .from(pot_proposer)
             .to(self.state.current_address())
             .typed(proxy::PotlockProxy)
             .add_pot(name, description)
@@ -259,6 +265,7 @@ impl ContractInteract {
     }
 
     async fn apply_for_pot(&mut self) {
+        let project_proposer: &Bech32Address = &self.config.project_proposer;
         let potlock_id = 1u32;
         let project_name = ManagedBuffer::new_from_bytes(b"New Testing Project");
         let description = ManagedBuffer::new_from_bytes(b"Project used for testing");
@@ -266,7 +273,7 @@ impl ContractInteract {
         let response = self
             .interactor
             .tx()
-            .from(&self.wallet_address)
+            .from(project_proposer)
             .to(self.state.current_address())
             .typed(proxy::PotlockProxy)
             .apply_for_pot(potlock_id, project_name, description)
@@ -279,6 +286,7 @@ impl ContractInteract {
     }
 
     async fn donate_to_pot(&mut self) {
+        let pot_donor: &Bech32Address = &self.config.pot_donor;
         let token_id = TokenIdentifier::from_esdt_bytes(TOKEN_ID);
         let token_nonce = 0u64;
         let token_amount = BigUint::<StaticApi>::from(3 * FEE_AMOUNT);
@@ -288,7 +296,7 @@ impl ContractInteract {
         let response = self
             .interactor
             .tx()
-            .from(&self.wallet_address)
+            .from(pot_donor)
             .to(self.state.current_address())
             .typed(proxy::PotlockProxy)
             .donate_to_pot(potlock_id)
@@ -302,6 +310,7 @@ impl ContractInteract {
     }
 
     async fn donate_to_project(&mut self) {
+        let project_donor: &Bech32Address = &self.config.project_donor;
         let token_id = TokenIdentifier::from_esdt_bytes(TOKEN_ID);
         let token_nonce = 0u64;
         let token_amount = BigUint::<StaticApi>::from(3 * FEE_AMOUNT);
@@ -311,7 +320,7 @@ impl ContractInteract {
         let response = self
             .interactor
             .tx()
-            .from(&self.wallet_address)
+            .from(project_donor)
             .to(self.state.current_address())
             .typed(proxy::PotlockProxy)
             .donate_to_project(project_id)
@@ -325,13 +334,14 @@ impl ContractInteract {
     }
 
     async fn change_fee_for_pots(&mut self) {
+        let admin: &Bech32Address = &self.config.admin;
         let token_identifier = TokenIdentifier::from_esdt_bytes(TOKEN_ID);
         let fee = BigUint::<StaticApi>::from(FEE_AMOUNT);
 
         let response = self
             .interactor
             .tx()
-            .from(&self.wallet_address)
+            .from(admin)
             .to(self.state.current_address())
             .typed(proxy::PotlockProxy)
             .change_fee_for_pots(token_identifier, fee)
