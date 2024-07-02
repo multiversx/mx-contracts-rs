@@ -1,7 +1,11 @@
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::{
+    api::ManagedTypeApi,
+    derive_imports::*,
+    types::{BigUint, EsdtTokenPayment, ManagedAddress, ManagedVec},
+};
 
-#[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, TypeAbi)]
+#[type_abi]
+#[derive(NestedEncode, NestedDecode, TopEncode, TopDecode)]
 pub struct DepositInfo<M: ManagedTypeApi> {
     pub depositor_address: ManagedAddress<M>,
     pub esdt_funds: ManagedVec<M, EsdtTokenPayment<M>>,

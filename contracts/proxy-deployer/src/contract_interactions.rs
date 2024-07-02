@@ -35,13 +35,16 @@ pub trait ContractInteractionsModule:
             );
         };
 
-        let (new_contract_address, _) = self.send_raw().deploy_from_source_contract(
-            self.blockchain().get_gas_left(),
-            &BigUint::zero(),
-            &template_address,
-            self.blockchain().get_code_metadata(&template_address),
-            &args.to_arg_buffer(),
-        );
+        let gas_left = self.blockchain().get_gas_left();
+        let new_contract_address = self
+            .tx()
+            .raw_deploy()
+            .arguments_raw(args.to_arg_buffer())
+            .gas(gas_left)
+            .from_source(template_address.clone())
+            .code_metadata(self.blockchain().get_code_metadata(&template_address))
+            .returns(ReturnsNewManagedAddress)
+            .sync_call();
 
         let caller = self.blockchain().get_caller();
         let owner = self.blockchain().get_owner_address();
@@ -126,12 +129,12 @@ pub trait ContractInteractionsModule:
             "Use the dedicated change owner endpoint instead"
         );
 
-        let () = self
-            .send()
-            .contract_call::<()>(contract_address.clone(), function_name.clone())
-            .with_gas_limit(self.blockchain().get_gas_left())
-            .with_raw_arguments(args.to_arg_buffer())
-            .execute_on_dest_context();
+        self.tx()
+            .to(contract_address.clone())
+            .raw_call(function_name.clone())
+            .gas(self.blockchain().get_gas_left())
+            .arguments_raw(args.to_arg_buffer())
+            .sync_call();
 
         self.emit_contract_call_event(
             self.blockchain().get_caller(),

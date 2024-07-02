@@ -1,6 +1,5 @@
-use multiversx_sc::derive_imports::*;
-
 use super::color::*;
+use multiversx_sc::derive_imports::*;
 use random::*;
 
 #[type_abi]

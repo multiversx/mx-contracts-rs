@@ -1,7 +1,7 @@
 use crate::common::{Percentage, MAX_FEE_PERCENTAGE};
 
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::derive_imports::*;
+use multiversx_sc::imports::*;
 
 #[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode, ManagedVecItem)]
 pub struct EndpointInfo<M: ManagedTypeApi> {

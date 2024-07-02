@@ -1,7 +1,6 @@
 use crate::{fee::FeeType, Nonce, MAX_PERCENTAGE, NFT_AMOUNT};
 
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::{api::ManagedTypeApi, derive_imports::*, imports::*, types::TokenIdentifier};
 
 #[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode)]
 pub struct TokenIdNoncePair<M: ManagedTypeApi> {

@@ -1,7 +1,7 @@
 use crate::{common::Percentage, exchange_actions::EndpointInfo};
 
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::derive_imports::*;
+use multiversx_sc::imports::*;
 
 mod pair_proxy {
     multiversx_sc::imports!();

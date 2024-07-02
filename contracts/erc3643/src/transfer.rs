@@ -2,8 +2,8 @@ use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
 use crate::hooks::hook_type::ErcHookType;
 
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::derive_imports::*;
+use multiversx_sc::imports::*;
 
 #[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode)]
 pub struct CallbackArgs<M: ManagedTypeApi> {

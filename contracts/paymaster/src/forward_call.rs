@@ -15,13 +15,13 @@ pub trait ForwardCall {
     ) {
         let original_caller = self.blockchain().get_caller();
 
-        self.send()
-            .contract_call::<()>(dest, endpoint_name)
-            .with_raw_arguments(endpoint_args.to_arg_buffer())
-            .with_multi_token_transfer(payments)
-            .async_call()
-            .with_callback(self.callbacks().transfer_callback(original_caller))
-            .call_and_exit();
+        self.tx()
+            .to(&dest)
+            .raw_call(endpoint_name)
+            .arguments_raw(endpoint_args.to_arg_buffer())
+            .payment(payments)
+            .callback(self.callbacks().transfer_callback(original_caller))
+            .async_call_and_exit();
     }
 
     #[callback]

@@ -1,5 +1,5 @@
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::derive_imports::*;
+use multiversx_sc::imports::*;
 
 pub type PaymentsVec<M> = ManagedVec<M, EsdtTokenPayment<M>>;
 pub type Percentage = u32;
@@ -78,7 +78,11 @@ pub trait CommonModule {
         }
     }
 
-    fn calculate_fee_rounded_up(&self, payment_amount: &BigUint, fees_percentage: Percentage) -> BigUint {
+    fn calculate_fee_rounded_up(
+        &self,
+        payment_amount: &BigUint,
+        fees_percentage: Percentage,
+    ) -> BigUint {
         (payment_amount * fees_percentage + MAX_FEE_PERCENTAGE - 1u32) / MAX_FEE_PERCENTAGE
     }
 
