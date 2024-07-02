@@ -4,7 +4,7 @@ use multiversx_sc_scenario::{
 };
 use mystery_box::{config::RewardType, MysteryBox};
 
-pub const MYSTERY_BOX_WASM_PATH: &str = "mystery-box/output/mystery-box.wasm";
+pub const MYSTERY_BOX_WASM_PATH: &str = "mystery-box/output/mystery-box.mxsc.json";
 pub const MB_TOKEN_ID: &[u8] = b"MBTOK-abcdef";
 
 #[allow(dead_code)]

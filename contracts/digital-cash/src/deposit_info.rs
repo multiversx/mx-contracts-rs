@@ -1,8 +1,4 @@
-use multiversx_sc::{
-    api::ManagedTypeApi,
-    derive_imports::*,
-    types::{BigUint, EsdtTokenPayment, ManagedAddress, ManagedVec},
-};
+use multiversx_sc::{derive_imports::*, imports::*};
 
 #[type_abi]
 #[derive(NestedEncode, NestedDecode, TopEncode, TopDecode)]
@@ -29,8 +25,9 @@ where
     }
 }
 
-#[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, TypeAbi, Default)]
+#[type_abi]
+#[derive(NestedEncode, NestedDecode, TopEncode, TopDecode)]
 pub struct Fee<M: ManagedTypeApi> {
     pub num_token_to_transfer: usize,
-    pub value: BigUint<M>,
+    pub value: EgldOrEsdtTokenPayment<M>,
 }

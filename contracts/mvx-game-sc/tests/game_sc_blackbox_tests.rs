@@ -17,7 +17,7 @@
 
 // use num_bigint::BigUint;
 
-// const GAME_SC_PATH: &str = "file:output/mvx-game-sc.wasm";
+// const GAME_SC_PATH: &str = "mxsc:output/mvx-game-sc.mxsc.json";
 // const BALANCE: u64 = 100_000_000u64;
 // const TOKEN_ID: &str = "str:GAME-123456";
 // const TOKEN_ID_BY: &[u8] = b"GAME-123456";

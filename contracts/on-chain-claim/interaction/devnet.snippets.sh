@@ -10,7 +10,7 @@ CONTRACT_ADDRESS="erd1qqqqqqqqqqqqqpgqkm3wla3wk0yqk7lk725wee8yh0e2zeru76ls3gr0nj
 
 deploy() {
     mxpy --verbose contract deploy \
-          --bytecode="output/on-chain-claim.wasm" \
+          --bytecode="output/on-chain-claim.mxsc.json" \
           --arguments ${SFT_IDENTIFIER} \
           --pem=${WALLET} \
           --gas-limit=${DEPLOY_GAS} \
@@ -32,7 +32,7 @@ deploy() {
 
 upgrade() {
     mxpy --verbose contract upgrade ${CONTRACT_ADDRESS} \
-          --bytecode="output/on-chain-claim.wasm" \
+          --bytecode="output/on-chain-claim.mxsc.json" \
           --pem=${WALLET} \
           --gas-limit=${DEPLOY_GAS} \
           --proxy=${PROXY} \
