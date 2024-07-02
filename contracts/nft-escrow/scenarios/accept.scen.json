@@ -185,6 +185,10 @@
                                 {
                                     "nonce": "1",
                                     "balance": "1"
+                                },
+                                {
+                                    "nonce": "2",
+                                    "balance": "1"
                                 }
                             ]
                         },
@@ -215,7 +219,7 @@
                             "instances": [
                                 {
                                     "nonce": "1",
-                                    "balance": "1"
+                                    "balance": "0"
                                 }
                             ]
                         },
