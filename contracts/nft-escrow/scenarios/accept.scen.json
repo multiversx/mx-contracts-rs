@@ -183,7 +183,7 @@
                         "str:NFT-123456": {
                             "instances": [
                                 {
-                                    "nonce": "2",
+                                    "nonce": "1",
                                     "balance": "1"
                                 }
                             ]
