@@ -1,246 +1,218 @@
-use crowdfunding_esdt::*;
-use multiversx_sc::types::EgldOrEsdtTokenIdentifier;
-use multiversx_sc_scenario::{api::StaticApi, scenario_model::*, *};
+use crowdfunding_esdt::crowdfunding_esdt_proxy;
 
-const CF_PATH_EXPR: &str = "file:output/crowdfunding-esdt.wasm";
+use multiversx_sc_scenario::imports::*;
+
+const CF_DEADLINE: u64 = 7 * 24 * 60 * 60; // 1 week in seconds
+const CF_TOKEN_ID: TestTokenIdentifier = TestTokenIdentifier::new("CROWD-123456");
+const FIRST_USER_ADDRESS: TestAddress = TestAddress::new("first-user");
+const OWNER_ADDRESS: TestAddress = TestAddress::new("owner");
+const SECOND_USER_ADDRESS: TestAddress = TestAddress::new("second-user");
+const CODE_PATH: MxscPath = MxscPath::new("output/crowdfunding-esdt.mxsc.json");
+const CROWDFUNDING_ADDRESS: TestSCAddress = TestSCAddress::new("crowdfunding-esdt");
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
-    blockchain.set_current_dir_from_workspace("contracts/crowdfunding-esdt");
 
-    blockchain.register_contract(CF_PATH_EXPR, crowdfunding_esdt::ContractBuilder);
+    blockchain.register_contract(CODE_PATH, crowdfunding_esdt::ContractBuilder);
     blockchain
 }
 
-#[test]
-fn crowdfunding_scenario_rust_test() {
-    let mut world = world();
-    let cf_code = world.code_expression(CF_PATH_EXPR);
+struct CrowdfundingESDTTestState {
+    world: ScenarioWorld,
+}
 
-    let owner_addr = "address:owner";
-    let first_user_addr = "address:user1";
-    let second_user_addr = "address:user2";
+impl CrowdfundingESDTTestState {
+    fn new() -> Self {
+        let mut world = world();
 
-    let deadline: u64 = 7 * 24 * 60 * 60; // 1 week in seconds
-    let cf_token_id_value = "CROWD-123456"; // when passing as argument
-    let cf_token_id = "str:CROWD-123456"; // when specifying the token transfer
-    let mut cf_sc = ContractInfo::<crowdfunding_esdt::Proxy<StaticApi>>::new("sc:crowdfunding");
+        world.account(OWNER_ADDRESS).nonce(1);
 
-    // setup owner and crowdfunding SC
-    world.start_trace().set_state_step(
-        SetStateStep::new()
-            .put_account(owner_addr, Account::new())
-            .new_address(owner_addr, 0, &cf_sc),
-    );
+        world
+            .account(FIRST_USER_ADDRESS)
+            .nonce(1)
+            .balance(1000)
+            .esdt_balance(CF_TOKEN_ID, 1000);
 
-    world.sc_deploy(
-        ScDeployStep::new()
-            .from(owner_addr)
-            .code(cf_code)
-            .call(cf_sc.init(
+        world
+            .account(SECOND_USER_ADDRESS)
+            .nonce(1)
+            .esdt_balance(CF_TOKEN_ID, 1000);
+
+        Self { world }
+    }
+
+    fn deploy(&mut self) {
+        self.world
+            .tx()
+            .from(OWNER_ADDRESS)
+            .typed(crowdfunding_esdt_proxy::CrowdfundingProxy)
+            .init(
                 2_000u32,
-                deadline,
-                EgldOrEsdtTokenIdentifier::esdt(cf_token_id_value),
-            )),
-    );
+                CF_DEADLINE,
+                EgldOrEsdtTokenIdentifier::esdt(CF_TOKEN_ID),
+            )
+            .code(CODE_PATH)
+            .new_address(CROWDFUNDING_ADDRESS)
+            .run();
+    }
 
-    // setup user accounts
-    world
-        .set_state_step(SetStateStep::new().put_account(
-            first_user_addr,
-            Account::new().esdt_balance(cf_token_id, 1_000u64),
-        ))
-        .set_state_step(SetStateStep::new().put_account(
-            second_user_addr,
-            Account::new().esdt_balance(cf_token_id, 1_000u64),
-        ));
+    fn fund(&mut self, address: TestAddress, amount: u64) {
+        self.world
+            .tx()
+            .from(address)
+            .to(CROWDFUNDING_ADDRESS)
+            .typed(crowdfunding_esdt_proxy::CrowdfundingProxy)
+            .fund()
+            .egld_or_single_esdt(
+                &EgldOrEsdtTokenIdentifier::esdt(CF_TOKEN_ID),
+                0u64,
+                &multiversx_sc::proxy_imports::BigUint::from(amount),
+            )
+            .run();
+    }
 
-    // first user deposit
-    world
-        .sc_call(
-            ScCallStep::new()
-                .from(first_user_addr)
-                .to(&cf_sc)
-                .esdt_transfer(cf_token_id, 0u64, 1_000u64)
-                .call(cf_sc.fund()),
-        )
-        .check_state_step(
-            CheckStateStep::new()
-                .put_account(
-                    first_user_addr,
-                    CheckAccount::new().esdt_balance(cf_token_id, 0u64),
-                )
-                .put_account(
-                    &cf_sc,
-                    CheckAccount::new().esdt_balance(cf_token_id, 1_000u64),
-                ),
-        );
+    fn check_deposit(&mut self, donor: TestAddress, amount: u64) {
+        self.world
+            .query()
+            .to(CROWDFUNDING_ADDRESS)
+            .typed(crowdfunding_esdt_proxy::CrowdfundingProxy)
+            .deposit(donor)
+            .returns(ExpectValue(amount))
+            .run();
+    }
 
-    // second user deposit
-    world
-        .sc_call(
-            ScCallStep::new()
-                .from(second_user_addr)
-                .to(&cf_sc)
-                .esdt_transfer(cf_token_id, 0u64, 500u64)
-                .call(cf_sc.fund()),
-        )
-        .check_state_step(
-            CheckStateStep::new()
-                .put_account(
-                    second_user_addr,
-                    CheckAccount::new().esdt_balance(cf_token_id, 500u64),
-                )
-                .put_account(
-                    &cf_sc,
-                    CheckAccount::new().esdt_balance(cf_token_id, 1_500u64),
-                ),
-        );
+    fn check_status(&mut self, expected_value: crowdfunding_esdt_proxy::Status) {
+        self.world
+            .query()
+            .to(CROWDFUNDING_ADDRESS)
+            .typed(crowdfunding_esdt_proxy::CrowdfundingProxy)
+            .status()
+            .returns(ExpectValue(expected_value))
+            .run();
+    }
 
-    // get status before
-    let status: Status = cf_sc
-        .status()
-        .into_vm_query()
-        .expect(TxExpect::ok().result(""))
-        .execute(&mut world);
-    assert_eq!(status, Status::FundingPeriod);
+    fn claim(&mut self, address: TestAddress) {
+        self.world
+            .tx()
+            .from(address)
+            .to(CROWDFUNDING_ADDRESS)
+            .typed(crowdfunding_esdt_proxy::CrowdfundingProxy)
+            .claim()
+            .run();
+    }
 
-    // deadline passed
-    world.set_state_step(SetStateStep::new().block_timestamp(deadline));
+    fn check_esdt_balance(&mut self, address: TestAddress, balance: u64) {
+        self.world
+            .check_account(address)
+            .esdt_balance(CF_TOKEN_ID, balance);
+    }
 
-    // get status after deadline
-    let status: Status = cf_sc
-        .status()
-        .into_vm_query()
-        .expect(TxExpect::ok().result("2"))
-        .execute(&mut world);
-    assert_eq!(status, Status::Failed);
+    fn set_block_timestamp(&mut self, block_timestamp_expr: u64) {
+        self.world
+            .current_block()
+            .block_timestamp(block_timestamp_expr);
+    }
+}
 
-    // test failed campaign
+#[test]
+fn test_fund() {
+    let mut state = CrowdfundingESDTTestState::new();
+    state.deploy();
 
-    // owner claim - failed campaign - nothing is transferred
-    world
-        .sc_call(
-            ScCallStep::new()
-                .from(owner_addr)
-                .to(&cf_sc)
-                .call(cf_sc.claim()),
-        )
-        .check_state_step(
-            CheckStateStep::new()
-                .put_account(
-                    owner_addr,
-                    CheckAccount::new().esdt_balance(cf_token_id, 0u64),
-                )
-                .put_account(
-                    &cf_sc,
-                    CheckAccount::new().esdt_balance(cf_token_id, 1_500u64),
-                ),
-        );
+    state.fund(FIRST_USER_ADDRESS, 1_000u64);
+    state.check_deposit(FIRST_USER_ADDRESS, 1_000u64);
+}
 
-    // first user claim - failed campaign
-    world
-        .sc_call(
-            ScCallStep::new()
-                .from(first_user_addr)
-                .to(&cf_sc)
-                .call(cf_sc.claim()),
-        )
-        .check_state_step(
-            CheckStateStep::new()
-                .put_account(
-                    first_user_addr,
-                    CheckAccount::new().esdt_balance(cf_token_id, 1_000u64),
-                )
-                .put_account(
-                    &cf_sc,
-                    CheckAccount::new().esdt_balance(cf_token_id, 500u64),
-                ),
-        );
+#[test]
+fn test_status() {
+    let mut state = CrowdfundingESDTTestState::new();
+    state.deploy();
 
-    // second user claim - failed campaign
-    world
-        .sc_call(
-            ScCallStep::new()
-                .from(second_user_addr)
-                .to(&cf_sc)
-                .call(cf_sc.claim()),
-        )
-        .check_state_step(
-            CheckStateStep::new()
-                .put_account(
-                    second_user_addr,
-                    CheckAccount::new().esdt_balance(cf_token_id, 1_000u64),
-                )
-                .put_account(&cf_sc, CheckAccount::new().esdt_balance(cf_token_id, 0u64)),
-        );
+    state.check_status(crowdfunding_esdt_proxy::Status::FundingPeriod);
+}
 
-    // test successful campaign
+#[test]
+fn test_sc_error() {
+    let mut state = CrowdfundingESDTTestState::new();
+    state.deploy();
 
-    world.set_state_step(SetStateStep::new().block_timestamp(deadline / 2));
+    state
+        .world
+        .tx()
+        .from(FIRST_USER_ADDRESS)
+        .to(CROWDFUNDING_ADDRESS)
+        .typed(crowdfunding_esdt_proxy::CrowdfundingProxy)
+        .fund()
+        .egld(1000)
+        .with_result(ExpectError(4, "wrong token"))
+        .run();
 
-    // first user deposit
-    world.sc_call(
-        ScCallStep::new()
-            .from(first_user_addr)
-            .to(&cf_sc)
-            .esdt_transfer(cf_token_id, 0u64, 1_000u64)
-            .call(cf_sc.fund()),
-    );
+    state.check_deposit(FIRST_USER_ADDRESS, 0);
+}
 
-    // second user deposit
-    world.sc_call(
-        ScCallStep::new()
-            .from(second_user_addr)
-            .to(&cf_sc)
-            .esdt_transfer(cf_token_id, 0u64, 1_000u64)
-            .call(cf_sc.fund()),
-    );
+#[test]
+fn test_successful_cf() {
+    let mut state = CrowdfundingESDTTestState::new();
+    state.deploy();
 
-    let status: Status = cf_sc
-        .status()
-        .into_vm_query()
-        .expect(TxExpect::ok().result(""))
-        .execute(&mut world);
-    assert_eq!(status, Status::FundingPeriod);
+    // first user fund
+    state.fund(FIRST_USER_ADDRESS, 1_000u64);
+    state.check_deposit(FIRST_USER_ADDRESS, 1_000);
 
-    world.set_state_step(SetStateStep::new().block_timestamp(deadline));
+    // second user fund
+    state.fund(SECOND_USER_ADDRESS, 1000);
+    state.check_deposit(SECOND_USER_ADDRESS, 1_000);
 
-    let status: Status = cf_sc
-        .status()
-        .into_vm_query()
-        .expect(TxExpect::ok().result("1"))
-        .execute(&mut world);
-    assert_eq!(status, Status::Successful);
+    // set block timestamp after deadline
+    state.set_block_timestamp(CF_DEADLINE + 1);
 
-    // first user try claim - successful campaign
-    world.sc_call(
-        ScCallStep::new()
-            .from(first_user_addr)
-            .to(&cf_sc)
-            .call(cf_sc.claim())
-            .expect(TxExpect::err(
-                4,
-                "str:only owner can claim successful funding",
-            )),
-    );
+    // check status successful
+    state.check_status(crowdfunding_esdt_proxy::Status::Successful);
 
-    // owner claim successful campaign
-    world
-        .sc_call(
-            ScCallStep::new()
-                .from(owner_addr)
-                .to(&cf_sc)
-                .call(cf_sc.claim()),
-        )
-        .check_state_step(
-            CheckStateStep::new()
-                .put_account(
-                    owner_addr,
-                    CheckAccount::new().esdt_balance(cf_token_id, 2_000u64),
-                )
-                .put_account(cf_sc, CheckAccount::new().esdt_balance(cf_token_id, 0u64)),
-        );
+    state
+        .world
+        .tx()
+        .from(FIRST_USER_ADDRESS)
+        .to(CROWDFUNDING_ADDRESS)
+        .typed(crowdfunding_esdt_proxy::CrowdfundingProxy)
+        .claim()
+        .with_result(ExpectError(4, "only owner can claim successful funding"))
+        .run();
 
-    world.write_scenario_trace("scenarios-gen/crowdfunding_rust.scen.json");
+    // owner claim
+    state.claim(OWNER_ADDRESS);
+
+    state.check_esdt_balance(OWNER_ADDRESS, 2000);
+    state.check_esdt_balance(FIRST_USER_ADDRESS, 0);
+    state.check_esdt_balance(SECOND_USER_ADDRESS, 0);
+}
+
+#[test]
+fn test_failed_cf() {
+    let mut state = CrowdfundingESDTTestState::new();
+    state.deploy();
+
+    // first user fund
+    state.fund(FIRST_USER_ADDRESS, 300);
+    state.check_deposit(FIRST_USER_ADDRESS, 300u64);
+
+    // second user fund
+    state.fund(SECOND_USER_ADDRESS, 600);
+    state.check_deposit(SECOND_USER_ADDRESS, 600u64);
+
+    // set block timestamp after deadline
+    state.set_block_timestamp(CF_DEADLINE + 1);
+
+    // check status failed
+    state.check_status(crowdfunding_esdt_proxy::Status::Failed);
+
+    // first user claim
+    state.claim(FIRST_USER_ADDRESS);
+
+    // second user claim
+    state.claim(SECOND_USER_ADDRESS);
+
+    state.check_esdt_balance(OWNER_ADDRESS, 0);
+    state.check_esdt_balance(FIRST_USER_ADDRESS, 1000);
+    state.check_esdt_balance(SECOND_USER_ADDRESS, 1000);
 }
