@@ -6,7 +6,8 @@ pub type Percentage = u32;
 
 pub const MAX_FEE_PERCENTAGE: u32 = 10_000; // 100%
 
-#[derive(TypeAbi, TopEncode, TopDecode)]
+#[type_abi]
+#[derive(TopEncode, TopDecode)]
 pub struct TakeFeesResult<M: ManagedTypeApi> {
     pub original_caller: ManagedAddress<M>,
     pub original_payments: PaymentsVec<M>,

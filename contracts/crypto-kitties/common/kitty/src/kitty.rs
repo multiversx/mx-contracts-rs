@@ -6,7 +6,8 @@ const SECONDS_PER_MINUTE: u64 = 60;
 const MAX_COOLDOWN: u64 = 60 * 60 * 24 * 7; // 7 days
 const MAX_TIREDNESS: u16 = 20;
 
-#[derive(TypeAbi, NestedEncode, NestedDecode, TopEncode, TopDecode)]
+#[type_abi]
+#[derive(NestedEncode, NestedDecode, TopEncode, TopDecode)]
 pub struct Kitty {
     pub genes: KittyGenes,
     pub birth_time: u64,   // timestamp

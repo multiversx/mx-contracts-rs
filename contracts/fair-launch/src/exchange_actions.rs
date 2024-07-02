@@ -3,7 +3,8 @@ use crate::common::{Percentage, MAX_FEE_PERCENTAGE};
 use multiversx_sc::derive_imports::*;
 use multiversx_sc::imports::*;
 
-#[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode, ManagedVecItem)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, ManagedVecItem)]
 pub struct EndpointInfo<M: ManagedTypeApi> {
     pub endpoint_name: ManagedBuffer<M>,
     pub input_fee_percentage: Percentage,

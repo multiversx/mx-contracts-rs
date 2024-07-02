@@ -5,7 +5,8 @@ use crate::hooks::hook_type::ErcHookType;
 use multiversx_sc::derive_imports::*;
 use multiversx_sc::imports::*;
 
-#[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode)]
 pub struct CallbackArgs<M: ManagedTypeApi> {
     pub payments: PaymentsVec<M>,
     pub original_caller: ManagedAddress<M>,

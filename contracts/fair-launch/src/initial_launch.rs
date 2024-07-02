@@ -18,13 +18,15 @@ mod pair_proxy {
     }
 }
 
-#[derive(TypeAbi, TopEncode, TopDecode)]
+#[type_abi]
+#[derive(TopEncode, TopDecode)]
 pub struct InitialLaunchBlocks {
     pub start: u64,
     pub end: u64,
 }
 
-#[derive(TypeAbi, TopEncode, TopDecode)]
+#[type_abi]
+#[derive(TopEncode, TopDecode)]
 pub struct InitialLaunchInfo<M: ManagedTypeApi> {
     pub account_buy_limit: BigUint<M>,
     pub tx_buy_limit: BigUint<M>,

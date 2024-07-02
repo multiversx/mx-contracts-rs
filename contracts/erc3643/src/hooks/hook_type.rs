@@ -3,7 +3,8 @@ use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 use multiversx_sc::derive_imports::*;
 use multiversx_sc::imports::*;
 
-#[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode, Clone, Copy)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, Clone, Copy)]
 pub enum ErcHookType {
     // can't be done, execute_on_dest does not work on init
     _BeforeInitialize,
@@ -13,7 +14,8 @@ pub enum ErcHookType {
     AfterExchangeAction,
 }
 
-#[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode, ManagedVecItem, PartialEq)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, ManagedVecItem, PartialEq)]
 pub struct Hook<M: ManagedTypeApi> {
     pub dest_address: ManagedAddress<M>,
     pub endpoint_name: ManagedBuffer<M>,

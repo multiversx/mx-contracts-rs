@@ -3,7 +3,8 @@ use crate::{Nonce, Percentage, MAX_PERCENTAGE};
 use multiversx_sc::derive_imports::*;
 use multiversx_sc::imports::*;
 
-#[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode)]
 pub enum FeeType<M: ManagedTypeApi> {
     FixedAmount(BigUint<M>),
     Percentage(Percentage),

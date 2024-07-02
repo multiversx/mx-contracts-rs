@@ -3,7 +3,8 @@
 use multiversx_sc::derive_imports::*;
 use multiversx_sc::imports::*;
 
-#[derive(TypeAbi, TopEncode, TopDecode)]
+#[type_abi]
+#[derive(TopEncode, TopDecode)]
 pub struct Offer<M: ManagedTypeApi> {
     pub creator: ManagedAddress<M>,
     pub nft: TokenIdentifier<M>,
