@@ -1,7 +1,6 @@
 use crate::types::{GameSettings, Status};
 
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::imports::*;
 
 #[multiversx_sc::module]
 pub trait PrivateModule: crate::storage::StorageModule {
@@ -54,7 +53,10 @@ pub trait PrivateModule: crate::storage::StorageModule {
 
     fn send_back_wager(&self, game_id: u64, wager: &BigUint, token_id: &EgldOrEsdtTokenIdentifier) {
         for player in self.players(game_id).iter() {
-            self.send().direct(&player, token_id, 0u64, wager);
+            self.tx()
+                .to(&player)
+                .egld_or_single_esdt(token_id, 0, wager)
+                .transfer();
         }
     }
 

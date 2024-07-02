@@ -2,7 +2,7 @@ WALLET_PEM="~/walletKey.pem"
 PROXY="https://devnet-gateway.multiversx.com"
 CHAIN_ID="D"
 
-MB_WASM_PATH="~/mx-contracts-rs/contracts/mystery-box/output/mystery-box.wasm"
+MB_WASM_PATH="~/mx-contracts-rs/contracts/mystery-box/output/mystery-box.mxsc.json"
 
 CONTRACT_ADDRESS="erd1qqqqqqqqqqqqqpgql3ustfa2ac3d47y496865xkfrcxy48465dsqfzmxx5"
 

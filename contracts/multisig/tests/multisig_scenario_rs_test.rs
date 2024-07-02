@@ -4,23 +4,25 @@ const WEGLD_SWAP_EXPR: &str = "0x0061736d0100000001661160000060017f0060027f7f017
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
-    blockchain.set_current_dir_from_workspace("contracts/multisig");
 
     blockchain.register_partial_contract::<multisig::AbiProvider, _>(
-        "file:output/multisig.wasm",
+        "mxsc:output/multisig.mxsc.json",
         multisig::ContractBuilder,
         "multisig",
     );
     blockchain.register_partial_contract::<multisig::AbiProvider, _>(
-        "file:output/multisig-view.wasm",
+        "mxsc:output/multisig-view.mxsc.json",
         multisig::ContractBuilder,
         "multisig-view",
     );
 
-    blockchain.register_contract("file:test-contracts/adder.wasm", adder::ContractBuilder);
+    blockchain.register_contract(
+        "mxsc:test-contracts/adder.mxsc.json",
+        adder::ContractBuilder,
+    );
 
     blockchain.register_contract(
-        "file:test-contracts/factorial.wasm",
+        "mxsc:test-contracts/factorial.mxsc.json",
         factorial::ContractBuilder,
     );
 
@@ -82,19 +84,16 @@ fn deploy_duplicate_bm_rs() {
 }
 
 #[test]
-#[ignore = "not updated"]
 fn interactor_nft_rs() {
     world().run("scenarios/interactor_nft.scen.json");
 }
 
 #[test]
-#[ignore = "not updated"]
 fn interactor_nft_all_roles_rs() {
     world().run("scenarios/interactor_nft_all_roles.scen.json");
 }
 
 #[test]
-#[ignore = "not updated"]
 fn interactor_wegld_rs() {
     world().run("scenarios/interactor_wegld.scen.json");
 }
@@ -102,12 +101,6 @@ fn interactor_wegld_rs() {
 #[test]
 fn remove_everyone_rs() {
     world().run("scenarios/remove_everyone.scen.json");
-}
-
-#[test]
-#[ignore]
-fn transfer_no_gas_specified_test_go() {
-    world().run("scenarios/transfer_no_gas_specified_test.scen.json");
 }
 
 #[test]

@@ -13,7 +13,7 @@
 //     blockchain.set_current_dir_from_workspace("contracts/liquid-locking");
 
 //     blockchain.register_contract(
-//         "file:output/liquid-locking.wasm",
+//         "mxsc:output/liquid-locking.mxsc.json",
 //         liquid_locking::ContractBuilder,
 //     );
 //     blockchain
@@ -68,7 +68,7 @@
 //         .init(10u64)
 //         .into_blockchain_call()
 //         .from(owner_address)
-//         .contract_code("file:output/liquid-locking.wasm", &ic)
+//         .contract_code("mxsc:output/liquid-locking.mxsc.json", &ic)
 //         .gas_limit("5,000,000")
 //         .expect(TxExpect::ok().no_result())
 //         .execute(&mut world);

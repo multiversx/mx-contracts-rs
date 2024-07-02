@@ -176,9 +176,11 @@ fn transfer_sc_ok_test() {
         .b_mock
         .check_esdt_balance(cf_wrapper.address_ref(), TOKEN_ID, &rust_biguint!(600));
 
-    fl_setup
-        .b_mock
-        .check_esdt_balance(&fl_setup.owner_address, TOKEN_ID, &rust_biguint!(400));
+    fl_setup.b_mock.check_esdt_balance(
+        fl_setup.fl_wrapper.address_ref(),
+        TOKEN_ID,
+        &rust_biguint!(400),
+    );
 }
 
 #[test]
@@ -231,7 +233,7 @@ fn transfer_sc_fail_test() {
             &fl_setup.fl_wrapper,
             TOKEN_ID,
             0,
-            &rust_biguint!(1_000),
+            &rust_biguint!(0),
             |sc| {
                 let mut args = MultiValueEncoded::new();
                 args.push(ManagedBuffer::from(b"claim"));

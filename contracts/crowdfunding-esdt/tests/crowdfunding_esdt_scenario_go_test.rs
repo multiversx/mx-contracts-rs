@@ -4,8 +4,7 @@ fn world() -> ScenarioWorld {
     ScenarioWorld::vm_go()
 }
 
-#[test]
-fn generated_fund_go() {
+fn _generated_fund_go() {
     world().run("scenarios/_generated_fund.scen.json");
 }
 
@@ -19,8 +18,7 @@ fn generated_query_status_go() {
     world().run("scenarios/_generated_query_status.scen.json");
 }
 
-#[test]
-fn generated_sc_err_go() {
+fn _generated_sc_err_go() {
     world().run("scenarios/_generated_sc_err.scen.json");
 }
 

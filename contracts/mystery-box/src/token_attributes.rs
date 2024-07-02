@@ -1,5 +1,4 @@
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::imports::*;
 
 use crate::config::{self, COLLECTION_NAME, ROYALTIES, SFT_AMOUNT};
 

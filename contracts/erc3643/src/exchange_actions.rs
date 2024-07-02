@@ -66,11 +66,14 @@ pub trait ExchangeActionsModule:
             extra_args.to_vec(),
         );
 
-        let (_, back_transfers) =
-            ContractCallNoPayment::<_, MultiValueEncoded<ManagedBuffer>>::new(dest, endpoint_name)
-                .with_multi_token_transfer(payments_after_hook)
-                .with_raw_arguments(ManagedArgBuffer::from(extra_args.into_vec_of_buffers()))
-                .execute_on_dest_context_with_back_transfers::<MultiValueEncoded<ManagedBuffer>>();
+        let back_transfers = self
+            .tx()
+            .to(dest)
+            .raw_call(endpoint_name)
+            .arguments_raw(ManagedArgBuffer::from(extra_args.into_vec_of_buffers()))
+            .with_multi_token_transfer(payments_after_hook)
+            .returns(ReturnsBackTransfers)
+            .sync_call();
 
         let output_payments = self.call_hook(
             ErcHookType::AfterExchangeAction,
@@ -80,7 +83,7 @@ pub trait ExchangeActionsModule:
         );
 
         if !output_payments.is_empty() {
-            self.send().direct_multi(&caller, &output_payments);
+            self.tx().to(ToCaller).payment(&output_payments).transfer();
         }
 
         output_payments

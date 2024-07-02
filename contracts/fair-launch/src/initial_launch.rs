@@ -1,7 +1,7 @@
 use crate::{common::Percentage, exchange_actions::EndpointInfo};
 
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::derive_imports::*;
+use multiversx_sc::imports::*;
 
 mod pair_proxy {
     multiversx_sc::imports!();
@@ -18,13 +18,15 @@ mod pair_proxy {
     }
 }
 
-#[derive(TypeAbi, TopEncode, TopDecode)]
+#[type_abi]
+#[derive(TopEncode, TopDecode)]
 pub struct InitialLaunchBlocks {
     pub start: u64,
     pub end: u64,
 }
 
-#[derive(TypeAbi, TopEncode, TopDecode)]
+#[type_abi]
+#[derive(TopEncode, TopDecode)]
 pub struct InitialLaunchInfo<M: ManagedTypeApi> {
     pub account_buy_limit: BigUint<M>,
     pub tx_buy_limit: BigUint<M>,
@@ -97,12 +99,10 @@ pub trait InitialLaunchModule:
         let fees = take_fee_result.fees.get(0);
         self.burn_tokens(&fees);
 
-        self.send().direct_esdt(
-            &take_fee_result.original_caller,
-            &received_tokens.token_identifier,
-            received_tokens.token_nonce,
-            &received_tokens.amount,
-        );
+        self.tx()
+            .to(&take_fee_result.original_caller)
+            .payment(&received_tokens)
+            .transfer();
 
         received_tokens
     }
@@ -149,12 +149,10 @@ pub trait InitialLaunchModule:
         let fees = take_fee_result.fees.get(0);
         self.burn_tokens(&fees);
 
-        self.send().direct_esdt(
-            &take_fee_result.original_caller,
-            &received_tokens.token_identifier,
-            received_tokens.token_nonce,
-            &received_tokens.amount,
-        );
+        self.tx()
+            .to(&take_fee_result.original_caller)
+            .payment(&received_tokens)
+            .transfer();
 
         received_tokens
     }

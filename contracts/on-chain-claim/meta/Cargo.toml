@@ -3,7 +3,7 @@ name = "on-chain-claim-meta"
 version = "0.0.0"
 edition = "2018"
 publish = false
-authors = [ "Vlad Bucur <vlad.bucur@multiversx.com>"]
+authors = ["Vlad Bucur <vlad.bucur@multiversx.com>"]
 
 [dev-dependencies]
 
@@ -11,5 +11,5 @@ authors = [ "Vlad Bucur <vlad.bucur@multiversx.com>"]
 path = ".."
 
 [dependencies.multiversx-sc-meta]
-version = "0.47.2"
+version = "0.50.4"
 default-features = false

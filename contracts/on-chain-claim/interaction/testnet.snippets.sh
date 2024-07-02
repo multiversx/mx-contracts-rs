@@ -7,7 +7,7 @@ DEPLOY_GAS="30000000"
 SFT_IDENTIFIER=0x54525245504149522d626435323730 #XSTRREPAIR-e1b673
 deploy() {
     mxpy --verbose contract deploy \
-          --bytecode="output/on-chain-claim.wasm" \
+          --bytecode="output/on-chain-claim.mxsc.json" \
           --arguments ${SFT_IDENTIFIER} \
           --pem=${WALLET} \
           --gas-limit=${DEPLOY_GAS} \

@@ -15,13 +15,13 @@ pub trait ForwardCall {
     ) {
         let original_caller = self.blockchain().get_caller();
 
-        self.send()
-            .contract_call::<()>(dest, endpoint_name)
-            .with_raw_arguments(endpoint_args.to_arg_buffer())
-            .with_multi_token_transfer(payments)
-            .async_call()
-            .with_callback(self.callbacks().transfer_callback(original_caller))
-            .call_and_exit();
+        self.tx()
+            .to(&dest)
+            .raw_call(endpoint_name)
+            .arguments_raw(endpoint_args.to_arg_buffer())
+            .payment(payments)
+            .callback(self.callbacks().transfer_callback(original_caller))
+            .async_call_and_exit();
     }
 
     #[callback]
@@ -35,12 +35,16 @@ pub trait ForwardCall {
 
         // Send the original input tokens back to the original caller
         if !back_transfers.esdt_payments.is_empty() {
-            self.send()
-                .direct_multi(&original_caller, &back_transfers.esdt_payments);
+            self.tx()
+                .to(&original_caller)
+                .payment(&back_transfers.esdt_payments)
+                .transfer();
         }
         if back_transfers.total_egld_amount != BigUint::zero() {
-            self.send()
-                .direct_egld(&original_caller, &back_transfers.total_egld_amount)
+            self.tx()
+                .to(&original_caller)
+                .egld(back_transfers.total_egld_amount)
+                .transfer();
         }
 
         match result {

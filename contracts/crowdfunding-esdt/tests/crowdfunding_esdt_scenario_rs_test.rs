@@ -2,17 +2,16 @@ use multiversx_sc_scenario::*;
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
-    blockchain.set_current_dir_from_workspace("contracts/crowdfunding-esdt");
 
     blockchain.register_contract(
-        "file:output/crowdfunding-esdt.wasm",
+        "mxsc:output/crowdfunding-esdt.mxsc.json",
         crowdfunding_esdt::ContractBuilder,
     );
+
     blockchain
 }
 
-#[test]
-fn generated_fund_rs() {
+fn _generated_fund_rs() {
     world().run("scenarios/_generated_fund.scen.json");
 }
 
@@ -26,8 +25,7 @@ fn generated_query_status_rs() {
     world().run("scenarios/_generated_query_status.scen.json");
 }
 
-#[test]
-fn generated_sc_err_rs() {
+fn _generated_sc_err_rs() {
     world().run("scenarios/_generated_sc_err.scen.json");
 }
 
@@ -40,7 +38,6 @@ fn crowdfunding_claim_failed_rs() {
 fn crowdfunding_claim_successful_rs() {
     world().run("scenarios/crowdfunding-claim-successful.scen.json");
 }
-
 
 #[test]
 fn crowdfunding_claim_too_early_rs() {

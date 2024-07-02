@@ -1,6 +1,8 @@
 #![no_std]
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
+
+pub mod adder_proxy;
 
 /// One of the simplest smart contracts possible,
 /// it holds a single variable in storage, which anyone can increment.
@@ -15,13 +17,12 @@ pub trait Adder {
         self.sum().set(initial_value);
     }
 
-    #[endpoint]
-    fn upgrade(&self, new_value: BigUint) {
-        self.sum().set(new_value);
+    #[upgrade]
+    fn upgrade(&self, initial_value: BigUint) {
+        self.init(initial_value);
     }
 
     /// Add desired amount to the storage variable.
-    #[payable("*")]
     #[endpoint]
     fn add(&self, value: BigUint) {
         self.sum().update(|sum| *sum += value);

@@ -138,8 +138,8 @@ pub trait Lottery {
                 );
                 self.burn_percentage_for_lottery(&lottery_name)
                     .set(burn_percentage);
-            },
-            OptionalValue::None => {},
+            }
+            OptionalValue::None => {}
         }
 
         if let Some(whitelist) = opt_whitelist.as_option() {
@@ -171,10 +171,10 @@ pub trait Lottery {
             Status::Inactive => sc_panic!("Lottery is currently inactive."),
             Status::Running => {
                 self.update_after_buy_ticket(&lottery_name, &token_identifier, &payment)
-            },
+            }
             Status::Ended => {
                 sc_panic!("Lottery entry period has ended! Awaiting winner announcement.")
-            },
+            }
         };
     }
 
@@ -186,7 +186,7 @@ pub trait Lottery {
             Status::Ended => {
                 self.distribute_prizes(&lottery_name);
                 self.clear_storage(&lottery_name);
-            },
+            }
         };
     }
 
@@ -295,12 +295,10 @@ pub trait Lottery {
 
         // send leftover to first place
         let first_place_winner = ticket_holders_mapper.get(winning_tickets[0]);
-        self.send().direct(
-            &first_place_winner,
-            &info.token_identifier,
-            0,
-            &info.prize_pool,
-        );
+        self.tx()
+            .to(&first_place_winner)
+            .egld_or_single_esdt(&info.token_identifier, 0, &info.prize_pool)
+            .transfer();
     }
 
     fn clear_storage(&self, lottery_name: &ManagedBuffer) {

@@ -2,10 +2,11 @@ use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
 use crate::hooks::hook_type::ErcHookType;
 
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::derive_imports::*;
+use multiversx_sc::imports::*;
 
-#[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode)]
 pub struct CallbackArgs<M: ManagedTypeApi> {
     pub payments: PaymentsVec<M>,
     pub original_caller: ManagedAddress<M>,
@@ -46,7 +47,7 @@ pub trait TransferModule:
         );
 
         if !self.blockchain().is_smart_contract(&dest) {
-            self.send().direct_multi(&dest, &payments_after_hook);
+            self.tx().to(dest).payment(&payments_after_hook).transfer();
 
             return;
         }
@@ -78,15 +79,15 @@ pub trait TransferModule:
             payments: payments.clone(),
             original_caller: caller,
         };
-
-        ContractCallNoPayment::<_, MultiValueEncoded<ManagedBuffer>>::new(dest, endpoint_name)
+        self.tx()
+            .to(dest)
+            .raw_call(endpoint_name)
+            .arguments_raw(ManagedArgBuffer::from(args))
             .with_multi_token_transfer(payments.clone())
-            .with_raw_arguments(ManagedArgBuffer::from(args))
-            .async_call()
             .with_callback(
                 <Self as TransferModule>::callbacks(self).transfer_to_sc_callback(cb_args),
             )
-            .call_and_exit();
+            .async_call_and_exit();
     }
 
     #[callback]
@@ -96,8 +97,10 @@ pub trait TransferModule:
         #[call_result] call_result: ManagedAsyncCallResult<IgnoreValue>,
     ) {
         if call_result.is_err() {
-            self.send()
-                .direct_multi(&args.original_caller, &args.payments);
+            self.tx()
+                .to(&args.original_caller)
+                .payment(&args.payments)
+                .transfer();
         }
     }
 }

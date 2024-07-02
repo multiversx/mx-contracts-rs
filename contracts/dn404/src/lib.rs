@@ -37,6 +37,6 @@ pub trait Dn404:
         self.set_paused(true);
     }
 
-    #[endpoint]
+    #[upgrade]
     fn upgrade(&self) {}
 }

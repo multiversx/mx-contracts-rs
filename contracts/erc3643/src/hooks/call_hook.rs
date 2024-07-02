@@ -1,6 +1,6 @@
 use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
-use super::hook_type::{Hook, ErcHookType};
+use super::hook_type::{ErcHookType, Hook};
 
 multiversx_sc::imports!();
 
@@ -28,14 +28,14 @@ pub trait CallHookModule {
 
         let mut output_payments = input_payments;
         for hook in &hooks {
-            let (_, back_transfers) =
-                ContractCallNoPayment::<_, MultiValueEncoded<ManagedBuffer>>::new(
-                    hook.dest_address,
-                    hook.endpoint_name,
-                )
-                .with_raw_arguments(call_args.clone())
+            let back_transfers = self
+                .tx()
+                .to(hook.dest_address)
+                .raw_call(hook.endpoint_name)
+                .arguments_raw(call_args.clone())
                 .with_multi_token_transfer(output_payments.clone())
-                .execute_on_dest_context_with_back_transfers::<MultiValueEncoded<ManagedBuffer>>();
+                .returns(ReturnsBackTransfers)
+                .sync_call();
 
             require!(
                 back_transfers.esdt_payments.len() == payments_len,

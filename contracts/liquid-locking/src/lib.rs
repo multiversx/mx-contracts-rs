@@ -132,7 +132,7 @@ pub trait LiquidLocking {
 
         require!(!unbond_tokens.is_empty(), "nothing to unbond");
         self.unbond_event(&caller, &unbond_tokens);
-        self.send().direct_multi(&caller, &unbond_tokens);
+        self.tx().to(ToCaller).payment(&unbond_tokens).transfer();
     }
 
     #[event("lock")]
