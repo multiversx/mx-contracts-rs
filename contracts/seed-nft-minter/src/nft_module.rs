@@ -1,14 +1,15 @@
 use crate::distribution_module;
 
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::derive_imports::*;
+use multiversx_sc::imports::*;
 
 use multiversx_sc_modules::default_issue_callbacks;
 
 const NFT_AMOUNT: u32 = 1;
 const ROYALTIES_MAX: u32 = 10_000; // 100%
 
-#[derive(TypeAbi, TopEncode, TopDecode)]
+#[type_abi]
+#[derive(TopEncode, TopDecode)]
 pub struct PriceTag<M: ManagedTypeApi> {
     pub token: EgldOrEsdtTokenIdentifier<M>,
     pub nonce: u64,
@@ -66,13 +67,14 @@ pub trait NftModule:
         self.price_tag(nft_nonce).clear();
 
         let nft_token_id = self.nft_token_id().get_token_id();
-        let caller = self.blockchain().get_caller();
-        self.send().direct_esdt(
-            &caller,
-            &nft_token_id,
-            nft_nonce,
-            &BigUint::from(NFT_AMOUNT),
-        );
+        self.tx()
+            .to(ToCaller)
+            .payment(EsdtTokenPayment::new(
+                nft_token_id,
+                nft_nonce,
+                BigUint::from(NFT_AMOUNT),
+            ))
+            .transfer();
 
         self.distribute_funds(
             &payment.token_identifier,

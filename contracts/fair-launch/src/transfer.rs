@@ -70,9 +70,15 @@ pub trait TransferModule:
 
         if !self.blockchain().is_smart_contract(&dest) {
             let owner = self.blockchain().get_owner_address();
-            self.send().direct_multi(&owner, &take_fees_result.fees);
+            self.tx()
+                .to(&owner)
+                .payment(&take_fees_result.fees)
+                .transfer();
 
-            self.send().direct_multi(&dest, &take_fees_result.transfers);
+            self.tx()
+                .to(&dest)
+                .payment(&take_fees_result.transfers)
+                .transfer();
 
             return;
         }
@@ -117,14 +123,17 @@ pub trait TransferModule:
             ManagedAsyncCallResult::Ok(_) => {
                 if !take_fees_result.fees.is_empty() {
                     let owner = self.blockchain().get_owner_address();
-                    self.send().direct_multi(&owner, &take_fees_result.fees);
+                    self.tx()
+                        .to(&owner)
+                        .payment(&take_fees_result.fees)
+                        .transfer();
                 }
             }
             ManagedAsyncCallResult::Err(_) => {
-                self.send().direct_multi(
-                    &take_fees_result.original_caller,
-                    &take_fees_result.original_payments,
-                );
+                self.tx()
+                    .to(&take_fees_result.original_caller)
+                    .payment(&take_fees_result.original_payments)
+                    .transfer();
             }
         }
     }

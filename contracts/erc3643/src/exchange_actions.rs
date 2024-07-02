@@ -83,7 +83,7 @@ pub trait ExchangeActionsModule:
         );
 
         if !output_payments.is_empty() {
-            self.send().direct_multi(&caller, &output_payments);
+            self.tx().to(ToCaller).payment(&output_payments).transfer();
         }
 
         output_payments
