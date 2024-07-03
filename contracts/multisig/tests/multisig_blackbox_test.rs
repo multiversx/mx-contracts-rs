@@ -1,6 +1,6 @@
 use adder::ProxyTrait as _;
 use multisig::{
-    action::GasLimit, multisig_perform::ProxyTrait as _, multisig_propose::ProxyTrait as _,
+    action::{Action, CallActionData, GasLimit}, multisig_perform::ProxyTrait as _, multisig_propose::ProxyTrait as _,
     multisig_sign::ProxyTrait, user_role::UserRole, ProxyTrait as _,
 };
 use multiversx_sc::{
@@ -9,17 +9,14 @@ use multiversx_sc::{
         test_util::top_encode_to_vec_u8_or_panic,
     },
     storage::mappers::SingleValue,
-    types::{Address, CodeMetadata, ContractCallNoPayment, FunctionCall},
+    types::{Address, BigUint, BoxedBytes, CodeMetadata, ContractCallNoPayment, FunctionCall, ManagedAddress, ManagedBuffer, ManagedVec, MultiValueEncoded},
 };
 use multiversx_sc_scenario::{
-    api::StaticApi,
-    scenario_model::{
+    api::StaticApi, scenario::run_vm::sc_call, scenario_model::{
         Account, AddressValue, CheckAccount, CheckStateStep, ScCallStep, ScDeployStep, ScQueryStep,
         SetStateStep, TxExpect,
-    },
-    ContractInfo, ScenarioWorld,
+    }, ContractInfo, ScenarioWorld
 };
-use num_bigint::BigUint;
 
 const ADDER_ADDRESS_EXPR: &str = "sc:adder";
 const ADDER_OWNER_ADDRESS_EXPR: &str = "address:adder-owner";
@@ -585,6 +582,42 @@ fn test_transfer_execute_sc_all() {
         ScQueryStep::new()
             .call(state.adder_contract.sum())
             .expect_value(SingleValue::from(BigUint::from(10u64))),
+    );
+}
+
+#[test]
+fn test_transfer_execute_batch() {
+    let mut state = MultisigTestState::new();
+    state.deploy_multisig_contract().deploy_adder_contract();
+    let call_data = CallActionData {
+        to: ManagedAddress::from_address(&state.adder_address.clone()),
+        egld_amount: BigUint::default(),
+        endpoint_name: ManagedBuffer::new_from_bytes(BoxedBytes::from(&b"add"[..]).as_slice()),
+        opt_gas_limit: Option::<u64>::None,
+        arguments: ManagedVec::from_single_item(ManagedBuffer::new_from_bytes(BoxedBytes::from(&[5u8][..]).as_slice())),
+    };
+
+    let mut actions = MultiValueEncoded::new();
+    let action_id = Action::SendTransferExecuteEgld(call_data);
+    actions.push(action_id.clone());
+    actions.push(action_id.clone());
+
+    let group_id: usize = state.world
+        .sc_call_get_result(ScCallStep::new().from(PROPOSER_ADDRESS_EXPR).call(
+        state.multisig_contract.propose_batch(actions),
+    ));
+
+    state.world.sc_call(
+        ScCallStep::new()
+            .from(BOARD_MEMBER_ADDRESS_EXPR)
+            .egld_value("0")
+            .call(state.multisig_contract.sign_batch_and_perform(group_id)),
+    );
+
+    state.world.sc_query(
+        ScQueryStep::new()
+            .call(state.adder_contract.sum())
+            .expect_value(SingleValue::from(BigUint::from(15u64))),
     );
 }
 
