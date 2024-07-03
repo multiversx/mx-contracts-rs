@@ -1,7 +1,6 @@
 use crate::types::Status;
 
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::imports::*;
 
 const DENOM: u64 = 10_000u64;
 
@@ -16,7 +15,7 @@ pub trait OwnerModule: crate::private::PrivateModule + crate::storage::StorageMo
         winners: OptionalValue<MultiValueEncoded<(ManagedAddress, u64)>>,
     ) {
         self.require_enabled();
-        
+
         let caller = self.blockchain().get_caller();
         self.admins().require_whitelisted(&caller);
 

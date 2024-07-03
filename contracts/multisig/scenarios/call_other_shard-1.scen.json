@@ -34,9 +34,7 @@
                 "function": "proposeTransferExecute",
                 "arguments": [
                     "sc:other-shard-1",
-                    "10",
-                    "0x",
-                    "0x"
+                    "10"
                 ],
                 "gasLimit": "100,000,000",
                 "gasPrice": "0"

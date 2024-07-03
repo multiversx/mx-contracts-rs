@@ -55,19 +55,18 @@ fn deploy_duplicate_bm_go() {
 }
 
 #[test]
-#[ignore = "system SC not yet implemented"]
+#[ignore = "missing 'newTokenIdentifiers' syntax"]
 fn interactor_nft_go() {
     world().run("scenarios/interactor_nft.scen.json");
 }
 
 #[test]
-#[ignore = "system SC not yet implemented"]
+#[ignore = "missing 'newTokenIdentifiers' syntax"]
 fn interactor_nft_all_roles_go() {
     world().run("scenarios/interactor_nft_all_roles.scen.json");
 }
 
 #[test]
-#[ignore = "not updated"]
 fn interactor_wegld_go() {
     world().run("scenarios/interactor_wegld.scen.json");
 }
@@ -82,11 +81,6 @@ fn remove_everyone_go() {
 #[ignore]
 fn send_esdt_go() {
     world().run("scenarios/sendEsdt.scen.json");
-}
-
-#[test]
-fn transfer_no_gas_specified_test_go() {
-    world().run("scenarios/transfer_no_gas_specified_test.scen.json");
 }
 
 #[test]

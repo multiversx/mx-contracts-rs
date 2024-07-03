@@ -72,6 +72,6 @@ pub trait FairLaunch:
         self.set_paused(true);
     }
 
-    #[endpoint]
+    #[upgrade]
     fn upgrade(&self) {}
 }

@@ -4,7 +4,7 @@ use multiversx_sc_modules::only_admin::OnlyAdminModule;
 use multiversx_sc_scenario::{scenario_model::*, *};
 use on_chain_claim::*;
 
-const ON_CHAIN_CLAIM_PATH_EXPR: &str = "file:output/on-chain-claim.wasm";
+const ON_CHAIN_CLAIM_PATH_EXPR: &str = "mxsc:output/on-chain-claim.mxsc.json";
 const TOKEN_IDENTIFIER: &str = "XREPAIR-abcdef";
 const OTHER_TOKEN_IDENTIFIER_EXPR: &str = "str:XREPAIRRR-abcdef";
 const TOKEN_IDENTIFIER_EXPR: &str = "str:XREPAIR-abcdef";
@@ -15,10 +15,9 @@ const SC_ADDR: &str = "sc:on-chain-claim";
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
-    blockchain.set_current_dir_from_workspace("contracts/on-chain-claim");
 
     blockchain.register_contract(
-        "file:output/on-chain-claim.wasm",
+        "mxsc:output/on-chain-claim.mxsc.json",
         on_chain_claim::ContractBuilder,
     );
     blockchain

@@ -1,9 +1,9 @@
 use crate::{fee::FeeType, Nonce, MAX_PERCENTAGE, NFT_AMOUNT};
 
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::{api::ManagedTypeApi, derive_imports::*, imports::*, types::TokenIdentifier};
 
-#[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode)]
 pub struct TokenIdNoncePair<M: ManagedTypeApi> {
     pub token_id: TokenIdentifier<M>,
     pub nonce: Nonce,
@@ -100,12 +100,13 @@ pub trait AvailableTokensModule:
 
         token_mapper.burn(&total_cost);
 
-        let caller = self.blockchain().get_caller();
         let remaining_tokens = payment_amount - total_cost;
         let remaining_tokens_payment = EsdtTokenPayment::new(payment_token, 0, remaining_tokens);
-        self.send()
-            .direct_non_zero_esdt_payment(&caller, &remaining_tokens_payment);
-        self.send().direct_multi(&caller, &tokens_vec);
+        self.tx()
+            .to(ToCaller)
+            .payment(&remaining_tokens_payment)
+            .transfer();
+        self.tx().to(ToCaller).payment(&tokens_vec).transfer();
     }
 
     fn add_tokens(
