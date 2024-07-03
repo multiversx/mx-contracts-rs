@@ -152,7 +152,9 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "out": ["1"],
+                "out": [
+                    "1"
+                ],
                 "status": "0",
                 "gas": "*",
                 "refund": "*"
@@ -201,11 +203,9 @@
                         "str:createdOffers|address:first|``.len": "1",
                         "str:createdOffers|address:first|``.item|u32:1": "1",
                         "str:createdOffers|address:first|``.index|u32:1": "1",
-
                         "str:wantedOffers|address:second|``.len": "1",
                         "str:wantedOffers|address:second|``.item|u32:1": "1",
                         "str:wantedOffers|address:second|``.index|u32:1": "1",
-
                         "str:offers|u32:1": {
                             "01-creator": "address:first",
                             "02-nft": "nested:str:NFT-123456",
@@ -216,7 +216,7 @@
                         },
                         "str:lastOfferId": "1"
                     },
-                    "code": "file:../output/nft-escrow.wasm",
+                    "code": "mxsc:../output/nft-escrow.mxsc.json",
                     "owner": "address:owner"
                 },
                 "+": ""

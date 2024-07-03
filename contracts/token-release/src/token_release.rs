@@ -1,7 +1,6 @@
 #![no_std]
 
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::imports::*;
 
 mod contract_data;
 
@@ -282,7 +281,7 @@ pub trait TokenRelease {
                     }
                     claimable_amount += BigUint::from(periods_passed) * period_unlock_amount
                         / BigUint::from(users_in_group_no);
-                },
+                }
                 UnlockType::Percentage {
                     period_unlock_percentage,
                     release_period,
@@ -300,7 +299,7 @@ pub trait TokenRelease {
                         * (period_unlock_percentage as u64)
                         / PERCENTAGE_TOTAL
                         / BigUint::from(users_in_group_no);
-                },
+                }
             }
         }
 
@@ -313,8 +312,14 @@ pub trait TokenRelease {
         address: &ManagedAddress,
         amount: &BigUint,
     ) {
-        self.send()
-            .direct_esdt(address, token_identifier, 0, amount);
+        self.tx()
+            .to(address)
+            .payment(EsdtTokenPayment::new(
+                token_identifier.clone(),
+                0,
+                amount.clone(),
+            ))
+            .transfer();
     }
 
     fn mint_all_tokens(&self, token_identifier: &TokenIdentifier, amount: &BigUint) {

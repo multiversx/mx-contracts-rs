@@ -1,9 +1,7 @@
 #![no_std]
 
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
-
 use function_selector::FunctionSelector;
+use multiversx_sc::imports::*;
 use multiversx_sc_modules::{
     bonding_curve,
     bonding_curve::utils::{events, owner_endpoints, storage, user_endpoints},

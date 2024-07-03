@@ -1,5 +1,5 @@
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::derive_imports::*;
+use multiversx_sc::imports::*;
 
 pub const MAX_PERCENTAGE: u64 = 10_000;
 pub const SFT_AMOUNT: u64 = 1;

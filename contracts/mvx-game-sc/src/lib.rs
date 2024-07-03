@@ -1,7 +1,6 @@
 #![no_std]
 
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::imports::*;
 
 pub mod owner;
 pub mod private;
@@ -82,8 +81,10 @@ pub trait MvxGameSc: storage::StorageModule + owner::OwnerModule + private::Priv
         let wager = self.validate_claim_wager(&caller, game_id);
 
         let token_id = self.token_id().get();
-        self.send().direct(&caller, &token_id, 0u64, &wager);
-
+        self.tx()
+            .to(&caller)
+            .egld_or_single_esdt(&token_id, 0, &wager)
+            .transfer();
         self.remove_player(caller, game_id);
     }
 }

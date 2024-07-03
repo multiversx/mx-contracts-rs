@@ -4,7 +4,7 @@ fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
 
     blockchain.register_contract(
-        "file:output/token-release.wasm",
+        "mxsc:output/token-release.mxsc.json",
         token_release::ContractBuilder,
     );
     blockchain

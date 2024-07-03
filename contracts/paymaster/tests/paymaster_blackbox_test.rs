@@ -22,9 +22,9 @@
 // const RELAYER_ADDRESS_EXPR: &str = "address:relayer";
 // const CALLEE_SC_ADDER_ADDRESS_EXPR: &str = "sc:adder";
 // const CALLEE_SC_WEGLD_ADDRESS_EXPR: &str = "sc:wegld";
-// const PAYMASTER_PATH_EXPR: &str = "file:output/paymaster.wasm";
+// const PAYMASTER_PATH_EXPR: &str = "mxsc:output/paymaster.mxsc.json";
 // const ADDER_PATH_EXPR: &str = "mxsc:../output/adder.mxsc.json";
-// const WEGLD_PATH_EXPR: &str = "file:tests/test-contracts/multiversx-wegld-swap-sc.wasm.wasm";
+// const WEGLD_PATH_EXPR: &str = "mxsc:tests/test-contracts/multiversx-wegld-swap-sc.wasm.mxsc.json";
 // const CALLER_ADDRESS_EXPR: &str = "address:caller";
 // const CALLEE_USER_ADDRESS_EXPR: &str = "address:callee_user";
 // const OWNER_ADDRESS_EXPR: &str = "address:owner";

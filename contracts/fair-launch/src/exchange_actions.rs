@@ -1,9 +1,10 @@
 use crate::common::{Percentage, MAX_FEE_PERCENTAGE};
 
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::derive_imports::*;
+use multiversx_sc::imports::*;
 
-#[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode, ManagedVecItem)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, ManagedVecItem)]
 pub struct EndpointInfo<M: ManagedTypeApi> {
     pub endpoint_name: ManagedBuffer<M>,
     pub input_fee_percentage: Percentage,
@@ -161,10 +162,10 @@ pub trait ExchangeActionsModule:
                 self.burn_all_tokens(&take_fees_from_results.fees);
             }
 
-            self.send().direct_multi(
-                &take_fees_from_results.original_caller,
-                &take_fees_from_results.transfers,
-            );
+            self.tx()
+                .to(&take_fees_from_results.original_caller)
+                .payment(&take_fees_from_results.transfers)
+                .transfer();
         }
     }
 
