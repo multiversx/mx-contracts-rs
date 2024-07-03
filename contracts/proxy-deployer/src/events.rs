@@ -1,7 +1,8 @@
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::derive_imports::*;
+use multiversx_sc::imports::*;
 
-#[derive(TypeAbi, TopEncode)]
+#[type_abi]
+#[derive(TopEncode)]
 pub struct DeployContractEvent<M: ManagedTypeApi> {
     caller: ManagedAddress<M>,
     template: ManagedAddress<M>,
@@ -9,7 +10,8 @@ pub struct DeployContractEvent<M: ManagedTypeApi> {
     arguments: ManagedVec<M, ManagedBuffer<M>>,
 }
 
-#[derive(TypeAbi, TopEncode)]
+#[type_abi]
+#[derive(TopEncode)]
 pub struct UpgradeContractEvent<M: ManagedTypeApi> {
     caller: ManagedAddress<M>,
     template: ManagedAddress<M>,
@@ -17,7 +19,8 @@ pub struct UpgradeContractEvent<M: ManagedTypeApi> {
     arguments: ManagedVec<M, ManagedBuffer<M>>,
 }
 
-#[derive(TypeAbi, TopEncode)]
+#[type_abi]
+#[derive(TopEncode)]
 pub struct ContractCallEvent<M: ManagedTypeApi> {
     caller: ManagedAddress<M>,
     contract_address: ManagedAddress<M>,
@@ -25,7 +28,8 @@ pub struct ContractCallEvent<M: ManagedTypeApi> {
     arguments: ManagedVec<M, ManagedBuffer<M>>,
 }
 
-#[derive(TypeAbi, TopEncode)]
+#[type_abi]
+#[derive(TopEncode)]
 pub struct ChangeOwnerEvent<M: ManagedTypeApi> {
     caller: ManagedAddress<M>,
     contract_address: ManagedAddress<M>,

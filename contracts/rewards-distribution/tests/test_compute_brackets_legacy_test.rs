@@ -21,7 +21,7 @@ fn test_compute_brackets() {
         &rust_biguint!(0u64),
         Some(&owner),
         rewards_distribution::contract_obj,
-        "rewards-distribution.wasm",
+        "rewards-distribution.mxsc.json",
     );
 
     wrapper
