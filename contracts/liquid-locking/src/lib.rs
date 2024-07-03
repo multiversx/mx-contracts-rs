@@ -1,5 +1,6 @@
 #![no_std]
 
+pub mod liquid_locking_proxy;
 mod unlocked_token;
 use unlocked_token::UnlockedToken;
 
