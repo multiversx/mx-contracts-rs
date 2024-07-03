@@ -1,10 +1,10 @@
 use config::ConfigModule;
-use multiversx_sc::types::{ManagedAddress, TokenIdentifier};
+use multiversx_sc::types::{BigUint, EsdtTokenPayment, ManagedAddress, TokenIdentifier};
 use multiversx_sc_modules::only_admin::OnlyAdminModule;
 use multiversx_sc_scenario::{scenario_model::*, *};
 use on_chain_claim::*;
 
-const ON_CHAIN_CLAIM_PATH_EXPR: &str = "file:output/on-chain-claim.wasm";
+const ON_CHAIN_CLAIM_PATH_EXPR: &str = "mxsc:output/on-chain-claim.mxsc.json";
 const TOKEN_IDENTIFIER: &str = "XREPAIR-abcdef";
 const OTHER_TOKEN_IDENTIFIER_EXPR: &str = "str:XREPAIRRR-abcdef";
 const TOKEN_IDENTIFIER_EXPR: &str = "str:XREPAIR-abcdef";
@@ -15,10 +15,9 @@ const SC_ADDR: &str = "sc:on-chain-claim";
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
-    blockchain.set_current_dir_from_workspace("contracts/on-chain-claim");
 
     blockchain.register_contract(
-        "file:output/on-chain-claim.wasm",
+        "mxsc:output/on-chain-claim.mxsc.json",
         on_chain_claim::ContractBuilder,
     );
     blockchain
@@ -60,8 +59,12 @@ fn check_token_identifier() {
             &on_chain_claim_whitebox,
             ScCallStep::new().from(SC_ADDR),
             |sc| {
-                sc.repair_streak_token_identifier()
-                    .set(TokenIdentifier::from(TOKEN_IDENTIFIER));
+                let payment = EsdtTokenPayment::new(
+                    TokenIdentifier::from(TOKEN_IDENTIFIER),
+                    1u64,
+                    BigUint::from(1u64),
+                );
+                sc.repair_streak_payment().set(payment);
             },
         );
 }
@@ -298,8 +301,12 @@ fn check_claim_and_repair() {
             &on_chain_claim_whitebox,
             ScCallStep::new().from(SC_ADDR),
             |sc| {
-                sc.repair_streak_token_identifier()
-                    .set(TokenIdentifier::from(TOKEN_IDENTIFIER));
+                let payment = EsdtTokenPayment::new(
+                    TokenIdentifier::from(TOKEN_IDENTIFIER),
+                    1u64,
+                    BigUint::from(1u64),
+                );
+                sc.repair_streak_payment().set(payment);
             },
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
@@ -380,7 +387,7 @@ fn check_claim_and_repair() {
                 sc.claim_and_repair();
             },
             |r| {
-                r.assert_user_error("Bad payment token");
+                r.assert_user_error("Bad payment token/amount");
             },
         )
         .whitebox_call_check(
@@ -394,7 +401,7 @@ fn check_claim_and_repair() {
                 sc.claim_and_repair();
             },
             |r| {
-                r.assert_user_error("Bad payment amount");
+                r.assert_user_error("Bad payment token/amount");
             },
         )
         .whitebox_call(
@@ -454,7 +461,7 @@ fn check_claim_and_repair() {
 }
 
 #[test]
-fn best_streak() {
+fn test_best_streak() {
     let mut world = world();
     let on_chain_claim_whitebox = WhiteboxContract::new(SC_ADDR, on_chain_claim::contract_obj);
     let on_chain_claim_code = world.code_expression(ON_CHAIN_CLAIM_PATH_EXPR);
@@ -489,8 +496,12 @@ fn best_streak() {
             &on_chain_claim_whitebox,
             ScCallStep::new().from(SC_ADDR),
             |sc| {
-                sc.repair_streak_token_identifier()
-                    .set(TokenIdentifier::from(TOKEN_IDENTIFIER));
+                let payment = EsdtTokenPayment::new(
+                    TokenIdentifier::from(TOKEN_IDENTIFIER),
+                    1u64,
+                    BigUint::from(1u64),
+                );
+                sc.repair_streak_payment().set(payment);
             },
         )
         .whitebox_call(
@@ -504,9 +515,9 @@ fn best_streak() {
             },
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
-            let repair_streak_token_identifier = sc.repair_streak_token_identifier().get();
+            let repair_streak_payment = sc.repair_streak_payment().get();
             let identifier = TokenIdentifier::from(TOKEN_IDENTIFIER);
-            assert_eq!(repair_streak_token_identifier, identifier);
+            assert_eq!(repair_streak_payment.token_identifier, identifier);
         })
         .whitebox_call(
             &on_chain_claim_whitebox,
@@ -620,8 +631,12 @@ fn on_chain_claim_whitebox() {
             &on_chain_claim_whitebox,
             ScCallStep::new().from(SC_ADDR),
             |sc| {
-                sc.repair_streak_token_identifier()
-                    .set(TokenIdentifier::from(TOKEN_IDENTIFIER));
+                let payment = EsdtTokenPayment::new(
+                    TokenIdentifier::from(TOKEN_IDENTIFIER),
+                    1u64,
+                    BigUint::from(1u64),
+                );
+                sc.repair_streak_payment().set(payment);
             },
         )
         .whitebox_call(
@@ -635,9 +650,9 @@ fn on_chain_claim_whitebox() {
             },
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
-            let repair_streak_token_identifier = sc.repair_streak_token_identifier().get();
+            let repair_streak_payment = sc.repair_streak_payment().get();
             let identifier = TokenIdentifier::from(TOKEN_IDENTIFIER);
-            assert_eq!(repair_streak_token_identifier, identifier);
+            assert_eq!(repair_streak_payment.token_identifier, identifier);
         })
         .whitebox_call(
             &on_chain_claim_whitebox,

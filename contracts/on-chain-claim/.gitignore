@@ -8,3 +8,5 @@
 
 # Mandos test trace
 trace*.scen.json
+
+wallet.pem

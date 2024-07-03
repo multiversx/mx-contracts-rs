@@ -2,14 +2,13 @@
 #![allow(unused_attributes)]
 
 pub use address_info::AddressInfo;
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::imports::*;
 
 pub mod address_info;
 pub mod config;
 pub mod events;
 
-use crate::config::{MAX_REPAIR_GAP, SFT_AMOUNT};
+use crate::config::MAX_REPAIR_GAP;
 use multiversx_sc_modules::only_admin;
 
 #[multiversx_sc::contract]
@@ -17,8 +16,8 @@ pub trait OnChainClaimContract:
     config::ConfigModule + events::EventsModule + only_admin::OnlyAdminModule
 {
     #[init]
-    fn init(&self, repair_streak_token_id: TokenIdentifier) {
-        self.internal_set_repair_streak_token_id(repair_streak_token_id);
+    fn init(&self, repair_streak_token_id: TokenIdentifier, repair_streak_token_nonce: u64) {
+        self.internal_set_repair_streak_payment(repair_streak_token_id, repair_streak_token_nonce);
 
         let caller = self.blockchain().get_caller();
         self.add_admin(caller);
@@ -79,12 +78,8 @@ pub trait OnChainClaimContract:
         self.require_same_shard(&caller);
 
         let payment = self.call_value().single_esdt();
-        let repair_streak_token_identifier = self.repair_streak_token_identifier().get();
-        require!(
-            payment.token_identifier == repair_streak_token_identifier,
-            "Bad payment token"
-        );
-        require!(payment.amount == SFT_AMOUNT, "Bad payment amount");
+        let repair_streak_payment = self.repair_streak_payment().get();
+        require!(payment == repair_streak_payment, "Bad payment token/amount");
 
         let current_epoch = self.blockchain().get_block_epoch();
 
@@ -99,7 +94,7 @@ pub trait OnChainClaimContract:
             let missed_epochs =
                 self.get_missed_epochs(current_epoch, address_info.last_epoch_claimed);
 
-            // Allow MAX_REPAIR_GAP + 1 in order to not have failed transaction when the user sends the claimAndRepair transaction 
+            // Allow MAX_REPAIR_GAP + 1 in order to not have failed transaction when the user sends the claimAndRepair transaction
             // in the last round of the allowed epoch. From UI, we allow MAX_REPAIR_GAP = 5 (using canBeRepaired view)
             require!(
                 missed_epochs > 0 && missed_epochs <= MAX_REPAIR_GAP + 1,
@@ -146,19 +141,35 @@ pub trait OnChainClaimContract:
         self.new_update_state_event(address, &address_info);
     }
 
-    #[endpoint(setRepairStreakTokenId)]
-    fn set_repair_streak_token_id(&self, repair_streak_token_id: TokenIdentifier) {
+    #[endpoint(setRepairStreakPayment)]
+    fn set_repair_streak_payment(
+        &self,
+        repair_streak_token_identifier: TokenIdentifier,
+        repair_streak_token_nonce: u64,
+    ) {
         self.require_caller_is_admin();
 
-        self.internal_set_repair_streak_token_id(repair_streak_token_id);
+        self.internal_set_repair_streak_payment(
+            repair_streak_token_identifier,
+            repair_streak_token_nonce,
+        );
     }
 
-    fn internal_set_repair_streak_token_id(&self, repair_streak_token_id: TokenIdentifier) {
+    fn internal_set_repair_streak_payment(
+        &self,
+        repair_streak_token_identifier: TokenIdentifier,
+        repair_streak_token_nonce: u64,
+    ) {
         require!(
-            repair_streak_token_id.is_valid_esdt_identifier(),
-            "Invalid token ID"
+            repair_streak_token_identifier.is_valid_esdt_identifier(),
+            "Invalid token ID",
         );
-        self.repair_streak_token_identifier()
-            .set(repair_streak_token_id);
+
+        let payment = EsdtTokenPayment::new(
+            repair_streak_token_identifier,
+            repair_streak_token_nonce,
+            BigUint::from(1u64),
+        );
+        self.repair_streak_payment().set(payment);
     }
 }
