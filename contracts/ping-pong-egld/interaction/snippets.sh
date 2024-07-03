@@ -20,7 +20,7 @@ deploy_ping_pong() {
     fi
     
     local OUTFILE="out.json"
-    (set -x; mxpy contract deploy --bytecode="$PING_PONG_CONTRACT/output/ping-pong-egld.wasm" \
+    (set -x; mxpy contract deploy --bytecode="$PING_PONG_CONTRACT/output/ping-pong-egld.mxsc.json" \
         --pem="$PEM_FILE" \
         $PROXY_ARGUMENT $CHAIN_ARGUMENT \
         --outfile="$OUTFILE" --recall-nonce --gas-limit=60000000 \
