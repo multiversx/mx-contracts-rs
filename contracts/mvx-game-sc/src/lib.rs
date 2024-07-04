@@ -6,6 +6,7 @@ pub mod owner;
 pub mod private;
 pub mod storage;
 pub mod types;
+pub mod game_proxy;
 
 #[multiversx_sc::contract]
 pub trait MvxGameSc: storage::StorageModule + owner::OwnerModule + private::PrivateModule {
