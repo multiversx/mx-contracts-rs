@@ -1,4 +1,4 @@
-use multiversx_sc::derive_imports::*;
+multiversx_sc::derive_imports!();
 
 #[derive(TopEncode, TopDecode, TypeAbi, Clone, Copy, PartialEq, Eq, Debug)]
 pub enum UserRole {
@@ -22,5 +22,9 @@ impl UserRole {
 
     pub fn can_sign(&self) -> bool {
         matches!(*self, UserRole::BoardMember)
+    }
+
+    pub fn has_no_role(&self) -> bool {
+        matches!(*self, UserRole::None)
     }
 }
