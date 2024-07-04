@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           48
+// Endpoints:                           44
 // Async Callback:                       1
-// Total number of exported functions:  51
+// Total number of exported functions:  47
 
 #![no_std]
 
@@ -37,8 +37,8 @@ multiversx_sc_wasm_adapter::endpoints! {
         proposeAsyncCall => propose_async_call
         proposeSCDeployFromSource => propose_sc_deploy_from_source
         proposeSCUpgradeFromSource => propose_sc_upgrade_from_source
-        proposeModuleDeployFromSource => propose_module_deploy_from_source
-        proposeModuleUpgradeFromSource => propose_module_upgrade_from_source
+        proposeAddModule => propose_add_module
+        proposeRemoveModule => propose_remove_module
         proposeBatch => propose_batch
         performAction => perform_action_endpoint
         performBatch => perform_batch
@@ -51,11 +51,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         unsign => unsign
         unsignBatch => unsign_batch
         unsignForOutdatedBoardMembers => unsign_for_outdated_board_members
-        enableModule => enable_module
-        disableModule => disable_module
-        addAdditionalAllowedAddresses => add_additional_allowed_addresses
-        removeAdditionalAllowedAddresses => remove_additional_allowed_addresses
-        getModuleStatus => get_module_status
+        getNrDeployedModules => nr_deployed_modules
         signed => signed
         getActionLastIndex => get_action_last_index
         getUserNonce => get_user_nonce

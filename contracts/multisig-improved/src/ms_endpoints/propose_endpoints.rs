@@ -209,56 +209,33 @@ pub trait ProposeEndpointsModule:
         )
     }
 
-    #[allow_multiple_var_args]
-    #[endpoint(proposeModuleDeployFromSource)]
-    fn propose_module_deploy_from_source(
-        &self,
-        amount: BigUint,
-        source: ManagedAddress,
-        code_metadata: CodeMetadata,
-        opt_signature: Option<SignatureArg<Self::Api>>,
-        arguments: MultiValueEncoded<ManagedBuffer>,
-    ) -> ActionId {
-        let action_id = self.propose_action(
-            Action::DeployModuleFromSource(DeployArgs {
-                amount,
-                source,
-                code_metadata,
-                arguments: arguments.into_vec_of_buffers(),
-            }),
-            opt_signature.into(),
-        );
-
-        let caller = self.blockchain().get_caller();
-        let proposer_id = self.user_ids().get_id_non_zero(&caller);
-        self.deploy_module_proposer(action_id).set(proposer_id);
-
-        action_id
-    }
-
-    #[allow_multiple_var_args]
-    #[endpoint(proposeModuleUpgradeFromSource)]
-    fn propose_module_upgrade_from_source(
+    #[endpoint(proposeAddModule)]
+    fn propose_add_module(
         &self,
         sc_address: ManagedAddress,
-        amount: BigUint,
-        source: ManagedAddress,
-        code_metadata: CodeMetadata,
-        opt_signature: Option<SignatureArg<Self::Api>>,
-        arguments: MultiValueEncoded<ManagedBuffer>,
+        opt_signature: OptionalValue<SignatureArg<Self::Api>>,
     ) -> ActionId {
-        self.propose_action(
-            Action::UpgradeModuleFromSource {
-                sc_address,
-                args: DeployArgs {
-                    amount,
-                    source,
-                    code_metadata,
-                    arguments: arguments.into_vec_of_buffers(),
-                },
-            },
-            opt_signature.into(),
-        )
+        require!(
+            self.blockchain().is_smart_contract(&sc_address),
+            "Invalid SC address"
+        );
+        self.require_same_shard(&sc_address);
+
+        let existing_id = self.module_id().get_id(&sc_address);
+        require!(existing_id == NULL_ID, "Module already known");
+
+        self.propose_action(Action::AddModule(sc_address), opt_signature)
+    }
+
+    #[endpoint(proposeRemoveModule)]
+    fn propose_remove_module(
+        &self,
+        sc_address: ManagedAddress,
+        opt_signature: OptionalValue<SignatureArg<Self::Api>>,
+    ) -> ActionId {
+        let _ = self.module_id().get_id_non_zero(&sc_address);
+
+        self.propose_action(Action::RemoveModule(sc_address), opt_signature)
     }
 
     #[endpoint(proposeBatch)]
@@ -286,10 +263,6 @@ pub trait ProposeEndpointsModule:
             let action_id = action_mapper.push(&action);
             if caller_role.can_sign() {
                 let _ = self.action_signer_ids(action_id).insert(caller_id);
-            }
-
-            if let Action::DeployModuleFromSource(_) = action {
-                self.deploy_module_proposer(action_id).set(caller_id);
             }
 
             let _ = action_groups_mapper.insert(action_id);

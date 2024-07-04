@@ -100,4 +100,11 @@ pub trait PerformModule:
 
         self.perform_action_by_id(action_id)
     }
+
+    fn require_same_shard(&self, sc_address: &ManagedAddress) {
+        let own_address = self.blockchain().get_sc_address();
+        let own_shard = self.blockchain().get_shard_of_address(&own_address);
+        let sc_shard = self.blockchain().get_shard_of_address(sc_address);
+        require!(own_shard == sc_shard, "Must be same shard");
+    }
 }

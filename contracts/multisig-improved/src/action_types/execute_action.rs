@@ -5,13 +5,12 @@ use crate::common_types::{
 
 use crate::ms_endpoints::callbacks::CallbackProxy as _;
 
-use super::external_module::DISABLED;
-
 multiversx_sc::imports!();
 
 /// Gas required to finish transaction after transfer-execute.
 const PERFORM_ACTION_FINISH_GAS: u64 = 300_000;
 pub const MAX_BOARD_MEMBERS: usize = 30;
+pub const MAX_MODULES: usize = 5;
 
 #[multiversx_sc::module]
 pub trait ExecuteActionModule:
@@ -31,14 +30,6 @@ pub trait ExecuteActionModule:
 
             return OptionalValue::Some(new_address);
         }
-        if let Action::DeployModuleFromSource(args) = action {
-            let new_address = self.deploy_from_source(action_id, args.clone());
-            let module_id = self.module_id().insert_new(&new_address);
-            let proposer_id = self.deploy_module_proposer(action_id).take();
-            self.module_owner(module_id).set(proposer_id);
-
-            return OptionalValue::Some(new_address);
-        }
 
         OptionalValue::None
     }
@@ -52,6 +43,8 @@ pub trait ExecuteActionModule:
             Action::AddProposer(proposer_address) => self.add_proposer(action_id, proposer_address),
             Action::RemoveUser(user_address) => self.remove_user(action_id, user_address),
             Action::ChangeQuorum(new_quorum) => self.change_quorum(action_id, new_quorum),
+            Action::AddModule(sc_address) => self.add_module(action_id, sc_address),
+            Action::RemoveModule(sc_address) => self.remove_module(action_id, sc_address),
             _ => self.execute_external_call(action_id, action),
         };
     }
@@ -70,13 +63,7 @@ pub trait ExecuteActionModule:
             Action::SCUpgradeFromSource { sc_address, args } => {
                 self.upgrade_from_source(action_id, sc_address, args);
             }
-            Action::UpgradeModuleFromSource { sc_address, args } => {
-                let module_id = self.module_id().get_id_non_zero(&sc_address);
-                self.module_status(module_id).set(DISABLED);
-
-                self.upgrade_from_source(action_id, sc_address, args);
-            }
-            _ => {} // Deploy cases handled in "try_execute_deploy" function
+            _ => {} // Deploy case handled in "try_execute_deploy" function
         }
     }
 
@@ -118,6 +105,34 @@ pub trait ExecuteActionModule:
 
         self.quorum().set(new_quorum);
         self.perform_change_quorum_event(action_id, new_quorum);
+    }
+
+    fn add_module(&self, action_id: ActionId, sc_address: ManagedAddress) {
+        self.nr_deployed_modules().update(|nr_deployed_modules| {
+            *nr_deployed_modules += 1;
+
+            require!(
+                *nr_deployed_modules <= MAX_MODULES,
+                "May not add more modules"
+            );
+        });
+
+        let module_id = self.module_id().insert_new(&sc_address);
+        let _ = self.active_modules_ids().insert(module_id);
+
+        self.perform_add_module_event(action_id, &sc_address);
+    }
+
+    fn remove_module(&self, action_id: ActionId, sc_address: ManagedAddress) {
+        let module_id = self.module_id().remove_by_address(&sc_address);
+        if module_id != NULL_ID {
+            let _ = self.active_modules_ids().swap_remove(&module_id);
+
+            self.nr_deployed_modules()
+                .update(|nr_deployed_modules| *nr_deployed_modules -= 1);
+        }
+
+        self.perform_remove_module_event(action_id, &sc_address);
     }
 
     fn send_transfer_execute_egld(
