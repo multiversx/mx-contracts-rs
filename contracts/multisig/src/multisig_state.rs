@@ -7,9 +7,8 @@ pub type ActionId = usize;
 pub type GroupId = usize;
 pub type UserId = usize;
 
-#[derive(
-    TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Eq, Clone, Copy, Debug,
-)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, PartialEq, Eq, Clone, Copy, Debug)]
 pub enum ActionStatus {
     Available,
     Aborted,
