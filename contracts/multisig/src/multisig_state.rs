@@ -1,7 +1,8 @@
 use crate::multisig_perform::MAX_BOARD_MEMBERS;
 use crate::{action::Action, user_role::UserRole};
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+
+use multiversx_sc::derive_imports::*;
+use multiversx_sc::imports::*;
 
 pub type ActionId = usize;
 pub type GroupId = usize;

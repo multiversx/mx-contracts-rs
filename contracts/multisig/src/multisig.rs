@@ -13,7 +13,7 @@ use action::ActionFullInfo;
 use multisig_state::{ActionId, ActionStatus};
 use user_role::UserRole;
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
 
 /// Multi-signature smart contract implementation.
 /// Acts like a wallet that needs multiple signers for any action performed.
