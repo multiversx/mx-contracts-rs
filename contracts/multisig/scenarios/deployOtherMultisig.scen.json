@@ -26,7 +26,7 @@
                 "arguments": [
                     "0",
                     "sc:multisig",
-                    "0x0100",
+                    "0x0502",
                     "1",
                     "address:paul"
                 ],
@@ -125,14 +125,14 @@
                     "nonce": "0",
                     "balance": "0",
                     "storage": {
-                        "str:user_count": "1",
-                        "str:user_address_to_id|address:paul": "1",
-                        "str:user_id_to_address|u32:1": "address:paul",
+                        "str:user_ids_count": "1",
+                        "str:user_ids_address_to_id|address:paul": "1",
+                        "str:user_ids_id_to_address|u32:1": "address:paul",
                         "str:user_role|u32:1": "2",
                         "str:num_board_members": "1",
-                        "str:quorum": "1"
+                        "str:quorum_ids": "1"
                     },
-                    "code": "mxsc:../output/multisig.mxsc.json"
+                    "code": "file:../output/multisig.wasm"
                 },
                 "+": ""
             }
