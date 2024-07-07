@@ -122,22 +122,9 @@ impl PaymasterTestState {
         self
     }
 
-    fn check_esdt_balance_from_address(
+    fn check_esdt_balance(
         &mut self,
         address: TestAddress,
-        token: TestTokenIdentifier,
-        balance: u64,
-    ) -> &mut Self {
-        self.world
-            .check_account(address)
-            .esdt_balance(token, balance);
-
-        self
-    }
-
-    fn check_esdt_balance_from_contract(
-        &mut self,
-        address: TestSCAddress,
         token: TestTokenIdentifier,
         balance: u64,
     ) -> &mut Self {
@@ -220,20 +207,8 @@ fn test_forward_call_sc_adder() {
     state.deploy_paymaster_contract();
     state.deploy_adder_contract();
 
-    state.check_esdt_balance_from_address(CALLER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, BALANCE);
-    state.check_esdt_balance_from_address(CALLER_ADDRESS_EXPR, PAYMASTER_TOKEN_ID_EXPR, BALANCE);
-
-    let mut payments: MultiEsdtPayment<StaticApi> = MultiEsdtPayment::new();
-    payments.push(EsdtTokenPayment::new(
-        TokenIdentifier::from(FEE_TOKEN_ID_EXPR),
-        0,
-        BigUint::from(FEE_AMOUNT),
-    ));
-    payments.push(EsdtTokenPayment::new(
-        TokenIdentifier::from(PAYMASTER_TOKEN_ID_EXPR),
-        0,
-        BigUint::from(FEE_AMOUNT),
-    ));
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, BALANCE);
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, PAYMASTER_TOKEN_ID_EXPR, BALANCE);
 
     state
         .world
@@ -247,47 +222,34 @@ fn test_forward_call_sc_adder() {
             b"add",
             MultiValueVec::from([top_encode_to_vec_u8_or_panic(&ADDITIONAL_ADD_VALUE)]),
         )
-        .with_multi_token_transfer(payments)
+        .payment(EsdtTokenPayment::new(
+            TokenIdentifier::from(FEE_TOKEN_ID_EXPR),
+            0,
+            BigUint::from(FEE_AMOUNT),
+        ))
         .run();
-    // state.world.sc_call(
-    //     ScCallStep::new()
-    //         .from(CALLER_ADDRESS_EXPR)
-    //         .esdt_transfer(FEE_TOKEN_ID_EXPR, 0, FEE_AMOUNT)
-    //         .esdt_transfer(PAYMASTER_TOKEN_ID_EXPR, 0, FEE_AMOUNT)
-    //         .call(state.paymaster_contract.forward_execution(
-    //             state.relayer_address.clone(),
-    //             state.callee_sc_adder_contract.to_address(),
-    //             b"add",
-    //             MultiValueVec::from([top_encode_to_vec_u8_or_panic(&ADDITIONAL_ADD_VALUE)]),
-    //         )),
-    // );
 
     let expected_adder_sum = INITIAL_ADD_VALUE + ADDITIONAL_ADD_VALUE;
 
-    // state
-    //     .world
-    //     .query()
-    //     .to(CALLEE_SC_ADDER_ADDRESS_EXPR)
-    //     .typed(adder_proxy::AdderProxy)
-    //     .sum()
-    //     .with_result(ExpectValue(expected_adder_sum))
-    //     .run();
-    state.check_esdt_balance_from_address(RELAYER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, FEE_AMOUNT);
-    // state.check_esdt_balance_from_contract(
-    //     CALLEE_SC_ADDER_ADDRESS_EXPR,
-    //     PAYMASTER_TOKEN_ID_EXPR,
-    //     FEE_AMOUNT,
-    // );
+    state
+        .world
+        .query()
+        .to(CALLEE_SC_ADDER_ADDRESS_EXPR)
+        .typed(adder_proxy::AdderProxy)
+        .sum()
+        .with_result(ExpectValue(expected_adder_sum))
+        .run();
+    state.check_esdt_balance(RELAYER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, FEE_AMOUNT);
 }
 
 #[test]
-fn test_forward_call_sc_adder_multiple_payments() {
+fn test_forward_call_sc_adder_with_relayer_address() {
     let mut state = PaymasterTestState::new();
     state.deploy_paymaster_contract();
     state.deploy_adder_contract();
 
-    state.check_esdt_balance_from_address(CALLER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, BALANCE);
-    state.check_esdt_balance_from_address(CALLER_ADDRESS_EXPR, PAYMASTER_TOKEN_ID_EXPR, BALANCE);
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, BALANCE);
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, PAYMASTER_TOKEN_ID_EXPR, BALANCE);
 
     let mut payments: MultiEsdtPayment<StaticApi> = MultiEsdtPayment::new();
     payments.push(EsdtTokenPayment::new(
@@ -295,16 +257,6 @@ fn test_forward_call_sc_adder_multiple_payments() {
         0,
         BigUint::from(FEE_AMOUNT),
     ));
-    // payments.push(EsdtTokenPayment::new(
-    //     TokenIdentifier::from(PAYMASTER_TOKEN_ID_EXPR),
-    //     0,
-    //     BigUint::from(FEE_AMOUNT),
-    // ));
-    // payments.push(EsdtTokenPayment::new(
-    //     TokenIdentifier::from(ADDITIONAL_TOKEN_ID_EXPR),
-    //     0,
-    //     BigUint::from(FEE_AMOUNT),
-    // ));
 
     state
         .world
@@ -331,17 +283,7 @@ fn test_forward_call_sc_adder_multiple_payments() {
         .with_result(ExpectValue(expected_adder_sum))
         .run();
 
-    state.check_esdt_balance_from_address(RELAYER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, FEE_AMOUNT);
-    // state.check_esdt_balance_from_contract(
-    //     CALLEE_SC_ADDER_ADDRESS_EXPR,
-    //     PAYMASTER_TOKEN_ID_EXPR,
-    //     FEE_AMOUNT,
-    // );
-    // state.check_esdt_balance_from_contract(
-    //     CALLEE_SC_ADDER_ADDRESS_EXPR,
-    //     ADDITIONAL_TOKEN_ID_EXPR,
-    //     FEE_AMOUNT,
-    // );
+    state.check_esdt_balance(RELAYER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, FEE_AMOUNT);
 }
 
 #[test]
@@ -350,8 +292,8 @@ fn test_forward_call_wegld() {
     state.deploy_paymaster_contract();
     state.deploy_adder_contract();
 
-    state.check_esdt_balance_from_address(CALLER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, BALANCE);
-    state.check_esdt_balance_from_address(CALLER_ADDRESS_EXPR, WEGLD_TOKEN_ID_EXPR, BALANCE);
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, BALANCE);
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, WEGLD_TOKEN_ID_EXPR, BALANCE);
 
     let mut payments: MultiEsdtPayment<StaticApi> = MultiEsdtPayment::new();
     payments.push(EsdtTokenPayment::new(
@@ -383,8 +325,8 @@ fn test_forward_call_wegld() {
 
     // Fee is kept by the relayer
     let new_fee_amount: u64 = 99_980_000;
-    state.check_esdt_balance_from_address(RELAYER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, FEE_AMOUNT);
-    state.check_esdt_balance_from_address(CALLER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, new_fee_amount);
+    state.check_esdt_balance(RELAYER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, FEE_AMOUNT);
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, new_fee_amount);
 
     // Caller has the original balance
     state.check_egld_balance(CALLER_ADDRESS_EXPR, BALANCE);
@@ -396,8 +338,8 @@ fn test_forward_call_fails_wegld_0_amount() {
     state.deploy_paymaster_contract();
     state.deploy_adder_contract();
 
-    state.check_esdt_balance_from_address(CALLER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, BALANCE);
-    state.check_esdt_balance_from_address(CALLER_ADDRESS_EXPR, WEGLD_TOKEN_ID_EXPR, BALANCE);
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, BALANCE);
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, WEGLD_TOKEN_ID_EXPR, BALANCE);
 
     let failling_amount = 0u64;
 
@@ -431,9 +373,9 @@ fn test_forward_call_fails_wegld_0_amount() {
 
     // Fee is kept by the relayer
     let new_fee_amount: u64 = 99_980_000;
-    state.check_esdt_balance_from_address(RELAYER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, FEE_AMOUNT);
-    state.check_esdt_balance_from_address(CALLER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, new_fee_amount);
+    state.check_esdt_balance(RELAYER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, FEE_AMOUNT);
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, new_fee_amount);
 
     // Caller has the original balance
-    state.check_esdt_balance_from_address(CALLER_ADDRESS_EXPR, WEGLD_TOKEN_ID_EXPR, BALANCE);
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, WEGLD_TOKEN_ID_EXPR, BALANCE);
 }
