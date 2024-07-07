@@ -1,7 +1,8 @@
 use multiversx_sc::derive_imports::*;
 use multiversx_sc::imports::*;
 
-#[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, TypeAbi)]
+#[type_abi]
+#[derive(NestedEncode, NestedDecode, TopEncode, TopDecode)]
 pub struct OngoingUpgradeOperation<M: ManagedTypeApi> {
     pub template_address: ManagedAddress<M>,
     pub arguments: ManagedArgBuffer<M>,

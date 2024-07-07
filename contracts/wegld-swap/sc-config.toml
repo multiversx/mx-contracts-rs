@@ -1,0 +1,2 @@
+[[proxy]]
+path = "src/wegld_proxy.rs"
