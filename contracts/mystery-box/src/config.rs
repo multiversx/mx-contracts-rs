@@ -6,8 +6,9 @@ pub const SFT_AMOUNT: u64 = 1;
 pub const ROYALTIES: u64 = 1_000;
 pub const COLLECTION_NAME: &str = "Mystery Box";
 
+#[type_abi]
 #[derive(
-    ManagedVecItem, NestedEncode, NestedDecode, TopEncode, TopDecode, PartialEq, Eq, TypeAbi, Clone,
+    ManagedVecItem, NestedEncode, NestedDecode, TopEncode, TopDecode, PartialEq, Eq, Clone,
 )]
 pub enum RewardType {
     None,
@@ -19,8 +20,9 @@ pub enum RewardType {
     CustomReward,
 }
 
+#[type_abi]
 #[derive(
-    ManagedVecItem, NestedEncode, NestedDecode, TopEncode, TopDecode, PartialEq, Eq, TypeAbi, Clone,
+    ManagedVecItem, NestedEncode, NestedDecode, TopEncode, TopDecode, PartialEq, Eq, Clone,
 )]
 pub struct Reward<M: ManagedTypeApi> {
     pub reward_type: RewardType,
