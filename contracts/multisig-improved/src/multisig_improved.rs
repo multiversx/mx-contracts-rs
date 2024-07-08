@@ -39,7 +39,7 @@ pub trait Multisig:
     #[init]
     fn init(&self, quorum: usize, board: MultiValueEncoded<ManagedAddress>) {
         let board_vec = board.to_vec();
-        let new_num_board_members = self.add_multiple_board_members(board_vec);
+        let new_num_board_members = self.add_initial_board_members(board_vec);
 
         let num_proposers = self.num_proposers().get();
         require!(
@@ -62,7 +62,7 @@ pub trait Multisig:
     #[endpoint]
     fn deposit(&self) {}
 
-    fn add_multiple_board_members(&self, new_board_members: ManagedVec<ManagedAddress>) -> usize {
+    fn add_initial_board_members(&self, new_board_members: ManagedVec<ManagedAddress>) -> usize {
         let new_board_members_len = new_board_members.len();
         require!(
             new_board_members_len <= MAX_BOARD_MEMBERS,
