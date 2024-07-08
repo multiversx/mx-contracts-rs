@@ -63,8 +63,9 @@ pub trait Multisig:
     fn deposit(&self) {}
 
     fn add_multiple_board_members(&self, new_board_members: ManagedVec<ManagedAddress>) -> usize {
+        let new_board_members_len = new_board_members.len();
         require!(
-            self.num_board_members().get() + new_board_members.len() <= MAX_BOARD_MEMBERS,
+            new_board_members_len <= MAX_BOARD_MEMBERS,
             "board size cannot exceed limit"
         );
 
@@ -74,10 +75,8 @@ pub trait Multisig:
             self.user_id_to_role(user_id).set(UserRole::BoardMember);
         }
 
-        let num_board_members_mapper = self.num_board_members();
-        let new_num_board_members = num_board_members_mapper.get() + new_board_members.len();
-        num_board_members_mapper.set(new_num_board_members);
+        self.num_board_members().set(new_board_members_len);
 
-        new_num_board_members
+        new_board_members_len
     }
 }
