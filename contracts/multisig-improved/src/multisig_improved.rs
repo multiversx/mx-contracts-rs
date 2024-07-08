@@ -21,10 +21,10 @@ pub trait Multisig:
     state::StateModule
     + common_functions::CommonFunctionsModule
     + check_signature::CheckSignatureModule
-    + ms_endpoints::propose_endpoints::ProposeEndpointsModule
-    + ms_endpoints::perform_endpoints::PerformEndpointsModule
-    + ms_endpoints::discard_endpoints::DiscardEndpointsModule
-    + ms_endpoints::sign_endpoints::SignEndpointsModule
+    + ms_endpoints::propose::ProposeEndpointsModule
+    + ms_endpoints::perform::PerformEndpointsModule
+    + ms_endpoints::discard::DiscardEndpointsModule
+    + ms_endpoints::sign::SignEndpointsModule
     + ms_endpoints::callbacks::CallbacksModule
     + action_types::external_module::ExternalModuleModule
     + action_types::execute_action::ExecuteActionModule
