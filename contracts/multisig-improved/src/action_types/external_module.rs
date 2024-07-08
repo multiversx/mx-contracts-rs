@@ -14,8 +14,8 @@ mod external_module_proxy {
         #[view(canExecute)]
         fn can_execute(
             &self,
+            proposer: ManagedAddress,
             sc_address: ManagedAddress,
-            original_caller: ManagedAddress,
             egld_value: BigUint,
             esdt_payments: PaymentsVec<Self::Api>,
         ) -> bool;
@@ -47,8 +47,8 @@ pub trait ExternalModuleModule:
             let can_execute: bool = self
                 .external_sc_proxy(module_address)
                 .can_execute(
-                    sc_address.clone(),
                     proposer.clone(),
+                    sc_address.clone(),
                     egld_value.clone(),
                     esdt_payments.clone(),
                 )
