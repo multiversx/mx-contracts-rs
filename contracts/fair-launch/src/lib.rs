@@ -10,6 +10,7 @@ multiversx_sc::imports!();
 pub mod common;
 pub mod exchange_actions;
 pub mod initial_launch;
+pub mod pair_mock_proxy;
 pub mod token_info;
 pub mod transfer;
 

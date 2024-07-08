@@ -1,0 +1,2 @@
+[[proxy]]
+path = "../fair-launch/src/pair_mock_proxy.rs"

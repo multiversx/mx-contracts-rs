@@ -1,22 +1,8 @@
+use crate::pair_mock_proxy;
 use crate::{common::Percentage, exchange_actions::EndpointInfo};
 
 use multiversx_sc::derive_imports::*;
 use multiversx_sc::imports::*;
-
-mod pair_proxy {
-    multiversx_sc::imports!();
-
-    #[multiversx_sc::proxy]
-    pub trait PairProxy {
-        #[payable("*")]
-        #[endpoint(swapTokensFixedInput)]
-        fn swap_tokens_fixed_input(
-            &self,
-            token_out: TokenIdentifier,
-            amount_out_min: BigUint,
-        ) -> EsdtTokenPayment;
-    }
-}
 
 #[type_abi]
 #[derive(TopEncode, TopDecode)]
@@ -75,11 +61,18 @@ pub trait InitialLaunchModule:
         );
 
         let out_token_id = self.get_token_id();
-        let (_, all_transfers): (EsdtTokenPayment, _) = self
-            .pair_proxy(pair_adddress)
+        let all_transfers = self
+            .tx()
+            .to(pair_adddress)
+            .typed(pair_mock_proxy::PairMockProxy)
             .swap_tokens_fixed_input(out_token_id, amount_out_min)
-            .with_esdt_transfer(take_fee_result.transfers.get(0))
-            .execute_on_dest_context_with_back_transfers();
+            .single_esdt(
+                &take_fee_result.transfers.get(0).token_identifier,
+                take_fee_result.transfers.get(0).token_nonce,
+                &take_fee_result.transfers.get(0).amount,
+            )
+            .returns(ReturnsBackTransfers)
+            .sync_call();
         let received_tokens = all_transfers.esdt_payments.get(0);
 
         require!(
@@ -138,12 +131,18 @@ pub trait InitialLaunchModule:
             !take_fee_result.transfers.is_empty(),
             "Payment amount too small to cover fees"
         );
-
-        let (_, all_transfers): (EsdtTokenPayment, _) = self
-            .pair_proxy(pair_adddress)
+        let all_transfers = self
+            .tx()
+            .to(pair_adddress)
+            .typed(pair_mock_proxy::PairMockProxy)
             .swap_tokens_fixed_input(out_token_id, amount_out_min)
-            .with_esdt_transfer(take_fee_result.transfers.get(0))
-            .execute_on_dest_context_with_back_transfers();
+            .single_esdt(
+                &take_fee_result.transfers.get(0).token_identifier,
+                take_fee_result.transfers.get(0).token_nonce,
+                &take_fee_result.transfers.get(0).amount,
+            )
+            .returns(ReturnsBackTransfers)
+            .sync_call();
         let received_tokens = all_transfers.esdt_payments.get(0);
 
         let fees = take_fee_result.fees.get(0);
@@ -224,7 +223,4 @@ pub trait InitialLaunchModule:
         &self,
         sc_addr: &ManagedAddress,
     ) -> SingleValueMapper<ManagedVec<EndpointInfo<Self::Api>>>;
-
-    #[proxy]
-    fn pair_proxy(&self, to: ManagedAddress) -> pair_proxy::Proxy<Self::Api>;
 }
