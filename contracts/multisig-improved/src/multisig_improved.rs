@@ -1,6 +1,6 @@
 #![no_std]
 
-use action_types::execute_action::MAX_BOARD_MEMBERS;
+use action_types::execute_action::{BOARD_SIZE_TOO_BIG_ERR_MSG, MAX_BOARD_MEMBERS};
 use common_types::user_role::UserRole;
 
 pub mod action_types;
@@ -66,7 +66,7 @@ pub trait Multisig:
         let new_board_members_len = new_board_members.len();
         require!(
             new_board_members_len <= MAX_BOARD_MEMBERS,
-            "board size cannot exceed limit"
+            BOARD_SIZE_TOO_BIG_ERR_MSG
         );
 
         let mapper = self.user_ids();

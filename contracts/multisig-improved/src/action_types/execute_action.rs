@@ -12,6 +12,8 @@ const PERFORM_ACTION_FINISH_GAS: u64 = 300_000;
 pub const MAX_BOARD_MEMBERS: usize = 30;
 pub const MAX_MODULES: usize = 5;
 
+pub static BOARD_SIZE_TOO_BIG_ERR_MSG: &[u8] = b"board size cannot exceed limit";
+
 #[multiversx_sc::module]
 pub trait ExecuteActionModule:
     crate::common_functions::CommonFunctionsModule
@@ -70,7 +72,7 @@ pub trait ExecuteActionModule:
     fn add_board_member(&self, action_id: ActionId, board_member_address: ManagedAddress) {
         require!(
             self.num_board_members().get() < MAX_BOARD_MEMBERS,
-            "board size cannot exceed limit"
+            BOARD_SIZE_TOO_BIG_ERR_MSG
         );
 
         change_user_role(self, action_id, board_member_address, UserRole::BoardMember);
