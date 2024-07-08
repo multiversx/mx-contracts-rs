@@ -26,7 +26,7 @@
                 "arguments": [
                     "0",
                     "sc:adder-code",
-                    "0x0100",
+                    "0x0502",
                     "1234"
                 ],
                 "gasLimit": "200,000,000",
@@ -49,17 +49,20 @@
                     "nonce": "0",
                     "balance": "0",
                     "storage": {
-                        "str:user_count": "5",
-                        "str:user_address_to_id|address:alice": "1",
-                        "str:user_address_to_id|address:bob": "2",
-                        "str:user_address_to_id|address:charlie": "3",
-                        "str:user_address_to_id|address:paul": "4",
-                        "str:user_address_to_id|address:dan": "5",
-                        "str:user_id_to_address|u32:1": "address:alice",
-                        "str:user_id_to_address|u32:2": "address:bob",
-                        "str:user_id_to_address|u32:3": "address:charlie",
-                        "str:user_id_to_address|u32:4": "address:paul",
-                        "str:user_id_to_address|u32:5": "address:dan",
+                        "str:user_ids_count": "5",
+                        "str:user_ids_address_to_id|address:alice": "1",
+                        "str:user_ids_address_to_id|address:bob": "2",
+                        "str:user_ids_address_to_id|address:charlie": "3",
+                        "str:user_ids_address_to_id|address:paul": "4",
+                        "str:user_ids_address_to_id|address:dan": "5",
+                        "str:user_ids_id_to_address|u32:1": "address:alice",
+                        "str:user_ids_id_to_address|u32:2": "address:bob",
+                        "str:user_ids_id_to_address|u32:3": "address:charlie",
+                        "str:user_ids_id_to_address|u32:4": "address:paul",
+                        "str:user_ids_id_to_address|u32:5": "address:dan",
+                        "str:quorum_for_action|u32:1": "2",
+                        "str:quorum_for_action|u32:2": "2",
+                        "str:quorum_for_action|u32:3": "2",
                         "str:user_role|u32:1": "2",
                         "str:user_role|u32:2": "2",
                         "str:user_role|u32:3": "2",
@@ -67,20 +70,20 @@
                         "str:user_role|u32:5": "2",
                         "str:num_board_members": "4",
                         "str:num_proposers": "1",
-                        "str:quorum": "2",
+                        "str:quorum_ids": "2",
                         "str:action_data.len": "3",
                         "str:action_data.item|u32:3": {
-                            "1-discriminant": "0x07",
+                            "1-discriminant": "0x08",
                             "2-amount": "u32:0",
                             "3-code_source": "sc:adder-code",
-                            "4-code_metadata": "0x0100",
+                            "4-code_metadata": "0x0502",
                             "5-arguments": [
                                 "u32:1",
                                 "u32:2|1234"
                             ]
                         }
                     },
-                    "code": "mxsc:../output/multisig.mxsc.json"
+                    "code": "file:../output/multisig.wasm"
                 },
                 "+": ""
             }
@@ -169,7 +172,7 @@
                     "storage": {
                         "str:sum": "1234"
                     },
-                    "code": "mxsc:../test-contracts/adder.mxsc.json"
+                    "code": "file:../test-contracts/adder.wasm"
                 },
                 "+": ""
             }
@@ -184,6 +187,7 @@
                 "arguments": [
                     "sc:adder",
                     "0",
+                    "0x",
                     "str:add",
                     "1234"
                 ],
@@ -257,7 +261,7 @@
             },
             "expect": {
                 "out": [],
-                "status": "",
+                "status": "0",
                 "logs": "*",
                 "gas": "*",
                 "refund": "*"
@@ -307,7 +311,7 @@
                     "storage": {
                         "str:sum": "2468"
                     },
-                    "code": "mxsc:../test-contracts/adder.mxsc.json"
+                    "code": "file:../test-contracts/adder.wasm"
                 },
                 "+": ""
             }

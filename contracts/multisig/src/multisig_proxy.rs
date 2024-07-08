@@ -69,19 +69,12 @@ where
     To: TxTo<Env>,
     Gas: TxGas<Env>,
 {
-    pub fn upgrade<
-        Arg0: ProxyArg<usize>,
-        Arg1: ProxyArg<MultiValueEncoded<Env::Api, ManagedAddress<Env::Api>>>,
-    >(
+    pub fn upgrade(
         self,
-        quorum: Arg0,
-        board: Arg1,
     ) -> TxTypedUpgrade<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_upgrade()
-            .argument(&quorum)
-            .argument(&board)
             .original_result()
     }
 }
@@ -109,30 +102,16 @@ where
     /// - the action id 
     /// - the serialized action data 
     /// - (number of signers followed by) list of signer addresses. 
-    pub fn get_pending_action_full_info(
+    pub fn get_pending_action_full_info<
+        Arg0: ProxyArg<OptionalValue<(usize, usize)>>,
+    >(
         self,
+        opt_range: Arg0,
     ) -> TxTypedCall<Env, From, To, NotPayable, Gas, MultiValueEncoded<Env::Api, ActionFullInfo<Env::Api>>> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("getPendingActionFullInfo")
-            .original_result()
-    }
-
-    /// Returns `true` (`1`) if the user has signed the action. 
-    /// Does not check whether or not the user is still a board member and the signature valid. 
-    pub fn signed<
-        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
-        Arg1: ProxyArg<usize>,
-    >(
-        self,
-        user: Arg0,
-        action_id: Arg1,
-    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, bool> {
-        self.wrapped_tx
-            .payment(NotPayable)
-            .raw_call("signed")
-            .argument(&user)
-            .argument(&action_id)
+            .argument(&opt_range)
             .original_result()
     }
 
@@ -173,39 +152,10 @@ where
             .original_result()
     }
 
-    /// Used by board members to sign actions. 
-    pub fn sign<
-        Arg0: ProxyArg<usize>,
-    >(
-        self,
-        action_id: Arg0,
-    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
-        self.wrapped_tx
-            .payment(NotPayable)
-            .raw_call("sign")
-            .argument(&action_id)
-            .original_result()
-    }
-
-    /// Board members can withdraw their signatures if they no longer desire for the action to be executed. 
-    /// Actions that are left with no valid signatures can be then deleted to free up storage. 
-    pub fn unsign<
-        Arg0: ProxyArg<usize>,
-    >(
-        self,
-        action_id: Arg0,
-    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
-        self.wrapped_tx
-            .payment(NotPayable)
-            .raw_call("unsign")
-            .argument(&action_id)
-            .original_result()
-    }
-
     /// Clears storage pertaining to an action that is no longer supposed to be executed. 
     /// Any signatures that the action received must first be removed, via `unsign`. 
     /// Otherwise this endpoint would be prone to abuse. 
-    pub fn discard_action<
+    pub fn discard_action_endpoint<
         Arg0: ProxyArg<usize>,
     >(
         self,
@@ -215,6 +165,20 @@ where
             .payment(NotPayable)
             .raw_call("discardAction")
             .argument(&action_id)
+            .original_result()
+    }
+
+    /// Discard all the actions with the given IDs 
+    pub fn discard_batch<
+        Arg0: ProxyArg<MultiValueEncoded<Env::Api, usize>>,
+    >(
+        self,
+        action_ids: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("discardBatch")
+            .argument(&action_ids)
             .original_result()
     }
 
@@ -239,6 +203,15 @@ where
             .original_result()
     }
 
+    pub fn num_groups(
+        self,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, usize> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("getNumGroups")
+            .original_result()
+    }
+
     /// Denormalized proposer count. 
     /// It is kept in sync with the user list by the contract. 
     pub fn num_proposers(
@@ -247,6 +220,41 @@ where
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("getNumProposers")
+            .original_result()
+    }
+
+    pub fn action_groups<
+        Arg0: ProxyArg<usize>,
+    >(
+        self,
+        group_id: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, MultiValueEncoded<Env::Api, usize>> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("getActionGroup")
+            .argument(&group_id)
+            .original_result()
+    }
+
+    pub fn last_action_group_id(
+        self,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, usize> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("getLastGroupActionId")
+            .original_result()
+    }
+
+    pub fn action_group_status<
+        Arg0: ProxyArg<usize>,
+    >(
+        self,
+        group_id: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ActionStatus> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("getActionGroup")
+            .argument(&group_id)
             .original_result()
     }
 
@@ -388,23 +396,48 @@ where
     pub fn propose_transfer_execute<
         Arg0: ProxyArg<ManagedAddress<Env::Api>>,
         Arg1: ProxyArg<BigUint<Env::Api>>,
-        Arg2: ProxyArg<FunctionCall<Env::Api>>,
+        Arg2: ProxyArg<Option<u64>>,
+        Arg3: ProxyArg<FunctionCall<Env::Api>>,
     >(
         self,
         to: Arg0,
         egld_amount: Arg1,
-        function_call: Arg2,
+        opt_gas_limit: Arg2,
+        function_call: Arg3,
     ) -> TxTypedCall<Env, From, To, NotPayable, Gas, usize> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("proposeTransferExecute")
             .argument(&to)
             .argument(&egld_amount)
+            .argument(&opt_gas_limit)
             .argument(&function_call)
             .original_result()
     }
 
-    /// Propose a transaction in which the contract will perform a transfer-execute call. 
+    pub fn propose_transfer_execute_esdt<
+        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
+        Arg1: ProxyArg<ManagedVec<Env::Api, EsdtTokenPayment<Env::Api>>>,
+        Arg2: ProxyArg<Option<u64>>,
+        Arg3: ProxyArg<FunctionCall<Env::Api>>,
+    >(
+        self,
+        to: Arg0,
+        tokens: Arg1,
+        opt_gas_limit: Arg2,
+        function_call: Arg3,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, usize> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("proposeTransferExecuteEsdt")
+            .argument(&to)
+            .argument(&tokens)
+            .argument(&opt_gas_limit)
+            .argument(&function_call)
+            .original_result()
+    }
+
+    /// Propose a transaction in which the contract will perform an async call call. 
     /// Can call smart contract endpoints directly. 
     /// Can use ESDTTransfer/ESDTNFTTransfer/MultiESDTTransfer to send tokens, while also optionally calling endpoints. 
     /// Works well with builtin functions. 
@@ -412,18 +445,21 @@ where
     pub fn propose_async_call<
         Arg0: ProxyArg<ManagedAddress<Env::Api>>,
         Arg1: ProxyArg<BigUint<Env::Api>>,
-        Arg2: ProxyArg<FunctionCall<Env::Api>>,
+        Arg2: ProxyArg<Option<u64>>,
+        Arg3: ProxyArg<FunctionCall<Env::Api>>,
     >(
         self,
         to: Arg0,
         egld_amount: Arg1,
-        function_call: Arg2,
+        opt_gas_limit: Arg2,
+        function_call: Arg3,
     ) -> TxTypedCall<Env, From, To, NotPayable, Gas, usize> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("proposeAsyncCall")
             .argument(&to)
             .argument(&egld_amount)
+            .argument(&opt_gas_limit)
             .argument(&function_call)
             .original_result()
     }
@@ -475,6 +511,136 @@ where
             .original_result()
     }
 
+    pub fn propose_batch<
+        Arg0: ProxyArg<MultiValueEncoded<Env::Api, Action<Env::Api>>>,
+    >(
+        self,
+        actions: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, usize> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("proposeBatch")
+            .argument(&actions)
+            .original_result()
+    }
+
+    /// Used by board members to sign actions. 
+    pub fn sign<
+        Arg0: ProxyArg<usize>,
+    >(
+        self,
+        action_id: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("sign")
+            .argument(&action_id)
+            .original_result()
+    }
+
+    /// Sign all the actions in the given batch 
+    pub fn sign_batch<
+        Arg0: ProxyArg<usize>,
+    >(
+        self,
+        group_id: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("signBatch")
+            .argument(&group_id)
+            .original_result()
+    }
+
+    pub fn sign_and_perform<
+        Arg0: ProxyArg<usize>,
+    >(
+        self,
+        action_id: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<ManagedAddress<Env::Api>>> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("signAndPerform")
+            .argument(&action_id)
+            .original_result()
+    }
+
+    pub fn sign_batch_and_perform<
+        Arg0: ProxyArg<usize>,
+    >(
+        self,
+        group_id: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("signBatchAndPerform")
+            .argument(&group_id)
+            .original_result()
+    }
+
+    /// Board members can withdraw their signatures if they no longer desire for the action to be executed. 
+    /// Actions that are left with no valid signatures can be then deleted to free up storage. 
+    pub fn unsign<
+        Arg0: ProxyArg<usize>,
+    >(
+        self,
+        action_id: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("unsign")
+            .argument(&action_id)
+            .original_result()
+    }
+
+    /// Unsign all actions with the given IDs 
+    pub fn unsign_batch<
+        Arg0: ProxyArg<usize>,
+    >(
+        self,
+        group_id: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("unsignBatch")
+            .argument(&group_id)
+            .original_result()
+    }
+
+    /// Returns `true` (`1`) if the user has signed the action. 
+    /// Does not check whether or not the user is still a board member and the signature valid. 
+    pub fn signed<
+        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
+        Arg1: ProxyArg<usize>,
+    >(
+        self,
+        user: Arg0,
+        action_id: Arg1,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, bool> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("signed")
+            .argument(&user)
+            .argument(&action_id)
+            .original_result()
+    }
+
+    pub fn unsign_for_outdated_board_members<
+        Arg0: ProxyArg<usize>,
+        Arg1: ProxyArg<MultiValueEncoded<Env::Api, usize>>,
+    >(
+        self,
+        action_id: Arg0,
+        outdated_board_members: Arg1,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("unsignForOutdatedBoardMembers")
+            .argument(&action_id)
+            .argument(&outdated_board_members)
+            .original_result()
+    }
+
     /// Returns `true` (`1`) if `getActionValidSignerCount >= getQuorum`. 
     pub fn quorum_reached<
         Arg0: ProxyArg<usize>,
@@ -503,6 +669,20 @@ where
             .original_result()
     }
 
+    /// Perform all the actions in the given batch 
+    pub fn perform_batch<
+        Arg0: ProxyArg<usize>,
+    >(
+        self,
+        group_id: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("performBatch")
+            .argument(&group_id)
+            .original_result()
+    }
+
     pub fn dns_register<
         Arg0: ProxyArg<ManagedAddress<Env::Api>>,
         Arg1: ProxyArg<ManagedBuffer<Env::Api>>,
@@ -526,6 +706,7 @@ where
     Api: ManagedTypeApi,
 {
     pub action_id: usize,
+    pub group_id: usize,
     pub action_data: Action<Api>,
     pub signers: ManagedVec<Api, ManagedAddress<Api>>,
 }
@@ -542,7 +723,8 @@ where
     AddProposer(ManagedAddress<Api>),
     RemoveUser(ManagedAddress<Api>),
     ChangeQuorum(usize),
-    SendTransferExecute(CallActionData<Api>),
+    SendTransferExecuteEgld(CallActionData<Api>),
+    SendTransferExecuteEsdt(EsdtTransferExecuteData<Api>),
     SendAsyncCall(CallActionData<Api>),
     SCDeployFromSource {
         amount: BigUint<Api>,
@@ -567,14 +749,35 @@ where
 {
     pub to: ManagedAddress<Api>,
     pub egld_amount: BigUint<Api>,
+    pub opt_gas_limit: Option<u64>,
     pub endpoint_name: ManagedBuffer<Api>,
     pub arguments: ManagedVec<Api, ManagedBuffer<Api>>,
 }
 
 #[type_abi]
-#[derive(TopEncode, TopDecode)]
+#[derive(NestedEncode, NestedDecode, Clone)]
+pub struct EsdtTransferExecuteData<Api>
+where
+    Api: ManagedTypeApi,
+{
+    pub to: ManagedAddress<Api>,
+    pub tokens: ManagedVec<Api, EsdtTokenPayment<Api>>,
+    pub opt_gas_limit: Option<u64>,
+    pub endpoint_name: ManagedBuffer<Api>,
+    pub arguments: ManagedVec<Api, ManagedBuffer<Api>>,
+}
+
+#[type_abi]
+#[derive(TopEncode, TopDecode, Clone, Copy, PartialEq, Eq, Debug)]
 pub enum UserRole {
     None,
     Proposer,
     BoardMember,
+}
+
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, PartialEq, Eq, Clone, Copy, Debug)]
+pub enum ActionStatus {
+    Available,
+    Aborted,
 }
