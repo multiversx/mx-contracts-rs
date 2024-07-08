@@ -85,14 +85,19 @@ pub trait SignEndpointsModule:
             "only board members and proposers can perform actions"
         );
 
+        // Copy action_ids before executing them since perform_action does a swap_remove
+        // clearing the last item
+        let mut action_ids = ManagedVec::<Self::Api, _>::new();
         for action_id in self.action_groups(group_id).iter() {
             require!(
                 self.quorum_reached(action_id),
                 "Quorum not reached for action"
             );
+
+            action_ids.push(action_id);
         }
 
-        for action_id in self.action_groups(group_id).iter() {
+        for action_id in &action_ids {
             let _ = self.perform_action_by_id(action_id);
         }
     }
