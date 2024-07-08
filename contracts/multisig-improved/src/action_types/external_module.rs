@@ -28,9 +28,10 @@ pub trait ExternalModuleModule:
 {
     fn can_execute_action(
         &self,
-        sc_address: ManagedAddress,
-        egld_value: BigUint,
-        esdt_payments: PaymentsVec<Self::Api>,
+        proposer: &ManagedAddress,
+        sc_address: &ManagedAddress,
+        egld_value: &BigUint,
+        esdt_payments: &PaymentsVec<Self::Api>,
     ) -> bool {
         let module_id_mapper = self.module_id();
         let module_id = module_id_mapper.get_id(&sc_address);
@@ -38,7 +39,6 @@ pub trait ExternalModuleModule:
             return false;
         }
 
-        let original_caller = self.blockchain().get_caller();
         for module_id in self.active_modules_ids().iter() {
             let opt_module_address = module_id_mapper.get_address(module_id);
             require!(opt_module_address.is_some(), "Invalid setup");
@@ -48,7 +48,7 @@ pub trait ExternalModuleModule:
                 .external_sc_proxy(module_address)
                 .can_execute(
                     sc_address.clone(),
-                    original_caller.clone(),
+                    proposer.clone(),
                     egld_value.clone(),
                     esdt_payments.clone(),
                 )

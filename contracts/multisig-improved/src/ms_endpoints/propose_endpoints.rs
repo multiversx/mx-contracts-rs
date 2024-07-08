@@ -82,6 +82,7 @@ pub trait ProposeEndpointsModule:
             "proposed action has no effect"
         );
 
+        let proposer = self.get_proposer_no_sig_check(&opt_signature);
         let call_data = CallActionData {
             to,
             egld_amount,
@@ -94,7 +95,7 @@ pub trait ProposeEndpointsModule:
             opt_signature,
         );
 
-        if self.try_perform_egld_action_directly(action_id, &call_data) {
+        if self.try_perform_egld_action_directly(&proposer, action_id, &call_data) {
             return OptionalValue::None;
         }
 
@@ -113,6 +114,7 @@ pub trait ProposeEndpointsModule:
     ) -> OptionalValue<ActionId> {
         require!(!tokens.is_empty(), "No tokens to transfer");
 
+        let proposer = self.get_proposer_no_sig_check(&opt_signature);
         let call_data = EsdtTransferExecuteData {
             to,
             tokens,
@@ -125,7 +127,7 @@ pub trait ProposeEndpointsModule:
             opt_signature,
         );
 
-        if self.try_perform_esdt_action_directly(action_id, &call_data) {
+        if self.try_perform_esdt_action_directly(&proposer, action_id, &call_data) {
             return OptionalValue::None;
         }
 

@@ -51,13 +51,15 @@ pub trait PerformModule:
 
     fn try_perform_egld_action_directly(
         &self,
+        proposer: &ManagedAddress,
         action_id: ActionId,
         call_data: &CallActionData<Self::Api>,
     ) -> bool {
         let can_execute = self.can_execute_action(
-            call_data.to.clone(),
-            call_data.egld_amount.clone(),
-            PaymentsVec::new(),
+            proposer,
+            &call_data.to,
+            &call_data.egld_amount,
+            &PaymentsVec::new(),
         );
         if !can_execute {
             return false;
@@ -70,14 +72,12 @@ pub trait PerformModule:
 
     fn try_perform_esdt_action_directly(
         &self,
+        proposer: &ManagedAddress,
         action_id: ActionId,
         call_data: &EsdtTransferExecuteData<Self::Api>,
     ) -> bool {
-        let can_execute = self.can_execute_action(
-            call_data.to.clone(),
-            BigUint::zero(),
-            call_data.tokens.clone(),
-        );
+        let can_execute =
+            self.can_execute_action(proposer, &call_data.to, &BigUint::zero(), &call_data.tokens);
         if !can_execute {
             return false;
         }
