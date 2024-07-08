@@ -24,4 +24,8 @@ impl UserRole {
     pub fn can_sign(&self) -> bool {
         matches!(*self, UserRole::BoardMember)
     }
+
+    pub fn has_no_role(&self) -> bool {
+        matches!(*self, UserRole::None)
+    }
 }

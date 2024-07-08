@@ -2,7 +2,7 @@ use multiversx_sc::codec::top_encode_to_vec_u8_or_panic;
 use multiversx_sc_scenario::imports::*;
 
 use adder::adder_proxy;
-use multisig::multisig_proxy;
+use multisig::{action::GasLimit, multisig_proxy};
 use num_bigint::BigUint;
 
 const ADDER_ADDRESS: TestSCAddress = TestSCAddress::new("adder");
@@ -131,7 +131,7 @@ impl MultisigTestState {
             .from(PROPOSER_ADDRESS)
             .to(MULTISIG_ADDRESS)
             .typed(multisig_proxy::MultisigProxy)
-            .propose_transfer_execute(to, egld_amount, contract_call)
+            .propose_transfer_execute(to, egld_amount, Option::<GasLimit>::None, contract_call)
             .returns(ReturnsResult)
             .run()
     }
@@ -147,7 +147,7 @@ impl MultisigTestState {
             .from(PROPOSER_ADDRESS)
             .to(MULTISIG_ADDRESS)
             .typed(multisig_proxy::MultisigProxy)
-            .propose_async_call(to, egld_amount, contract_call)
+            .propose_async_call(to, egld_amount, Option::<GasLimit>::None, contract_call)
             .returns(ReturnsResult)
             .run()
     }
@@ -353,7 +353,7 @@ fn test_change_quorum() {
         .from(BOARD_MEMBER_ADDRESS)
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
-        .discard_action(action_id)
+        .discard_action_endpoint(action_id)
         .with_result(ExpectError(
             4,
             "cannot discard action with valid signatures",
@@ -376,7 +376,7 @@ fn test_change_quorum() {
         .from(BOARD_MEMBER_ADDRESS)
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
-        .discard_action(action_id)
+        .discard_action_endpoint(action_id)
         .run();
 
     // try sign discarded action
@@ -434,7 +434,12 @@ fn test_transfer_execute_to_user() {
         .from(PROPOSER_ADDRESS)
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
-        .propose_transfer_execute(new_user_address_expr, 0u64, FunctionCall::empty())
+        .propose_transfer_execute(
+            new_user_address_expr,
+            0u64,
+            Option::<GasLimit>::None,
+            FunctionCall::empty(),
+        )
         .with_result(ExpectError(4, "proposed action has no effect"))
         .run();
 
@@ -445,7 +450,12 @@ fn test_transfer_execute_to_user() {
         .from(PROPOSER_ADDRESS)
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
-        .propose_transfer_execute(new_user_address_expr, amount, FunctionCall::empty())
+        .propose_transfer_execute(
+            new_user_address_expr,
+            amount,
+            Option::<GasLimit>::None,
+            FunctionCall::empty(),
+        )
         .returns(ReturnsResult)
         .run();
     state.sign(action_id);

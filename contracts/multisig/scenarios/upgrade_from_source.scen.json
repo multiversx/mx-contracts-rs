@@ -16,9 +16,7 @@
                     "sc:multisig-child",
                     "0",
                     "sc:multisig",
-                    "0x0100",
-                    "1",
-                    "address:alice"
+                    "0x0502"
                 ],
                 "gasLimit": "20,000,000",
                 "gasPrice": "0"
@@ -103,18 +101,15 @@
                     "nonce": "0",
                     "balance": "0",
                     "storage": {
-                        "str:user_count": "2",
-                        "str:user_address_to_id|address:paul": "1",
-                        "str:user_address_to_id|address:alice": "2",
-                        "str:user_id_to_address|u32:1": "address:paul",
-                        "str:user_id_to_address|u32:2": "address:alice",
+                        "str:user_ids_count": "1",
+                        "str:user_ids_address_to_id|address:paul": "1",
+                        "str:user_ids_id_to_address|u32:1": "address:paul",
                         "str:user_role|u32:1": "2",
-                        "str:user_role|u32:2": "2",
-                        "str:num_board_members": "2",
-                        "str:quorum": "1",
+                        "str:num_board_members": "1",
+                        "str:quorum_ids": "1",
                         "str:sum": "1234"
                     },
-                    "code": "mxsc:../output/multisig.mxsc.json"
+                    "code": "file:../output/multisig.wasm"
                 },
                 "+": ""
             }
