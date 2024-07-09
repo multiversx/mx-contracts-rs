@@ -51,12 +51,15 @@ pub struct Signature<M: ManagedTypeApi> {
 }
 
 impl<M: ManagedTypeApi + CryptoApi> Signature<M> {
-    //#[cfg(not(debug_assertions))]
     pub fn check_signature_by_type(
         &self,
         user_address: &ManagedAddress<M>,
         bytes_to_sign: &ManagedBuffer<M>,
     ) {
+        if cfg!(debug_assertions) {
+            return;
+        }
+
         match self.signature_type {
             SignatureType::Ed25519 => M::crypto_api_impl().verify_ed25519_managed(
                 user_address.as_managed_buffer().get_handle(),
@@ -76,12 +79,4 @@ impl<M: ManagedTypeApi + CryptoApi> Signature<M> {
             }
         }
     }
-
-    // #[cfg(debug_assertions)]
-    // pub fn check_signature_by_type(
-    //     &self,
-    //     _user_address: &ManagedAddress<M>,
-    //     _bytes_to_sign: &ManagedBuffer<M>,
-    // ) {
-    // }
 }
