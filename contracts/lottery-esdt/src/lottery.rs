@@ -288,8 +288,10 @@ pub trait Lottery {
                 &BigUint::from(info.prize_distribution.get(i)),
             );
 
-            self.send()
-                .direct(&winner_address, &info.token_identifier, 0, &prize);
+            self.tx()
+                .to(winner_address)
+                .egld_or_single_esdt(&info.token_identifier, 0, &prize)
+                .transfer();
             info.prize_pool -= prize;
         }
 
