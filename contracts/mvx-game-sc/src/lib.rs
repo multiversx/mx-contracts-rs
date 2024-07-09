@@ -2,6 +2,7 @@
 
 use multiversx_sc::imports::*;
 
+pub mod game_proxy;
 pub mod owner;
 pub mod private;
 pub mod storage;
