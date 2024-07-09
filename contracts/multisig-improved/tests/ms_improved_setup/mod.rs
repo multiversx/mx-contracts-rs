@@ -6,6 +6,8 @@ use multiversx_sc_scenario::{
     managed_address, managed_biguint, rust_biguint, DebugApi,
 };
 
+pub mod can_execute_mock;
+
 pub struct MsImprovedSetup<MsImprovedBuilder, AdderBuilder>
 where
     MsImprovedBuilder: 'static + Copy + Fn() -> multisig_improved::ContractObj<DebugApi>,

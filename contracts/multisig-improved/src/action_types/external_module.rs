@@ -34,11 +34,6 @@ pub trait ExternalModuleModule:
         esdt_payments: &PaymentsVec<Self::Api>,
     ) -> bool {
         let module_id_mapper = self.module_id();
-        let module_id = module_id_mapper.get_id(sc_address);
-        if module_id == NULL_ID {
-            return false;
-        }
-
         for module_id in self.active_modules_ids().iter() {
             let opt_module_address = module_id_mapper.get_address(module_id);
             require!(opt_module_address.is_some(), "Invalid setup");
