@@ -6,8 +6,7 @@ use multiversx_sc::{
     codec::multi_types::OptionalValue,
     storage::mappers::SingleValue,
     types::{
-        Address, BigUint, EgldOrEsdtTokenIdentifier, ManagedAddress, MultiValueEncoded,
-        TokenIdentifier,
+        BigUint, EgldOrEsdtTokenIdentifier, ManagedAddress, MultiValueEncoded, TokenIdentifier,
     },
 };
 use multiversx_sc_scenario::{api::StaticApi, scenario_model::*, *};
@@ -37,9 +36,6 @@ fn world() -> ScenarioWorld {
 
 struct GameContractState {
     world: ScenarioWorld,
-    user1: Address,
-    user2: Address,
-    owner: Address,
 }
 
 impl GameContractState {
@@ -83,16 +79,7 @@ impl GameContractState {
             .balance(BALANCE)
             .esdt_balance(TOKEN_GAME, BALANCE);
 
-        let user1 = AddressValue::from(USER1_ADDR).to_address();
-        let user2 = AddressValue::from(USER2_ADDR).to_address();
-        let owner = AddressValue::from(OWNER_ADDR).to_address();
-
-        Self {
-            world,
-            user1,
-            user2,
-            owner,
-        }
+        Self { world }
     }
 
     fn deploy(&mut self) -> &mut Self {
@@ -329,8 +316,8 @@ fn game_sc_simple_game_flow() {
         .run();
     let players_vec = players.to_vec();
 
-    assert!(players_vec.contains(&ManagedAddress::from(state.user1.clone())));
-    assert!(players_vec.contains(&ManagedAddress::from(state.user2.clone())));
+    assert!(players_vec.contains(&ManagedAddress::from(USER1_ADDR.eval_to_array())));
+    assert!(players_vec.contains(&ManagedAddress::from(USER2_ADDR.eval_to_array())));
 
     // game should be in users'storage
     let games_per_user1: MultiValueEncoded<StaticApi, u64> = state
@@ -339,7 +326,7 @@ fn game_sc_simple_game_flow() {
         .from(USER2_ADDR)
         .to(GAME_SC_ADDR)
         .typed(game_proxy::MvxGameScProxy)
-        .games_per_user(&ManagedAddress::from(state.user1))
+        .games_per_user(USER1_ADDR.eval_to_array())
         .returns(ReturnsResult)
         .run();
     let games_per_user1_vec = games_per_user1.to_vec();
@@ -350,7 +337,7 @@ fn game_sc_simple_game_flow() {
         .from(USER2_ADDR)
         .to(GAME_SC_ADDR)
         .typed(game_proxy::MvxGameScProxy)
-        .games_per_user(state.user2)
+        .games_per_user(USER2_ADDR.eval_to_array())
         .returns(ReturnsResult)
         .run();
     let games_per_user2_vec = games_per_user2.to_vec();
@@ -483,8 +470,8 @@ fn game_sc_complex_flow() {
 
     // owner sends rewards
     let mut winners = MultiValueEncoded::<StaticApi, (ManagedAddress<StaticApi>, u64)>::new();
-    winners.push((ManagedAddress::from(state.user1.clone()), 8000u64)); // 80%
-    winners.push((ManagedAddress::from(state.user2.clone()), 2000u64)); // 20%
+    winners.push((ManagedAddress::from(USER1_ADDR.eval_to_array()), 8000u64)); // 80%
+    winners.push((ManagedAddress::from(USER2_ADDR.eval_to_array()), 2000u64)); // 20%
 
     // make owner admin first
     state
@@ -493,7 +480,7 @@ fn game_sc_complex_flow() {
         .from(OWNER_ADDR)
         .to(GAME_SC_ADDR)
         .typed(game_proxy::MvxGameScProxy)
-        .set_admin(state.owner.clone())
+        .set_admin(OWNER_ADDR)
         .run();
 
     // send reward
@@ -569,7 +556,7 @@ fn invalid_game_test() {
         .from(OWNER_ADDR)
         .to(GAME_SC_ADDR)
         .typed(game_proxy::MvxGameScProxy)
-        .set_admin(state.owner.clone())
+        .set_admin(OWNER_ADDR)
         .run();
 
     // send reward, invalid game => players should receive back wager, creator should receive the creation fee back
