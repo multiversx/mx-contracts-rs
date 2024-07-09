@@ -307,7 +307,9 @@ where
 }
 
 #[type_abi]
-#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, Clone, ManagedVecItem, Debug, PartialEq)]
+#[derive(
+    TopEncode, TopDecode, NestedEncode, NestedDecode, Clone, ManagedVecItem, Debug, PartialEq,
+)]
 pub struct GameSettings<Api>
 where
     Api: ManagedTypeApi,
@@ -321,7 +323,9 @@ where
 }
 
 #[type_abi]
-#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, Clone, ManagedVecItem, Debug, PartialEq)]
+#[derive(
+    TopEncode, TopDecode, NestedEncode, NestedDecode, Clone, ManagedVecItem, Debug, PartialEq,
+)]
 pub enum Status {
     Valid,
     Invalid,
