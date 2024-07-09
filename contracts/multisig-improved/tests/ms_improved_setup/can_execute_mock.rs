@@ -6,6 +6,12 @@ static CAN_EXECUTE_FN_NAME: &str = "canExecute";
 #[derive(Clone)]
 pub struct CanExecuteMock {}
 
+impl Default for CanExecuteMock {
+    fn default() -> Self {
+        Self {}
+    }
+}
+
 impl ContractBase for CanExecuteMock {
     type Api = DebugApi;
 }
