@@ -10,28 +10,49 @@ multiversx_sc::imports!();
 /// Gas required to finish transaction after transfer-execute.
 const PERFORM_ACTION_FINISH_GAS: u64 = 300_000;
 pub const MAX_BOARD_MEMBERS: usize = 30;
+pub const MAX_MODULES: usize = 5;
+
+pub static BOARD_SIZE_TOO_BIG_ERR_MSG: &[u8] = b"board size cannot exceed limit";
 
 #[multiversx_sc::module]
 pub trait ExecuteActionModule:
-    crate::state::StateModule
+    crate::common_functions::CommonFunctionsModule
+    + crate::state::StateModule
+    + super::external_module::ExternalModuleModule
     + crate::external::events::EventsModule
     + crate::ms_endpoints::callbacks::CallbacksModule
 {
+    fn try_execute_deploy(
+        &self,
+        action_id: ActionId,
+        action: &Action<Self::Api>,
+    ) -> OptionalValue<ManagedAddress> {
+        if let Action::SCDeployFromSource(args) = action {
+            let new_address = self.deploy_from_source(action_id, args.clone());
+
+            return OptionalValue::Some(new_address);
+        }
+
+        OptionalValue::None
+    }
+
     fn execute_action_by_type(&self, action_id: ActionId, action: Action<Self::Api>) {
         match action {
             Action::Nothing => {}
             Action::AddBoardMember(board_member_address) => {
                 self.add_board_member(action_id, board_member_address);
             }
-            Action::AddProposer(proposer_address) => {
-                self.add_proposer(action_id, proposer_address);
-            }
-            Action::RemoveUser(user_address) => {
-                self.remove_user(action_id, user_address);
-            }
-            Action::ChangeQuorum(new_quorum) => {
-                self.change_quorum(action_id, new_quorum);
-            }
+            Action::AddProposer(proposer_address) => self.add_proposer(action_id, proposer_address),
+            Action::RemoveUser(user_address) => self.remove_user(action_id, user_address),
+            Action::ChangeQuorum(new_quorum) => self.change_quorum(action_id, new_quorum),
+            Action::AddModule(sc_address) => self.add_module(action_id, sc_address),
+            Action::RemoveModule(sc_address) => self.remove_module(action_id, sc_address),
+            _ => self.execute_external_call(action_id, action),
+        };
+    }
+
+    fn execute_external_call(&self, action_id: ActionId, action: Action<Self::Api>) {
+        match action {
             Action::SendTransferExecuteEgld(call_data) => {
                 self.send_transfer_execute_egld(action_id, call_data);
             }
@@ -41,19 +62,17 @@ pub trait ExecuteActionModule:
             Action::SendAsyncCall(call_data) => {
                 self.send_async_call(action_id, call_data);
             }
-            Action::SCDeployFromSource(_) => {
-                // Can't reach this branch, I didn't use "_" so I get errors when I add a new action type
-            }
             Action::SCUpgradeFromSource { sc_address, args } => {
                 self.upgrade_from_source(action_id, sc_address, args);
             }
-        };
+            _ => {} // Deploy case handled in "try_execute_deploy" function
+        }
     }
 
     fn add_board_member(&self, action_id: ActionId, board_member_address: ManagedAddress) {
         require!(
             self.num_board_members().get() < MAX_BOARD_MEMBERS,
-            "board size cannot exceed limit"
+            BOARD_SIZE_TOO_BIG_ERR_MSG
         );
 
         change_user_role(self, action_id, board_member_address, UserRole::BoardMember);
@@ -88,6 +107,34 @@ pub trait ExecuteActionModule:
 
         self.quorum().set(new_quorum);
         self.perform_change_quorum_event(action_id, new_quorum);
+    }
+
+    fn add_module(&self, action_id: ActionId, sc_address: ManagedAddress) {
+        self.nr_deployed_modules().update(|nr_deployed_modules| {
+            *nr_deployed_modules += 1;
+
+            require!(
+                *nr_deployed_modules <= MAX_MODULES,
+                "May not add more modules"
+            );
+        });
+
+        let module_id = self.module_id().insert_new(&sc_address);
+        let _ = self.active_modules_ids().insert(module_id);
+
+        self.perform_add_module_event(action_id, &sc_address);
+    }
+
+    fn remove_module(&self, action_id: ActionId, sc_address: ManagedAddress) {
+        let module_id = self.module_id().remove_by_address(&sc_address);
+        if module_id != NULL_ID {
+            let _ = self.active_modules_ids().swap_remove(&module_id);
+
+            self.nr_deployed_modules()
+                .update(|nr_deployed_modules| *nr_deployed_modules -= 1);
+        }
+
+        self.perform_remove_module_event(action_id, &sc_address);
     }
 
     fn send_transfer_execute_egld(
@@ -169,7 +216,7 @@ pub trait ExecuteActionModule:
             .with_gas_limit(gas)
             .async_call()
             .with_callback(self.callbacks().perform_async_call_callback())
-            .call_and_exit()
+            .call_and_exit();
     }
 
     fn deploy_from_source(

@@ -9,24 +9,16 @@ static ALL_TRANSFER_EXEC_SAME_SHARD_ERR_MSG: &[u8] = b"All transfer exec must be
 
 #[multiversx_sc::module]
 pub trait ProposeModule:
-    crate::check_signature::CheckSignatureModule + crate::state::StateModule
+    crate::check_signature::CheckSignatureModule
+    + crate::common_functions::CommonFunctionsModule
+    + crate::state::StateModule
 {
     fn propose_action(
         &self,
         action: Action<Self::Api>,
         opt_signature: OptionalValue<SignatureArg<Self::Api>>,
     ) -> ActionId {
-        let caller = self.blockchain().get_caller();
-        let proposer = match opt_signature {
-            OptionalValue::Some(sig_arg) => {
-                let proposer = sig_arg.user_address.clone();
-                self.check_proposal_signature(&action, sig_arg);
-
-                proposer
-            }
-            OptionalValue::None => caller,
-        };
-
+        let proposer = self.get_proposer(&action, opt_signature);
         let (proposer_id, proposer_role) = self.get_id_and_role(&proposer);
         proposer_role.require_can_propose::<Self::Api>();
 
@@ -41,6 +33,32 @@ pub trait ProposeModule:
         }
 
         action_id
+    }
+
+    fn get_proposer(
+        &self,
+        action: &Action<Self::Api>,
+        opt_signature: OptionalValue<SignatureArg<Self::Api>>,
+    ) -> ManagedAddress {
+        match opt_signature {
+            OptionalValue::Some(sig_arg) => {
+                let proposer = sig_arg.user_address.clone();
+                self.check_proposal_signature(action, sig_arg);
+
+                proposer
+            }
+            OptionalValue::None => self.blockchain().get_caller(),
+        }
+    }
+
+    fn get_proposer_no_sig_check(
+        &self,
+        opt_signature: &OptionalValue<SignatureArg<Self::Api>>,
+    ) -> ManagedAddress {
+        match opt_signature {
+            OptionalValue::Some(sig_arg) => sig_arg.user_address.clone(),
+            OptionalValue::None => self.blockchain().get_caller(),
+        }
     }
 
     fn require_valid_action_type(&self, action: &Action<Self::Api>) {

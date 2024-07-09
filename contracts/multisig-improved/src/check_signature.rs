@@ -11,7 +11,9 @@ static ENCODING_NONCE_ERR_MSG: &[u8] = b"Error encoding user nonce to buffer";
 static ENCODING_ACTION_TYPE_ERR_MSG: &[u8] = b"Error encoding action type to buffer";
 
 #[multiversx_sc::module]
-pub trait CheckSignatureModule: crate::state::StateModule {
+pub trait CheckSignatureModule:
+    crate::common_functions::CommonFunctionsModule + crate::state::StateModule
+{
     fn check_proposal_signature(
         &self,
         action: &Action<Self::Api>,

@@ -13,8 +13,14 @@ multiversx_sc::imports!();
 #[multiversx_sc::module]
 pub trait ProposeEndpointsModule:
     crate::check_signature::CheckSignatureModule
+    + crate::common_functions::CommonFunctionsModule
     + crate::state::StateModule
+    + crate::action_types::external_module::ExternalModuleModule
     + crate::action_types::propose::ProposeModule
+    + crate::action_types::execute_action::ExecuteActionModule
+    + crate::action_types::perform::PerformModule
+    + crate::ms_endpoints::callbacks::CallbacksModule
+    + crate::external::events::EventsModule
 {
     /// Initiates board member addition process.
     /// Can also be used to promote a proposer to board member.
@@ -70,12 +76,13 @@ pub trait ProposeEndpointsModule:
         opt_gas_limit: Option<GasLimit>,
         function_call: FunctionCall,
         opt_signature: OptionalValue<SignatureArg<Self::Api>>,
-    ) -> ActionId {
+    ) -> OptionalValue<ActionId> {
         require!(
             egld_amount > 0 || !function_call.is_empty(),
             "proposed action has no effect"
         );
 
+        let proposer = self.get_proposer_no_sig_check(&opt_signature);
         let call_data = CallActionData {
             to,
             egld_amount,
@@ -83,8 +90,16 @@ pub trait ProposeEndpointsModule:
             endpoint_name: function_call.function_name,
             arguments: function_call.arg_buffer.into_vec_of_buffers(),
         };
+        let action_id = self.propose_action(
+            Action::SendTransferExecuteEgld(call_data.clone()),
+            opt_signature,
+        );
 
-        self.propose_action(Action::SendTransferExecuteEgld(call_data), opt_signature)
+        if self.try_perform_egld_action_directly(&proposer, action_id, &call_data) {
+            return OptionalValue::None;
+        }
+
+        OptionalValue::Some(action_id)
     }
 
     #[allow_multiple_var_args]
@@ -96,9 +111,10 @@ pub trait ProposeEndpointsModule:
         opt_gas_limit: Option<GasLimit>,
         function_call: FunctionCall,
         opt_signature: OptionalValue<SignatureArg<Self::Api>>,
-    ) -> ActionId {
+    ) -> OptionalValue<ActionId> {
         require!(!tokens.is_empty(), "No tokens to transfer");
 
+        let proposer = self.get_proposer_no_sig_check(&opt_signature);
         let call_data = EsdtTransferExecuteData {
             to,
             tokens,
@@ -106,8 +122,16 @@ pub trait ProposeEndpointsModule:
             endpoint_name: function_call.function_name,
             arguments: function_call.arg_buffer.into_vec_of_buffers(),
         };
+        let action_id = self.propose_action(
+            Action::SendTransferExecuteEsdt(call_data.clone()),
+            opt_signature,
+        );
 
-        self.propose_action(Action::SendTransferExecuteEsdt(call_data), opt_signature)
+        if self.try_perform_esdt_action_directly(&proposer, action_id, &call_data) {
+            return OptionalValue::None;
+        }
+
+        OptionalValue::Some(action_id)
     }
 
     /// Propose a transaction in which the contract will perform an async call call.
@@ -185,6 +209,35 @@ pub trait ProposeEndpointsModule:
             },
             opt_signature.into(),
         )
+    }
+
+    #[endpoint(proposeAddModule)]
+    fn propose_add_module(
+        &self,
+        sc_address: ManagedAddress,
+        opt_signature: OptionalValue<SignatureArg<Self::Api>>,
+    ) -> ActionId {
+        require!(
+            self.blockchain().is_smart_contract(&sc_address),
+            "Invalid SC address"
+        );
+        self.require_same_shard(&sc_address);
+
+        let existing_id = self.module_id().get_id(&sc_address);
+        require!(existing_id == NULL_ID, "Module already known");
+
+        self.propose_action(Action::AddModule(sc_address), opt_signature)
+    }
+
+    #[endpoint(proposeRemoveModule)]
+    fn propose_remove_module(
+        &self,
+        sc_address: ManagedAddress,
+        opt_signature: OptionalValue<SignatureArg<Self::Api>>,
+    ) -> ActionId {
+        let _ = self.module_id().get_id_non_zero(&sc_address);
+
+        self.propose_action(Action::RemoveModule(sc_address), opt_signature)
     }
 
     #[endpoint(proposeBatch)]

@@ -7,7 +7,9 @@ multiversx_sc::imports!();
 
 #[multiversx_sc::module]
 pub trait SignEndpointsModule:
-    crate::state::StateModule
+    crate::common_functions::CommonFunctionsModule
+    + crate::state::StateModule
+    + crate::action_types::external_module::ExternalModuleModule
     + crate::action_types::propose::ProposeModule
     + crate::action_types::perform::PerformModule
     + crate::action_types::execute_action::ExecuteActionModule
@@ -42,9 +44,6 @@ pub trait SignEndpointsModule:
         group_id: GroupId,
         signatures: MultiValueEncoded<SignatureArg<Self::Api>>,
     ) {
-        let (_, caller_role) = self.get_caller_id_and_role();
-        caller_role.require_can_sign::<Self::Api>();
-
         let group_status = self.action_group_status(group_id).get();
         require!(
             group_status == ActionStatus::Available,
@@ -86,17 +85,20 @@ pub trait SignEndpointsModule:
             "only board members and proposers can perform actions"
         );
 
-        let mut quorum_reached = true;
+        // Copy action_ids before executing them since perform_action does a swap_remove
+        // clearing the last item
+        let mut action_ids = ManagedVec::<Self::Api, _>::new();
         for action_id in self.action_groups(group_id).iter() {
-            if !self.quorum_reached(action_id) {
-                quorum_reached = false;
-            }
+            require!(
+                self.quorum_reached(action_id),
+                "Quorum not reached for action"
+            );
+
+            action_ids.push(action_id);
         }
 
-        if quorum_reached {
-            for action_id in self.action_groups(group_id).iter() {
-                let _ = self.perform_action(action_id);
-            }
+        for action_id in &action_ids {
+            let _ = self.perform_action_by_id(action_id);
         }
     }
 

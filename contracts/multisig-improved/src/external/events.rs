@@ -29,6 +29,20 @@ pub trait EventsModule {
         #[indexed] new_quorum: usize,
     );
 
+    #[event("performAddModuleEvent")]
+    fn perform_add_module_event(
+        &self,
+        #[indexed] action_id: ActionId,
+        #[indexed] sc_address: &ManagedAddress,
+    );
+
+    #[event("performRemoveModuleEvent")]
+    fn perform_remove_module_event(
+        &self,
+        #[indexed] action_id: ActionId,
+        #[indexed] sc_address: &ManagedAddress,
+    );
+
     #[event("performAsyncCall")]
     fn perform_async_call_event(
         &self,
