@@ -102,7 +102,7 @@ pub trait ContractInteractionsModule:
             .raw_upgrade()
             .from_source(template_address.clone())
             .code_metadata(self.blockchain().get_code_metadata(&contract_address))
-            .arguments_raw(args.to_arg_buffer().into())
+            .arguments_raw(args.to_arg_buffer())
             .upgrade_async_call_and_exit();
 
         self.emit_upgrade_contract_event(
