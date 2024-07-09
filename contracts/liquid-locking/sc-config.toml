@@ -1,0 +1,2 @@
+[[proxy]]
+path = "src/liquid_locking_proxy.rs"
