@@ -12,13 +12,15 @@ pub const EPOCHS_IN_WEEK: Epoch = 7;
 pub const MAX_PERCENTAGE: u64 = 100_000; // 100%
 pub const DIVISION_SAFETY_CONSTANT: u64 = 1_000_000_000_000;
 
-#[derive(ManagedVecItem, NestedEncode, NestedDecode, TypeAbi)]
+#[type_abi]
+#[derive(ManagedVecItem, NestedEncode, NestedDecode)]
 pub struct Bracket {
     pub index_percent: u64,
     pub bracket_reward_percent: u64,
 }
 
-#[derive(ManagedVecItem, NestedEncode, NestedDecode, TypeAbi)]
+#[type_abi]
+#[derive(ManagedVecItem, NestedEncode, NestedDecode)]
 pub struct ComputedBracket<M: ManagedTypeApi> {
     pub end_index: u64,
     pub nft_reward_percent: BigUint<M>,
