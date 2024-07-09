@@ -1,6 +1,8 @@
 #![no_std]
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
+
+pub mod wegld_proxy;
 
 #[multiversx_sc::contract]
 pub trait EgldEsdtSwap: multiversx_sc_modules::pause::PauseModule {
