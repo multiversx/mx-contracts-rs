@@ -5,7 +5,7 @@ use initial_launch::InitialLaunchBlocks;
 
 use crate::{common::MAX_FEE_PERCENTAGE, initial_launch::InitialLaunchInfo};
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
 
 pub mod common;
 pub mod exchange_actions;
