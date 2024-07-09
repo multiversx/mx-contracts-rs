@@ -3,14 +3,8 @@ use multiversx_sc_scenario::DebugApi;
 
 static CAN_EXECUTE_FN_NAME: &str = "canExecute";
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct CanExecuteMock {}
-
-impl Default for CanExecuteMock {
-    fn default() -> Self {
-        Self {}
-    }
-}
 
 impl ContractBase for CanExecuteMock {
     type Api = DebugApi;
