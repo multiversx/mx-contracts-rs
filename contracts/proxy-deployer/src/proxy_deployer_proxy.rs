@@ -382,7 +382,7 @@ where
 }
 
 #[type_abi]
-#[derive(TopEncode, TopDecode)]
+#[derive(NestedEncode, NestedDecode, TopEncode, TopDecode)]
 pub struct OngoingUpgradeOperation<Api>
 where
     Api: ManagedTypeApi,
