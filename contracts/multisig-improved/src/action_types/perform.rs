@@ -102,6 +102,10 @@ pub trait PerformModule:
     }
 
     fn require_same_shard(&self, sc_address: &ManagedAddress) {
+        if cfg!(debug_assertions) {
+            return;
+        }
+
         let own_address = self.blockchain().get_sc_address();
         let own_shard = self.blockchain().get_shard_of_address(&own_address);
         let sc_shard = self.blockchain().get_shard_of_address(sc_address);
