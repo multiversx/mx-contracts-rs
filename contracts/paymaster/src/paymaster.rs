@@ -1,8 +1,9 @@
 #![no_std]
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
 
 pub mod forward_call;
+pub mod paymaster_proxy;
 const FEE_PAYMENT: usize = 0;
 
 #[multiversx_sc::contract]

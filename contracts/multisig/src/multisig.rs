@@ -5,10 +5,12 @@ pub mod multisig_events;
 pub mod multisig_perform;
 pub mod multisig_propose;
 pub mod multisig_proxy;
+pub mod multisig_sign;
 pub mod multisig_state;
 pub mod user_role;
 
 use action::ActionFullInfo;
+use multisig_state::{ActionId, ActionStatus};
 use user_role::UserRole;
 
 use multiversx_sc::imports::*;
@@ -20,6 +22,7 @@ use multiversx_sc::imports::*;
 pub trait Multisig:
     multisig_state::MultisigStateModule
     + multisig_propose::MultisigProposeModule
+    + multisig_sign::MultisigSignModule
     + multisig_perform::MultisigPerformModule
     + multisig_events::MultisigEventsModule
     + multiversx_sc_modules::dns::DnsModule
@@ -43,9 +46,7 @@ pub trait Multisig:
     }
 
     #[upgrade]
-    fn upgrade(&self, quorum: usize, board: MultiValueEncoded<ManagedAddress>) {
-        self.init(quorum, board)
-    }
+    fn upgrade(&self) {}
 
     /// Allows the contract to receive funds even if it is marked as unpayable in the protocol.
     #[payable("*")]
@@ -58,34 +59,42 @@ pub trait Multisig:
     /// - the serialized action data
     /// - (number of signers followed by) list of signer addresses.
     #[label("multisig-external-view")]
+    #[allow_multiple_var_args]
     #[view(getPendingActionFullInfo)]
-    fn get_pending_action_full_info(&self) -> MultiValueEncoded<ActionFullInfo<Self::Api>> {
+    fn get_pending_action_full_info(
+        &self,
+        opt_range: OptionalValue<(usize, usize)>,
+    ) -> MultiValueEncoded<ActionFullInfo<Self::Api>> {
         let mut result = MultiValueEncoded::new();
         let action_last_index = self.get_action_last_index();
         let action_mapper = self.action_mapper();
-        for action_id in 1..=action_last_index {
+        let mut index_of_first_action = 1;
+        let mut index_of_last_action = action_last_index;
+        if let OptionalValue::Some((count, first_action_id)) = opt_range {
+            require!(
+                first_action_id <= action_last_index,
+                "first_action_id needs to be within the range of the available action ids"
+            );
+            index_of_first_action = first_action_id;
+
+            require!(
+                index_of_first_action + count <= action_last_index,
+                "cannot exceed the total number of actions"
+            );
+            index_of_last_action = index_of_first_action + count;
+        }
+        for action_id in index_of_first_action..=index_of_last_action {
             let action_data = action_mapper.get(action_id);
             if action_data.is_pending() {
                 result.push(ActionFullInfo {
                     action_id,
                     action_data,
                     signers: self.get_action_signers(action_id),
+                    group_id: self.group_for_action(action_id).get(),
                 });
             }
         }
         result
-    }
-
-    /// Returns `true` (`1`) if the user has signed the action.
-    /// Does not check whether or not the user is still a board member and the signature valid.
-    #[view]
-    fn signed(&self, user: ManagedAddress, action_id: usize) -> bool {
-        let user_id = self.user_mapper().get_user_id(&user);
-        if user_id == 0 {
-            false
-        } else {
-            self.action_signer_ids(action_id).contains(&user_id)
-        }
     }
 
     /// Indicates user rights.
@@ -97,10 +106,10 @@ pub trait Multisig:
     fn user_role(&self, user: ManagedAddress) -> UserRole {
         let user_id = self.user_mapper().get_user_id(&user);
         if user_id == 0 {
-            UserRole::None
-        } else {
-            self.user_id_to_role(user_id).get()
+            return UserRole::None;
         }
+
+        self.user_id_to_role(user_id).get()
     }
 
     /// Lists all users that can sign actions.
@@ -127,55 +136,51 @@ pub trait Multisig:
                 }
             }
         }
+
         result
-    }
-
-    /// Used by board members to sign actions.
-    #[endpoint]
-    fn sign(&self, action_id: usize) {
-        require!(
-            !self.action_mapper().item_is_empty_unchecked(action_id),
-            "action does not exist"
-        );
-
-        let (caller_id, caller_role) = self.get_caller_id_and_role();
-        require!(caller_role.can_sign(), "only board members can sign");
-
-        if !self.action_signer_ids(action_id).contains(&caller_id) {
-            self.action_signer_ids(action_id).insert(caller_id);
-        }
-    }
-
-    /// Board members can withdraw their signatures if they no longer desire for the action to be executed.
-    /// Actions that are left with no valid signatures can be then deleted to free up storage.
-    #[endpoint]
-    fn unsign(&self, action_id: usize) {
-        require!(
-            !self.action_mapper().item_is_empty_unchecked(action_id),
-            "action does not exist"
-        );
-
-        let (caller_id, caller_role) = self.get_caller_id_and_role();
-        require!(caller_role.can_sign(), "only board members can un-sign");
-
-        self.action_signer_ids(action_id).swap_remove(&caller_id);
     }
 
     /// Clears storage pertaining to an action that is no longer supposed to be executed.
     /// Any signatures that the action received must first be removed, via `unsign`.
     /// Otherwise this endpoint would be prone to abuse.
     #[endpoint(discardAction)]
-    fn discard_action(&self, action_id: usize) {
+    fn discard_action_endpoint(&self, action_id: ActionId) {
         let (_, caller_role) = self.get_caller_id_and_role();
         require!(
             caller_role.can_discard_action(),
             "only board members and proposers can discard actions"
         );
+
+        self.discard_action(action_id);
+    }
+
+    /// Discard all the actions with the given IDs
+    #[endpoint(discardBatch)]
+    fn discard_batch(&self, action_ids: MultiValueEncoded<ActionId>) {
+        let (_, caller_role) = self.get_caller_id_and_role();
+        require!(
+            caller_role.can_discard_action(),
+            "only board members and proposers can discard actions"
+        );
+
+        for action_id in action_ids {
+            self.discard_action(action_id);
+        }
+    }
+
+    fn discard_action(&self, action_id: ActionId) {
         require!(
             self.get_action_valid_signer_count(action_id) == 0,
             "cannot discard action with valid signatures"
         );
-
+        self.abort_batch_of_action(action_id);
         self.clear_action(action_id);
+    }
+    fn abort_batch_of_action(&self, action_id: ActionId) {
+        let batch_id = self.group_for_action(action_id).get();
+        if batch_id != 0 {
+            self.action_group_status(batch_id)
+                .set(ActionStatus::Aborted);
+        }
     }
 }

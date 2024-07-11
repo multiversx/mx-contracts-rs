@@ -1,6 +1,6 @@
 use crate::Nonce;
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
 
 #[multiversx_sc::module]
 pub trait PriceModule {

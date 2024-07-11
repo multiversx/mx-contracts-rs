@@ -1,0 +1,2 @@
+[[proxy]]
+path = "src/proxy_deployer_proxy.rs"

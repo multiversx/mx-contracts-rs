@@ -1,32 +1,18 @@
 use multiversx_sc::derive_imports::*;
 use multiversx_sc::imports::*;
 
+#[type_abi]
 #[derive(
-    TopEncode,
-    TopDecode,
-    TypeAbi,
-    NestedEncode,
-    NestedDecode,
-    Clone,
-    ManagedVecItem,
-    Debug,
-    PartialEq,
+    TopEncode, TopDecode, NestedEncode, NestedDecode, Clone, ManagedVecItem, Debug, PartialEq,
 )]
 pub enum Status {
     Valid,
     Invalid,
 }
 
+#[type_abi]
 #[derive(
-    TopEncode,
-    TopDecode,
-    TypeAbi,
-    NestedEncode,
-    NestedDecode,
-    Clone,
-    ManagedVecItem,
-    Debug,
-    PartialEq,
+    TopEncode, TopDecode, NestedEncode, NestedDecode, Clone, ManagedVecItem, Debug, PartialEq,
 )]
 pub struct GameSettings<M: ManagedTypeApi> {
     pub time_limit: u64,            //start_time + waiting time
