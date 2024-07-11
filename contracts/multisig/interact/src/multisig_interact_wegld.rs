@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use multisig::action::GasLimit;
 use multiversx_sc_snippets::imports::*;
 
 use super::*;
@@ -54,7 +55,12 @@ impl MultisigInteract {
             .to(self.state.current_multisig_address())
             .gas(NumExpr("10,000,000"))
             .typed(multisig_proxy::MultisigProxy)
-            .propose_async_call(&self.config.wegld_address, WRAP_AMOUNT, function_call)
+            .propose_async_call(
+                &self.config.wegld_address,
+                WRAP_AMOUNT,
+                Option::<GasLimit>::None,
+                function_call,
+            )
             .returns(ReturnsResult)
             .prepare_async()
             .run()
@@ -102,7 +108,12 @@ impl MultisigInteract {
             .to(self.state.current_multisig_address())
             .gas(NumExpr("10,000,000"))
             .typed(multisig_proxy::MultisigProxy)
-            .propose_async_call(normalized_to, 0u64, normalized_data)
+            .propose_async_call(
+                normalized_to,
+                0u64,
+                Option::<GasLimit>::None,
+                normalized_data,
+            )
             .returns(ReturnsResult)
             .prepare_async()
             .run()

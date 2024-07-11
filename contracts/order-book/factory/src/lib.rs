@@ -3,7 +3,8 @@
 use multiversx_sc::derive_imports::*;
 use multiversx_sc::imports::*;
 
-#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, Clone)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, Clone)]
 pub struct TokenIdPair<M: ManagedTypeApi> {
     first_token_id: TokenIdentifier<M>,
     second_token_id: TokenIdentifier<M>,

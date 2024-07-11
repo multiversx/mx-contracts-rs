@@ -7,7 +7,8 @@ use rewards_distribution::{RewardsDistribution, DIVISION_SAFETY_CONSTANT};
 
 mod utils;
 
-multiversx_sc::imports!();
+#[allow(unused_imports)]
+use multiversx_sc::imports::*;
 
 #[test]
 fn test_compute_brackets() {

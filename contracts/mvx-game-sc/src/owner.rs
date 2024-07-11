@@ -27,8 +27,10 @@ pub trait OwnerModule: crate::private::PrivateModule + crate::storage::StorageMo
                 self.send_back_wager(game_id, &game_settings.wager, &token_id);
 
                 let game_creation_fee = self.game_start_fee().get();
-                self.send()
-                    .direct(&game_settings.creator, &token_id, 0u64, &game_creation_fee);
+                self.tx()
+                    .to(game_settings.creator)
+                    .egld_or_single_esdt(&token_id, 0, &game_creation_fee)
+                    .transfer();
 
                 self.game_settings(game_id).clear();
             }
@@ -41,8 +43,10 @@ pub trait OwnerModule: crate::private::PrivateModule + crate::storage::StorageMo
                         for (winner, percentage) in val.into_iter() {
                             let reward_per_winner =
                                 &BigUint::from(percentage) * &total_wager / &BigUint::from(DENOM);
-                            self.send()
-                                .direct(&winner, &token_id, 0u64, &reward_per_winner);
+                            self.tx()
+                                .to(winner)
+                                .egld_or_single_esdt(&token_id, 0, &reward_per_winner)
+                                .transfer();
                         }
                     }
                     //tie/draw

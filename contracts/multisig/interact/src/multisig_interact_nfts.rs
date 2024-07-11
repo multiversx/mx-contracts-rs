@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use multisig::action::GasLimit;
 use multiversx_sc_snippets::imports::*;
 
 use super::*;
@@ -43,6 +44,7 @@ impl MultisigInteract {
             .propose_async_call(
                 ESDTSystemSCAddress,
                 ISSUE_COST,
+                Option::<GasLimit>::None,
                 FunctionCall::new("registerAndSetAllRoles")
                     .argument(&COLLECTION_NAME)
                     .argument(&COLLECTION_TICKER)
@@ -97,6 +99,7 @@ impl MultisigInteract {
             .propose_async_call(
                 ESDTSystemSCAddress,
                 ISSUE_COST,
+                Option::<GasLimit>::None,
                 FunctionCall::new("issueNonFungible")
                     .argument(&COLLECTION_NAME)
                     .argument(&COLLECTION_TICKER),
@@ -150,6 +153,7 @@ impl MultisigInteract {
             .propose_async_call(
                 ESDTSystemSCAddress,
                 0u64,
+                Option::<GasLimit>::None,
                 FunctionCall::new("setSpecialRole")
                     .argument(&self.collection_token_identifier)
                     .argument(multisig_address)
@@ -191,6 +195,7 @@ impl MultisigInteract {
                     .propose_async_call(
                         multisig_address,
                         0u64,
+                        Option::<GasLimit>::None,
                         FunctionCall::new("ESDTNFTCreate")
                             .argument(&self.collection_token_identifier)
                             .argument(&1u32)
