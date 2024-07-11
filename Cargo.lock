@@ -1302,7 +1302,7 @@ name = "multisig-improved-meta"
 version = "0.0.0"
 dependencies = [
  "multisig-improved",
- "multiversx-sc-meta",
+ "multiversx-sc-meta-lib",
 ]
 
 [[package]]
