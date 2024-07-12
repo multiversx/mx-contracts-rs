@@ -21,20 +21,20 @@ async fn main() {
     match &cli.command {
         Some(basic_interact_cli::InteractCliCommand::Add(args)) => {
             basic_interact.add(args.value).await;
-        },
+        }
         Some(basic_interact_cli::InteractCliCommand::Deploy) => {
             basic_interact.deploy().await;
-        },
+        }
         Some(basic_interact_cli::InteractCliCommand::Feed) => {
             basic_interact.feed_contract_egld().await;
-        },
+        }
         Some(basic_interact_cli::InteractCliCommand::MultiDeploy(args)) => {
             basic_interact.multi_deploy(&args.count).await;
-        },
+        }
         Some(basic_interact_cli::InteractCliCommand::Sum) => {
             basic_interact.print_sum().await;
-        },
-        None => {},
+        }
+        None => {}
     }
 }
 

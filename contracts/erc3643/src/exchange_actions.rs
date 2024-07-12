@@ -2,7 +2,7 @@ use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
 use crate::hooks::hook_type::ErcHookType;
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
 
 pub type EndpointName<M> = ManagedBuffer<M>;
 
