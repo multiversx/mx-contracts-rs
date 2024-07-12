@@ -2,8 +2,7 @@ use multiversx_sc::{codec::top_encode_to_vec_u8_or_panic, types::BigUint};
 use multiversx_sc_scenario::imports::*;
 
 use adder::adder_proxy;
-use multisig::{action::{Action, CallActionData, GasLimit}, multisig_proxy};
-use num_bigint::BigUint;
+use multisig::{action::GasLimit, multisig_proxy};
 
 const ADDER_ADDRESS: TestSCAddress = TestSCAddress::new("adder");
 const ADDER_OWNER_ADDRESS: TestAddress = TestAddress::new("adder-owner");
@@ -497,8 +496,8 @@ fn test_transfer_execute_sc_all() {
 fn test_transfer_execute_batch() {
     let mut state = MultisigTestState::new();
     state.deploy_multisig_contract().deploy_adder_contract();
-    
-    let call_data = CallActionData {
+
+    let call_data = multisig_proxy::CallActionData {
         to: ManagedAddress::from_address(&ADDER_ADDRESS.to_address()),
         egld_amount: BigUint::default(),
         endpoint_name: ManagedBuffer::new_from_bytes(BoxedBytes::from(&b"add"[..]).as_slice()),
@@ -507,7 +506,7 @@ fn test_transfer_execute_batch() {
     };
 
     let mut actions = MultiValueEncoded::new();
-    let action_id = Action::SendTransferExecuteEgld(call_data);
+    let action_id = multisig_proxy::Action::SendTransferExecuteEgld(call_data);
     actions.push(action_id.clone());
     actions.push(action_id.clone());
 
