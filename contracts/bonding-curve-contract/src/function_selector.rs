@@ -5,9 +5,8 @@ use crate::bonding_curve::{
 use multiversx_sc::derive_imports::*;
 use multiversx_sc::imports::*;
 
-#[derive(
-    TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Eq, Clone, Default,
-)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, PartialEq, Eq, Clone, Default)]
 pub enum FunctionSelector<M: ManagedTypeApi> {
     Linear(LinearFunction<M>),
     CustomExample(BigUint<M>),

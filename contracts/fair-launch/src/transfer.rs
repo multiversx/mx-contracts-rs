@@ -1,6 +1,6 @@
 use crate::common::{PaymentsVec, Percentage, TakeFeesResult, MAX_FEE_PERCENTAGE};
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
 
 #[multiversx_sc::module]
 pub trait TransferModule:
