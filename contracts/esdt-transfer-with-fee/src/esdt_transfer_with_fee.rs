@@ -3,7 +3,8 @@
 mod fee;
 use fee::*;
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
+
 #[multiversx_sc::contract]
 pub trait EsdtTransferWithFee {
     #[init]
@@ -40,8 +41,7 @@ pub trait EsdtTransferWithFee {
         }
         self.paid_fees().clear();
 
-        let caller = self.blockchain().get_caller();
-        self.send().direct_multi(&caller, &fees);
+        self.tx().to(ToCaller).payment(&fees).transfer();
     }
 
     #[payable("*")]
@@ -73,16 +73,16 @@ pub trait EsdtTransferWithFee {
                     );
                     let _ = self.get_payment_after_fees(fee_type, &next_payment);
                     new_payments.push(payment);
-                },
+                }
                 Fee::Percentage(_) => {
                     new_payments.push(self.get_payment_after_fees(fee_type, &payment));
-                },
+                }
                 Fee::Unset => {
                     new_payments.push(payment);
-                },
+                }
             }
         }
-        self.send().direct_multi(&address, &new_payments);
+        self.tx().to(&address).payment(&new_payments).transfer();
     }
 
     fn get_payment_after_fees(
@@ -116,11 +116,11 @@ pub trait EsdtTransferWithFee {
                 let calculated_fee_amount = &provided.amount * *percentage / PERCENTAGE_DIVISOR;
                 provided.amount = calculated_fee_amount;
                 provided
-            },
+            }
             Fee::Unset => {
                 provided.amount = BigUint::zero();
                 provided
-            },
+            }
         }
     }
 

@@ -1,9 +1,8 @@
-use multiversx_sc::codec::top_encode_to_vec_u8_or_panic;
+use multiversx_sc::{codec::top_encode_to_vec_u8_or_panic, types::BigUint};
 use multiversx_sc_scenario::imports::*;
 
 use adder::adder_proxy;
-use multisig::multisig_proxy;
-use num_bigint::BigUint;
+use multisig::{action::GasLimit, multisig_proxy};
 
 const ADDER_ADDRESS: TestSCAddress = TestSCAddress::new("adder");
 const ADDER_OWNER_ADDRESS: TestAddress = TestAddress::new("adder-owner");
@@ -131,7 +130,7 @@ impl MultisigTestState {
             .from(PROPOSER_ADDRESS)
             .to(MULTISIG_ADDRESS)
             .typed(multisig_proxy::MultisigProxy)
-            .propose_transfer_execute(to, egld_amount, contract_call)
+            .propose_transfer_execute(to, egld_amount, Option::<GasLimit>::None, contract_call)
             .returns(ReturnsResult)
             .run()
     }
@@ -147,7 +146,7 @@ impl MultisigTestState {
             .from(PROPOSER_ADDRESS)
             .to(MULTISIG_ADDRESS)
             .typed(multisig_proxy::MultisigProxy)
-            .propose_async_call(to, egld_amount, contract_call)
+            .propose_async_call(to, egld_amount, Option::<GasLimit>::None, contract_call)
             .returns(ReturnsResult)
             .run()
     }
@@ -353,7 +352,7 @@ fn test_change_quorum() {
         .from(BOARD_MEMBER_ADDRESS)
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
-        .discard_action(action_id)
+        .discard_action_endpoint(action_id)
         .with_result(ExpectError(
             4,
             "cannot discard action with valid signatures",
@@ -376,7 +375,7 @@ fn test_change_quorum() {
         .from(BOARD_MEMBER_ADDRESS)
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
-        .discard_action(action_id)
+        .discard_action_endpoint(action_id)
         .run();
 
     // try sign discarded action
@@ -434,7 +433,12 @@ fn test_transfer_execute_to_user() {
         .from(PROPOSER_ADDRESS)
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
-        .propose_transfer_execute(new_user_address_expr, 0u64, FunctionCall::empty())
+        .propose_transfer_execute(
+            new_user_address_expr,
+            0u64,
+            Option::<GasLimit>::None,
+            FunctionCall::empty(),
+        )
         .with_result(ExpectError(4, "proposed action has no effect"))
         .run();
 
@@ -445,7 +449,12 @@ fn test_transfer_execute_to_user() {
         .from(PROPOSER_ADDRESS)
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
-        .propose_transfer_execute(new_user_address_expr, amount, FunctionCall::empty())
+        .propose_transfer_execute(
+            new_user_address_expr,
+            amount,
+            Option::<GasLimit>::None,
+            FunctionCall::empty(),
+        )
         .returns(ReturnsResult)
         .run();
     state.sign(action_id);
@@ -480,6 +489,53 @@ fn test_transfer_execute_sc_all() {
         .typed(adder_proxy::AdderProxy)
         .sum()
         .with_result(ExpectValue(BigUint::from(10u64)))
+        .run();
+}
+
+#[test]
+fn test_transfer_execute_batch() {
+    let mut state = MultisigTestState::new();
+    state.deploy_multisig_contract().deploy_adder_contract();
+
+    let call_data = multisig_proxy::CallActionData {
+        to: ManagedAddress::from_address(&ADDER_ADDRESS.to_address()),
+        egld_amount: BigUint::default(),
+        endpoint_name: ManagedBuffer::new_from_bytes(BoxedBytes::from(&b"add"[..]).as_slice()),
+        opt_gas_limit: Option::<u64>::None,
+        arguments: ManagedVec::from_single_item(ManagedBuffer::new_from_bytes(BoxedBytes::from(&[5u8][..]).as_slice())),
+    };
+
+    let mut actions = MultiValueEncoded::new();
+    let action_id = multisig_proxy::Action::SendTransferExecuteEgld(call_data);
+    actions.push(action_id.clone());
+    actions.push(action_id.clone());
+
+
+    let group_id: usize = state.world
+        .tx()
+        .from(PROPOSER_ADDRESS)
+        .to(MULTISIG_ADDRESS)
+        .typed(multisig_proxy::MultisigProxy)
+        .propose_batch(actions)
+        .returns(ReturnsResult)
+        .run();
+
+    state.world
+        .tx()
+        .from(BOARD_MEMBER_ADDRESS)
+        .to(MULTISIG_ADDRESS)
+        .typed(multisig_proxy::MultisigProxy)
+        .sign_batch_and_perform(group_id)
+        .returns(ReturnsResult)
+        .run();  
+        
+
+    state.world
+        .query()
+        .to(ADDER_ADDRESS)
+        .typed(adder_proxy::AdderProxy)
+        .sum()
+        .with_result(ExpectValue(BigUint::from(15u64)))
         .run();
 }
 

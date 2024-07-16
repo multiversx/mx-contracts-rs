@@ -1,12 +1,13 @@
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::derive_imports::*;
+use multiversx_sc::imports::*;
 
 pub type PaymentsVec<M> = ManagedVec<M, EsdtTokenPayment<M>>;
 pub type Percentage = u32;
 
 pub const MAX_FEE_PERCENTAGE: u32 = 10_000; // 100%
 
-#[derive(TypeAbi, TopEncode, TopDecode)]
+#[type_abi]
+#[derive(TopEncode, TopDecode)]
 pub struct TakeFeesResult<M: ManagedTypeApi> {
     pub original_caller: ManagedAddress<M>,
     pub original_payments: PaymentsVec<M>,
@@ -78,7 +79,11 @@ pub trait CommonModule {
         }
     }
 
-    fn calculate_fee_rounded_up(&self, payment_amount: &BigUint, fees_percentage: Percentage) -> BigUint {
+    fn calculate_fee_rounded_up(
+        &self,
+        payment_amount: &BigUint,
+        fees_percentage: Percentage,
+    ) -> BigUint {
         (payment_amount * fees_percentage + MAX_FEE_PERCENTAGE - 1u32) / MAX_FEE_PERCENTAGE
     }
 

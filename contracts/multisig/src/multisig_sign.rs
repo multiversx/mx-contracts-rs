@@ -1,6 +1,6 @@
 use crate::multisig_state::{ActionId, ActionStatus, GroupId};
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
 
 #[multiversx_sc::module]
 pub trait MultisigSignModule:
@@ -78,10 +78,19 @@ pub trait MultisigSignModule:
             }
         }
 
-        if quorums_reached {
-            for action_id in self.action_groups(group_id).iter() {
-                let _ = self.perform_action(action_id);
-            }
+        if !quorums_reached {
+            return;
+        }
+
+        // Copy action_ids before executing them since perform_action does a swap_remove
+        //   clearing the last item
+        let mut action_ids = ManagedVec::<Self::Api, _>::new();
+        for action_id in self.action_groups(group_id).iter() {
+            action_ids.push(action_id);
+        }
+
+        for action_id in &action_ids {
+            let _ = self.perform_action(action_id);
         }
     }
 

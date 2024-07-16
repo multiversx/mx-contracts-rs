@@ -79,7 +79,7 @@ pub trait Crowdfunding {
                     .to(&caller)
                     .egld_or_single_esdt(&token_identifier, 0, &sc_balance)
                     .transfer();
-            },
+            }
             Status::Failed => {
                 let caller = self.blockchain().get_caller();
                 let deposit = self.deposit(&caller).get();
@@ -93,7 +93,7 @@ pub trait Crowdfunding {
                         .egld_or_single_esdt(&token_identifier, 0, &deposit)
                         .transfer();
                 }
-            },
+            }
         }
     }
 

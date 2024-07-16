@@ -1,7 +1,7 @@
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::derive_imports::*;
 
-#[derive(Default, NestedEncode, NestedDecode, TopEncode, TopDecode, TypeAbi)]
+#[type_abi]
+#[derive(Default, NestedEncode, NestedDecode, TopEncode, TopDecode)]
 pub struct AddressInfo {
     pub current_streak: u64,
     pub last_epoch_claimed: u64,

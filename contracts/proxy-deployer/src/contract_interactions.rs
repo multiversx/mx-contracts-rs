@@ -1,4 +1,4 @@
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
 
 use crate::events::{self};
 use multiversx_sc::api::CHANGE_OWNER_BUILTIN_FUNC_NAME;
@@ -35,13 +35,16 @@ pub trait ContractInteractionsModule:
             );
         };
 
-        let (new_contract_address, _) = self.send_raw().deploy_from_source_contract(
-            self.blockchain().get_gas_left(),
-            &BigUint::zero(),
-            &template_address,
-            self.blockchain().get_code_metadata(&template_address),
-            &args.to_arg_buffer(),
-        );
+        let gas_left = self.blockchain().get_gas_left();
+        let new_contract_address = self
+            .tx()
+            .raw_deploy()
+            .arguments_raw(args.to_arg_buffer())
+            .gas(gas_left)
+            .from_source(template_address.clone())
+            .code_metadata(self.blockchain().get_code_metadata(&template_address))
+            .returns(ReturnsNewManagedAddress)
+            .sync_call();
 
         let caller = self.blockchain().get_caller();
         let owner = self.blockchain().get_owner_address();
@@ -92,14 +95,15 @@ pub trait ContractInteractionsModule:
         require!(!contract_template_mapper.is_empty(), "No template found");
         let template_address = contract_template_mapper.get();
 
-        self.send_raw().upgrade_from_source_contract(
-            &contract_address,
-            self.blockchain().get_gas_left(),
-            &BigUint::zero(),
-            &template_address,
-            self.blockchain().get_code_metadata(&contract_address),
-            &args.to_arg_buffer(),
-        );
+        self.tx()
+            .to(contract_address.clone())
+            .egld(BigUint::zero())
+            .gas(self.blockchain().get_gas_left())
+            .raw_upgrade()
+            .from_source(template_address.clone())
+            .code_metadata(self.blockchain().get_code_metadata(&contract_address))
+            .arguments_raw(args.to_arg_buffer())
+            .upgrade_async_call_and_exit();
 
         self.emit_upgrade_contract_event(
             self.blockchain().get_caller(),
@@ -126,12 +130,12 @@ pub trait ContractInteractionsModule:
             "Use the dedicated change owner endpoint instead"
         );
 
-        let () = self
-            .send()
-            .contract_call::<()>(contract_address.clone(), function_name.clone())
-            .with_gas_limit(self.blockchain().get_gas_left())
-            .with_raw_arguments(args.to_arg_buffer())
-            .execute_on_dest_context();
+        self.tx()
+            .to(contract_address.clone())
+            .raw_call(function_name.clone())
+            .gas(self.blockchain().get_gas_left())
+            .arguments_raw(args.to_arg_buffer())
+            .sync_call();
 
         self.emit_contract_call_event(
             self.blockchain().get_caller(),
@@ -198,7 +202,7 @@ pub trait ContractInteractionsModule:
         let () = self
             .send()
             .change_owner_address(contract_address.clone(), &new_owner)
-            .execute_on_dest_context();
+            .sync_call();
 
         self.emit_change_owner_event(
             self.blockchain().get_caller(),
@@ -232,14 +236,15 @@ pub trait ContractInteractionsModule:
                 .clone_value();
             // If the contract_template storage is empty, it means the contracts ownership was transfered
             if !self.contract_template(&contract_address).is_empty() {
-                self.send_raw().upgrade_from_source_contract(
-                    &contract_address,
-                    gas_per_action,
-                    &BigUint::zero(),
-                    &ongoing_upgrade_operation.template_address,
-                    self.blockchain().get_code_metadata(&contract_address),
-                    &ongoing_upgrade_operation.arguments,
-                );
+                self.tx()
+                    .to(contract_address.clone())
+                    .egld(BigUint::zero())
+                    .gas(gas_per_action)
+                    .raw_upgrade()
+                    .from_source(ongoing_upgrade_operation.template_address.clone())
+                    .code_metadata(self.blockchain().get_code_metadata(&contract_address))
+                    .arguments_raw(ongoing_upgrade_operation.arguments.clone())
+                    .upgrade_async_call_and_exit();
                 ongoing_upgrade_operation
                     .processed_contracts
                     .push(contract_address);

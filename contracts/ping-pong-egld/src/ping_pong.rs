@@ -1,6 +1,6 @@
 #![no_std]
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
 
 mod user_status;
 
@@ -86,13 +86,13 @@ pub trait PingPong {
         match user_status {
             UserStatus::New => {
                 self.user_status(user_id).set(UserStatus::Registered);
-            },
+            }
             UserStatus::Registered => {
                 sc_panic!("can only ping once")
-            },
+            }
             UserStatus::Withdrawn => {
                 sc_panic!("already withdrawn")
-            },
+            }
         }
     }
 
@@ -103,13 +103,15 @@ pub trait PingPong {
             UserStatus::Registered => {
                 self.user_status(user_id).set(UserStatus::Withdrawn);
                 if let Some(user_address) = self.user_mapper().get_user_address(user_id) {
-                    self.send()
-                        .direct_egld(&user_address, &self.ping_amount().get());
+                    self.tx()
+                        .to(&user_address)
+                        .egld(self.ping_amount().get())
+                        .transfer();
                     Result::Ok(())
                 } else {
                     Result::Err("unknown user")
                 }
-            },
+            }
             UserStatus::Withdrawn => Result::Err("already withdrawn"),
         }
     }

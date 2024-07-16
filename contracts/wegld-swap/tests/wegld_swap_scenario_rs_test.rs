@@ -4,7 +4,7 @@ fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
 
     blockchain.register_contract(
-        "file:output/multiversx-wegld-swap-sc.wasm",
+        "mxsc:output/multiversx-wegld-swap-sc.mxsc.json",
         multiversx_wegld_swap_sc::ContractBuilder,
     );
     blockchain

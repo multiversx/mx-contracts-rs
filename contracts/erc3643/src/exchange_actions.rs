@@ -2,7 +2,7 @@ use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
 use crate::hooks::hook_type::ErcHookType;
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
 
 pub type EndpointName<M> = ManagedBuffer<M>;
 
@@ -83,7 +83,7 @@ pub trait ExchangeActionsModule:
         );
 
         if !output_payments.is_empty() {
-            self.send().direct_multi(&caller, &output_payments);
+            self.tx().to(ToCaller).payment(&output_payments).transfer();
         }
 
         output_payments

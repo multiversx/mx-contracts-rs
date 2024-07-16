@@ -7,7 +7,8 @@ use rewards_distribution::{RewardsDistribution, DIVISION_SAFETY_CONSTANT};
 
 mod utils;
 
-multiversx_sc::imports!();
+#[allow(unused_imports)]
+use multiversx_sc::imports::*;
 
 #[test]
 fn test_compute_brackets() {
@@ -21,7 +22,7 @@ fn test_compute_brackets() {
         &rust_biguint!(0u64),
         Some(&owner),
         rewards_distribution::contract_obj,
-        "rewards-distribution.wasm",
+        "rewards-distribution.mxsc.json",
     );
 
     wrapper

@@ -2,7 +2,7 @@ use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
 use super::hook_type::{ErcHookType, Hook};
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
 
 #[multiversx_sc::module]
 pub trait CallHookModule {
