@@ -1,4 +1,4 @@
-use crate::potlock_storage::{self, PotlockId, ProjectId};
+use crate::potlock_storage::{self, PotlockId, ProjectId, Status};
 
 multiversx_sc::imports!();
 
@@ -29,6 +29,11 @@ pub trait PotlockSetup:
         )
     }
 
+    fn require_potlock_is_active(&self, potlock_id: PotlockId) {
+        let potlock = self.potlocks().get(potlock_id);
+        require!(potlock.status == Status::Active, "Pot is not active!",)
+    }
+
     fn is_valid_project_id(&self, project_id: ProjectId) -> bool {
         project_id >= 1 && project_id <= self.projects().len()
     }
@@ -38,5 +43,10 @@ pub trait PotlockSetup:
             self.is_valid_project_id(project_id) && !self.projects().item_is_empty(project_id),
             "Project doesn't exist!",
         )
+    }
+
+    fn require_project_is_active(&self, project_id: ProjectId) {
+        let project = self.potlocks().get(project_id);
+        require!(project.status == Status::Active, "Project is not active!",)
     }
 }

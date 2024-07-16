@@ -2253,6 +2253,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "ruplacer"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "58a26a1b15ff113d31d139357f7422708312978ed69cd5dd47e36d1b80b7eaf3"
+dependencies = [
+ "Inflector",
+ "anyhow",
+ "clap",
+ "colored",
+ "ignore",
+ "regex",
+]
+
+[[package]]
+name = "rust-interact"
+version = "0.0.0"
+dependencies = [
+ "clap",
+ "multiversx-sc",
+ "multiversx-sc-snippets",
+ "potlock",
+ "serde",
+ "toml",
+]
+
+[[package]]
 name = "rustc-demangle"
 version = "0.1.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
