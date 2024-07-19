@@ -75,11 +75,11 @@ pub struct UserDonations<M: ManagedTypeApi> {
 #[multiversx_sc::module]
 pub trait PotlockStorage {
     #[view(getFeeTokenIdentifier)]
-    #[storage_mapper("fee_token_identifier")]
+    #[storage_mapper("feeTokenIdentifier")]
     fn fee_token_identifier(&self) -> SingleValueMapper<TokenIdentifier>;
 
     #[view(getFeeAmount)]
-    #[storage_mapper("fee_amount")]
+    #[storage_mapper("feeAmount")]
     fn fee_amount(&self) -> SingleValueMapper<BigUint>;
 
     #[view(getPotlocks)]
@@ -91,19 +91,19 @@ pub trait PotlockStorage {
     fn projects(&self) -> VecMapper<Project<Self::Api>>;
 
     #[view(feePotPayments)]
-    #[storage_mapper("fee_pot_proposer")]
+    #[storage_mapper("feePotProposer")]
     fn fee_pot_proposer(&self, potlock_id: PotlockId) -> SingleValueMapper<ManagedAddress>;
 
     #[view(feeAmountAcceptPots)]
-    #[storage_mapper("fee_amount_accepted_pots")]
+    #[storage_mapper("feeAmountAcceptedPots")]
     fn fee_amount_accepted_pots(&self) -> SingleValueMapper<BigUint>;
 
     #[view(potDonations)]
-    #[storage_mapper("pot_donations")]
+    #[storage_mapper("potDonations")]
     fn pot_donations(&self, project_id: ProjectId) -> MapMapper<ManagedAddress, EsdtTokenPayment>;
 
     #[view(projectDonations)]
-    #[storage_mapper("project_donations")]
+    #[storage_mapper("projectDonations")]
     fn project_donations(
         &self,
         project_id: ProjectId,

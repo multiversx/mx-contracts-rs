@@ -32,7 +32,9 @@ pub trait PotlockAdminInteractions:
     #[only_admin]
     #[endpoint(removePot)]
     fn remove_pot(&self, potlock_id: PotlockId) {
-        let pot_proposer = self.fee_pot_proposer(potlock_id).get();
+        self.require_potlock_exists(potlock_id);
+
+        let pot_proposer = self.fee_pot_proposer(potlock_id).take();
         let fee_pot_payment = EsdtTokenPayment::new(
             self.fee_token_identifier().get(),
             0u64,
@@ -41,7 +43,6 @@ pub trait PotlockAdminInteractions:
 
         self.send()
             .direct_non_zero_esdt_payment(&pot_proposer, &fee_pot_payment);
-        self.fee_pot_proposer(potlock_id).clear();
         self.potlocks().clear_entry(potlock_id);
     }
 
@@ -95,7 +96,5 @@ pub trait PotlockAdminInteractions:
         }
 
         self.pot_donations(potlock_id).clear();
-
-        //TODO: Clear all info regarding the pot?
     }
 }
