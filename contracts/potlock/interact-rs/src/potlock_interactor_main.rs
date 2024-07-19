@@ -4,14 +4,12 @@ mod potlock_interactor_config;
 mod proxy;
 
 use multiversx_sc_snippets::imports::*;
-use multiversx_sc_snippets::sdk;
 use serde::{Deserialize, Serialize};
 use std::{
     io::{Read, Write},
     path::Path,
 };
 
-const GATEWAY: &str = sdk::blockchain::DEVNET_GATEWAY;
 const STATE_FILE: &str = "state.toml";
 const TOKEN_ID: &str = "WEGLD-a28c59";
 const FEE_AMOUNT: u64 = 50000000000000000; // 0.5
@@ -102,7 +100,8 @@ struct ContractInteract {
 
 impl ContractInteract {
     async fn new() -> Self {
-        let mut interactor = Interactor::new(GATEWAY).await;
+        let config = Config::load_config();
+        let mut interactor = Interactor::new(config.gateway()).await;
         let wallet_address = interactor.register_wallet(test_wallets::alice());
 
         let contract_code = BytesValue::interpret_from(

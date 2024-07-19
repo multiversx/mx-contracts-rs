@@ -312,6 +312,9 @@ fn test_donate_to_pot() {
     let potlock_id = 1usize;
     state.check_potlock_id_is_last(potlock_id);
 
+    // Accept Pot
+    state.accept_pot(potlock_id);
+
     state.check_esdt_balance(POT_PROPOSER_ADDRESS, INITIAL_BALANCE - POT_FEE_CREATION);
     state.check_sc_esdt_balance(POTLOCK_ADDRESS, POT_FEE_CREATION);
     state.check_esdt_balance(POT_DONOR_ADDRESS, INITIAL_BALANCE);
@@ -331,6 +334,9 @@ fn test_donate_to_project() {
     state.add_pot("Pot", "Pot Description");
     let potlock_id = 1usize;
     state.check_potlock_id_is_last(potlock_id);
+
+    // Accept Pot
+    state.accept_pot(potlock_id);
 
     state.apply_for_pot(potlock_id, "Project name", "Project description");
     let project_id = 1usize;
@@ -374,12 +380,15 @@ fn test_distribute_pot_to_projects() {
     state.deploy_potlock_contract();
     state.change_fee_for_pots(POT_FEE_CREATION);
 
-    // Add pot
+    // Add Pot
     state.add_pot("Pot", "Pot Description");
     let potlock_id: usize = 1usize;
     state.check_potlock_id_is_last(potlock_id);
 
-    // Add project
+    // Accept Pot
+    state.accept_pot(potlock_id);
+
+    // Add Project
     let project_id = 1usize;
     state.apply_for_pot(potlock_id, "Project name", "Project description");
 
