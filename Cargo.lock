@@ -1978,7 +1978,7 @@ dependencies = [
 name = "potlock-meta"
 version = "0.0.0"
 dependencies = [
- "multiversx-sc-meta",
+ "multiversx-sc-meta-lib",
  "potlock",
 ]
 
@@ -2373,7 +2373,7 @@ version = "2.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c627723fd09706bacdb5cf41499e95098555af3c3c29d014dc3c458ef6be11c0"
 dependencies = [
- "bitflags 2.5.0",
+ "bitflags 2.6.0",
  "core-foundation",
  "core-foundation-sys",
  "libc",
