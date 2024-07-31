@@ -126,24 +126,6 @@ pub trait PotlockStorage {
         );
     }
 
-    fn require_donation_same_token_id(
-        &self,
-        project_id: ProjectId,
-        user: &ManagedAddress,
-        token_id: TokenIdentifier,
-    ) {
-        let donation_mapper = self.project_donations(project_id);
-        if donation_mapper.contains_key(user) {
-            let payment = donation_mapper.get(user);
-            if payment.is_some() {
-                require!(
-                    payment.unwrap().token_identifier == token_id,
-                    "Already made a payment with a different TokenID"
-                );
-            }
-        }
-    }
-
     #[view(getFeeTokenIdentifier)]
     #[storage_mapper("feeTokenIdentifier")]
     fn fee_token_identifier(&self) -> SingleValueMapper<TokenIdentifier>;

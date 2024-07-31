@@ -57,7 +57,22 @@ pub trait PotlockInteractions:
         self.require_project_is_active(project_id);
         let payment = self.call_value().single_esdt();
         let caller = self.blockchain().get_caller();
-        self.require_donation_same_token_id(project_id, &caller, payment.token_identifier.clone());
-        self.project_donations(project_id).insert(caller, payment);
+
+        let mut donation_mapper = self.project_donations(project_id);
+        if donation_mapper.contains_key(&caller) {
+            let opt_payment = donation_mapper.remove(&caller);
+            if opt_payment.is_some() {
+                let mut previous_payment = opt_payment.unwrap();
+                require!(
+                    previous_payment.token_identifier == payment.token_identifier.clone(),
+                    "Already made a payment with a different TokenID"
+                );
+                previous_payment.amount += payment.amount;
+                self.project_donations(project_id)
+                    .insert(caller, previous_payment);
+            }
+        } else {
+            self.project_donations(project_id).insert(caller, payment);
+        }
     }
 }
