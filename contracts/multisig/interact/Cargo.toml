@@ -24,13 +24,13 @@ features = ["derive"]
 path = ".."
 
 [dependencies.multiversx-sc-modules]
-version = "0.51.1"
+version = "0.52.1"
 
 [dependencies.multiversx-sc-snippets]
-version = "0.51.1"
+version = "0.52.1"
 
 [dependencies.multiversx-sc-scenario]
-version = "=0.51.1"
+version = "=0.52.1"
 
 [dependencies.multiversx-sc]
-version = "=0.51.1"
+version = "=0.52.1"
