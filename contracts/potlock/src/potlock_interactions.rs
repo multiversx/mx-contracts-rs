@@ -54,10 +54,10 @@ pub trait PotlockInteractions:
     #[endpoint(donateToProject)]
     fn donate_to_project(&self, project_id: ProjectId) {
         self.require_project_exists(project_id);
+        self.require_project_is_active(project_id);
         let payment = self.call_value().single_esdt();
         let caller = self.blockchain().get_caller();
-        self.require_project_exists(project_id);
-        self.require_project_is_active(project_id);
+        self.require_donation_same_token_id(project_id, &caller, payment.token_identifier.clone());
         self.project_donations(project_id).insert(caller, payment);
     }
 }
