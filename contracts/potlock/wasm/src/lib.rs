@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           22
+// Endpoints:                           21
 // Async Callback (empty):               1
-// Total number of exported functions:  25
+// Total number of exported functions:  24
 
 #![no_std]
 
@@ -20,6 +20,7 @@ multiversx_sc_wasm_adapter::endpoints! {
     (
         init => init
         upgrade => upgrade
+        changeFeeForPots => change_fee_for_pots
         acceptPot => accept_pot
         removePot => remove_pot
         acceptApplication => accept_application
@@ -29,12 +30,10 @@ multiversx_sc_wasm_adapter::endpoints! {
         applyForPot => apply_for_pot
         donateToPot => donate_to_pot
         donateToProject => donate_to_project
-        changeFeeForPots => change_fee_for_pots
         getFeeTokenIdentifier => fee_token_identifier
         getFeeAmount => fee_amount
         getPotlocks => potlocks
         getProjects => projects
-        feePotPayments => fee_pot_proposer
         feeAmountAcceptPots => fee_amount_accepted_pots
         potDonations => pot_donations
         projectDonations => project_donations

@@ -1,20 +1,30 @@
-use crate::{
-    potlock_setup,
-    potlock_storage::{self, PotlockId, ProjectId, Status},
-};
+use crate::potlock_storage::{self, PotlockId, ProjectId, Status};
 
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
 pub type ProjectPercentage = MultiValue2<usize, u64>;
-const MAX_PERCENTAGE: u64 = 10_000; // 100%
+pub const MAX_PERCENTAGE: u64 = 10_000; // 100%
 
 #[multiversx_sc::module]
 pub trait PotlockAdminInteractions:
-    potlock_storage::PotlockStorage
-    + multiversx_sc_modules::only_admin::OnlyAdminModule
-    + potlock_setup::PotlockSetup
+    potlock_storage::PotlockStorage + multiversx_sc_modules::only_admin::OnlyAdminModule
 {
+    #[only_admin]
+    #[endpoint(changeFeeForPots)]
+    fn change_fee_for_pots(&self, token_identifier: TokenIdentifier, fee: BigUint) {
+        require!(
+            token_identifier.is_valid_esdt_identifier(),
+            "Invalid token provided"
+        );
+        require!(
+            token_identifier.is_valid_esdt_identifier() && fee.ge(&BigUint::zero()),
+            "Invalid token identifier or amount is 0"
+        );
+        self.fee_token_identifier().set(&token_identifier);
+        self.fee_amount().set(fee);
+    }
+
     #[only_admin]
     #[endpoint(acceptPot)]
     fn accept_pot(&self, potlock_id: PotlockId) {
@@ -26,7 +36,6 @@ pub trait PotlockAdminInteractions:
         let mut accepted_potlock = self.potlocks().get(potlock_id);
         accepted_potlock.status = Status::Active;
         self.potlocks().set(potlock_id, &accepted_potlock);
-        self.fee_pot_proposer(potlock_id).clear();
     }
 
     #[only_admin]
@@ -34,7 +43,8 @@ pub trait PotlockAdminInteractions:
     fn remove_pot(&self, potlock_id: PotlockId) {
         self.require_potlock_exists(potlock_id);
 
-        let pot_proposer = self.fee_pot_proposer(potlock_id).take();
+        let potlock_mapper = self.potlocks();
+        let pot_proposer = potlock_mapper.get(potlock_id).proposer;
         let fee_pot_payment = EsdtTokenPayment::new(
             self.fee_token_identifier().get(),
             0u64,
@@ -74,12 +84,13 @@ pub trait PotlockAdminInteractions:
     fn distribute_pot_to_projects(
         &self,
         potlock_id: PotlockId,
-        project_percentage: MultiValueEncoded<ProjectPercentage>,
+        project_percentages: MultiValueEncoded<ProjectPercentage>,
     ) {
         self.require_potlock_exists(potlock_id);
+        self.require_correct_percentages(project_percentages.clone());
         let pot_donations = self.pot_donations(potlock_id);
 
-        for pp in project_percentage {
+        for pp in project_percentages {
             let (project_id, percentage) = pp.into_tuple();
             let mut output_payments = ManagedVec::new();
             for (_, donation) in pot_donations.iter() {

@@ -1,4 +1,3 @@
-use crate::potlock_setup;
 use crate::potlock_storage::{self, Pot, Project};
 use crate::potlock_storage::{PotlockId, ProjectId};
 
@@ -7,9 +6,7 @@ multiversx_sc::derive_imports!();
 
 #[multiversx_sc::module]
 pub trait PotlockInteractions:
-    potlock_storage::PotlockStorage
-    + potlock_setup::PotlockSetup
-    + multiversx_sc_modules::only_admin::OnlyAdminModule
+    potlock_storage::PotlockStorage + multiversx_sc_modules::only_admin::OnlyAdminModule
 {
     #[payable("*")]
     #[endpoint(addPot)]
@@ -26,10 +23,8 @@ pub trait PotlockInteractions:
         let caller = self.blockchain().get_caller();
 
         let potlock_id = self.potlocks().len() + 1;
-        let potlock = Pot::new(potlock_id, name, description);
+        let potlock = Pot::new(potlock_id, caller, name, description);
         self.potlocks().push(&potlock);
-
-        self.fee_pot_proposer(potlock_id).set(caller);
     }
 
     #[endpoint(applyForPot)]
