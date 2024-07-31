@@ -12,6 +12,7 @@ const PROJECT_PROPOSER_ADDRESS: TestAddress = TestAddress::new("project_proposer
 const POT_DONOR_ADDRESS: TestAddress = TestAddress::new("pot_donor");
 const PROJECT_DONOR_ADDRESS: TestAddress = TestAddress::new("project_donor");
 const TOKEN_ID: TestTokenIdentifier = TestTokenIdentifier::new("POT-123456");
+const DIFFERENT_TOKEN_ID: TestTokenIdentifier = TestTokenIdentifier::new("DIFFPOT-123456");
 const POT_FEE_CREATION: u64 = 1_000;
 const INITIAL_BALANCE: u64 = 2_000;
 const DONATION_AMOUNT: u64 = 100;
@@ -48,7 +49,8 @@ impl PotlockTestState {
             .esdt_balance(TOKEN_ID, INITIAL_BALANCE)
             .account(PROJECT_DONOR_ADDRESS)
             .nonce(1)
-            .esdt_balance(TOKEN_ID, INITIAL_BALANCE);
+            .esdt_balance(TOKEN_ID, INITIAL_BALANCE)
+            .esdt_balance(DIFFERENT_TOKEN_ID, INITIAL_BALANCE);
 
         Self { world }
     }
@@ -590,5 +592,53 @@ fn test_fail_distribute_pot_to_projects2() {
         .typed(potlock_proxy::PotlockProxy)
         .distribute_pot_to_projects(potlock_id, percentages)
         .with_result(ExpectError(4, "Total percentages different than 100%"))
+        .run();
+}
+
+#[test]
+fn test_fail_donate_to_project() {
+    let mut state = PotlockTestState::new();
+    state.deploy_potlock_contract();
+    state.change_fee_for_pots(POT_FEE_CREATION);
+
+    state.add_pot("Pot", "Pot Description");
+    let potlock_id = 1usize;
+    state.check_potlock_id_is_last(potlock_id);
+
+    // Accept Pot
+    state.accept_pot(potlock_id);
+
+    state.apply_for_pot(potlock_id, "Project name", "Project description");
+    let project_id = 1usize;
+    state.check_project_id_is_last(project_id);
+
+    state.accept_application(project_id);
+    state.check_project_is_accepted(project_id);
+
+    state.check_esdt_balance(POT_PROPOSER_ADDRESS, INITIAL_BALANCE - POT_FEE_CREATION);
+    state.check_sc_esdt_balance(POTLOCK_ADDRESS, POT_FEE_CREATION);
+    state.check_esdt_balance(PROJECT_DONOR_ADDRESS, INITIAL_BALANCE);
+
+    state.donate_to_project(project_id);
+
+    state.check_sc_esdt_balance(POTLOCK_ADDRESS, POT_FEE_CREATION + DONATION_AMOUNT);
+    state.check_esdt_balance(PROJECT_DONOR_ADDRESS, INITIAL_BALANCE - DONATION_AMOUNT);
+
+    state
+        .world
+        .tx()
+        .from(PROJECT_DONOR_ADDRESS)
+        .to(POTLOCK_ADDRESS)
+        .typed(potlock_proxy::PotlockProxy)
+        .donate_to_project(project_id)
+        .egld_or_single_esdt(
+            &EgldOrEsdtTokenIdentifier::esdt(DIFFERENT_TOKEN_ID),
+            0u64,
+            &multiversx_sc::proxy_imports::BigUint::from(DONATION_AMOUNT),
+        )
+        .with_result(ExpectError(
+            4,
+            "Already made a payment with a different TokenID",
+        ))
         .run();
 }
