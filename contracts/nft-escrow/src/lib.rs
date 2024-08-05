@@ -126,7 +126,7 @@ pub trait NftEscrowContract {
 
         self.tx().to(&offer.creator).payment(payment).transfer();
         self.tx()
-            .to(&offer.creator)
+            .to(&offer.wanted_address)
             .payment(EsdtTokenPayment::new(
                 offer.nft,
                 offer.nonce,
