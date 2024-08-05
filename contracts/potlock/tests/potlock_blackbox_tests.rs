@@ -583,7 +583,7 @@ fn test_fail_distribute_pot_to_projects2() {
 
     // Distribute Pot donations to projects
     let mut percentages = MultiValueVec::new();
-    percentages.push((project_id, HALF_PERCENTAGE).into());
+    percentages.push((project_id, 3* HALF_PERCENTAGE).into());
     state
         .world
         .tx()
@@ -591,7 +591,7 @@ fn test_fail_distribute_pot_to_projects2() {
         .to(POTLOCK_ADDRESS)
         .typed(potlock_proxy::PotlockProxy)
         .distribute_pot_to_projects(potlock_id, percentages)
-        .with_result(ExpectError(4, "Total percentages different than 100%"))
+        .with_result(ExpectError(4, "Total percentages more than 100%"))
         .run();
 }
 

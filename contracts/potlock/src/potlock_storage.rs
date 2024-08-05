@@ -121,8 +121,8 @@ pub trait PotlockStorage {
             total_perc += perc;
         }
         require!(
-            total_perc == MAX_PERCENTAGE,
-            "Total percentages different than 100%"
+            total_perc <= MAX_PERCENTAGE,
+            "Total percentages more than 100%"
         );
     }
 
