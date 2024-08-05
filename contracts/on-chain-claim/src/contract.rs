@@ -28,13 +28,7 @@ pub trait OnChainClaimContract:
 
     #[endpoint(claim)]
     fn claim(&self) {
-        let caller = self.blockchain().get_caller();
-        require!(
-            !self.blockchain().is_smart_contract(&caller),
-            "Only user accounts can perform claim"
-        );
-        self.require_same_shard(&caller);
-
+        let caller = self.get_caller();
         let current_epoch = self.blockchain().get_block_epoch();
 
         let address_info_mapper = self.address_info(&caller);
@@ -50,18 +44,35 @@ pub trait OnChainClaimContract:
                 "epoch already claimed"
             );
 
-            if address_info.last_epoch_claimed + 1 == current_epoch {
-                address_info.current_streak += 1;
-            } else {
-                address_info.current_streak = 1;
-            }
-
+            require!(
+                address_info.last_epoch_claimed + 1 == current_epoch,
+                "missed epoch"
+            );
+            
+            address_info.current_streak += 1;
             address_info.total_epochs_claimed += 1;
             address_info.last_epoch_claimed = current_epoch;
 
             if address_info.best_streak < address_info.current_streak {
                 address_info.best_streak = address_info.current_streak;
             }
+
+            self.new_claim_event(&caller, address_info);
+        });
+    }
+
+    #[endpoint(reset)]
+    fn reset(&self) {
+        let caller = self.get_caller();
+        let current_epoch = self.blockchain().get_block_epoch();
+
+        let address_info_mapper = self.address_info(&caller);
+        require!(!address_info_mapper.is_empty(), "can't reset streak for new address");
+
+        address_info_mapper.update(|address_info| {
+            address_info.current_streak = 1;
+            address_info.total_epochs_claimed = 1;
+            address_info.last_epoch_claimed = current_epoch;
 
             self.new_claim_event(&caller, address_info);
         });
@@ -171,5 +182,15 @@ pub trait OnChainClaimContract:
             BigUint::from(1u64),
         );
         self.repair_streak_payment().set(payment);
+    }
+
+    fn get_caller(&self) -> ManagedAddress {
+        let caller = self.blockchain().get_caller();
+        require!(
+            !self.blockchain().is_smart_contract(&caller),
+            "Only user accounts can perform claim"
+        );
+        self.require_same_shard(&caller);
+        caller
     }
 }
