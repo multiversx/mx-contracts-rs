@@ -9,13 +9,13 @@ publish = false
 path = "src/multisig_improved.rs"
 
 [dependencies.multiversx-sc]
-version = "0.52.1"
+version = "0.52.3"
 
 [dependencies.multiversx-sc-modules]
-version = "0.52.1"
+version = "0.52.3"
 
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.52.1"
+version = "0.52.3"
 
 [dev-dependencies.adder]
 path = "../adder"
