@@ -1392,9 +1392,9 @@ dependencies = [
 
 [[package]]
 name = "multiversx-sc"
-version = "0.52.1"
+version = "0.52.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad1c90e0079028040f6219494a66a5fec724ab1e4b4b836e06cc899b5fe9f2f9"
+checksum = "526760b1d6236c011285b264a70a0a9dd3b3dbc53c3b5f76932f4bcfd3a8910c"
 dependencies = [
  "bitflags 2.6.0",
  "hex-literal",
@@ -1430,9 +1430,9 @@ dependencies = [
 
 [[package]]
 name = "multiversx-sc-derive"
-version = "0.52.1"
+version = "0.52.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2da247945d1700c84859f935214e49ec4d781fbebc483fadc715291e49801cae"
+checksum = "3557f2f12640a8a07fa6af66cc2a13b188c5b61bed72db22fe631fb3a60c3e96"
 dependencies = [
  "hex",
  "proc-macro2",
@@ -1443,9 +1443,9 @@ dependencies = [
 
 [[package]]
 name = "multiversx-sc-meta-lib"
-version = "0.52.1"
+version = "0.52.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49dfe01c37bd97c61f80bbeec07d3f2046475842517ec48d238f9bf6242ae290"
+checksum = "b8deccfcc760b8fd281e2603268fa1a453ed65e4caac7a51a2d71c40cec37ae3"
 dependencies = [
  "clap",
  "colored",
@@ -1464,18 +1464,18 @@ dependencies = [
 
 [[package]]
 name = "multiversx-sc-modules"
-version = "0.52.1"
+version = "0.52.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6dec3bd3e6ea44263db7cc5bef2d16d0626c5dc1e18a1923843459ba7896ded2"
+checksum = "61f5c29c6044f3dc9e866858feee625d7fae5604a68ac7bd66dec683eee97563"
 dependencies = [
  "multiversx-sc",
 ]
 
 [[package]]
 name = "multiversx-sc-scenario"
-version = "0.52.1"
+version = "0.52.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "208e14827435a693681dd562e895f4fb376d82aa1e3d31e5588e3ff309441e2e"
+checksum = "5d3024d52e2cb7d455f5a560218be8968e446eabc7c31dc9fc479c329f45e05e"
 dependencies = [
  "base64",
  "bech32",
@@ -1499,9 +1499,9 @@ dependencies = [
 
 [[package]]
 name = "multiversx-sc-snippets"
-version = "0.52.1"
+version = "0.52.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "17beebf1a1a3422707ad6eab27b10686b0ca4715df9c015beb3946448c76728b"
+checksum = "94bbd06d14e07875e92453bfe19557e1b3f2239af18b9cd3a8f05a19f4111df3"
 dependencies = [
  "base64",
  "env_logger",
