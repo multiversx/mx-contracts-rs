@@ -340,7 +340,7 @@ where
                         signature_type: SignatureType::Ed25519, // unused
                     });
 
-                    let _ = sc.sign(action_id, signatures);
+                    sc.sign(action_id, signatures);
                 },
             )
             .assert_ok();
