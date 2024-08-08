@@ -9,10 +9,10 @@ publish = false
 path = "src/pair_mock.rs"
 
 [dependencies.multiversx-sc]
-version = "0.51.1"
+version = "0.52.3"
 
 [dev-dependencies]
 num-bigint = "0.4.2"
 
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.51.1"
+version = "0.52.3"
