@@ -1,6 +1,8 @@
 #![no_std]
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
+
+pub mod wegld_proxy;
 
 #[multiversx_sc::contract]
 pub trait EgldEsdtSwap: multiversx_sc_modules::pause::PauseModule {
@@ -23,9 +25,14 @@ pub trait EgldEsdtSwap: multiversx_sc_modules::pause::PauseModule {
         self.send()
             .esdt_local_mint(&wrapped_egld_token_id, 0, &payment_amount);
 
-        let caller = self.blockchain().get_caller();
-        self.send()
-            .direct_esdt(&caller, &wrapped_egld_token_id, 0, &payment_amount);
+        self.tx()
+            .to(ToCaller)
+            .payment(EsdtTokenPayment::new(
+                wrapped_egld_token_id.clone(),
+                0,
+                payment_amount.clone_value(),
+            ))
+            .transfer();
 
         EsdtTokenPayment::new(wrapped_egld_token_id, 0, payment_amount.clone_value())
     }
@@ -49,8 +56,7 @@ pub trait EgldEsdtSwap: multiversx_sc_modules::pause::PauseModule {
             .esdt_local_burn(&wrapped_egld_token_id, 0, &payment_amount);
 
         // 1 wrapped eGLD = 1 eGLD, so we pay back the same amount
-        let caller = self.blockchain().get_caller();
-        self.send().direct_egld(&caller, &payment_amount);
+        self.tx().to(ToCaller).egld(payment_amount).transfer();
     }
 
     #[view(getLockedEgldBalance)]

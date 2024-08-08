@@ -1,6 +1,6 @@
 use crate::common::{PaymentsVec, Percentage, TakeFeesResult, MAX_FEE_PERCENTAGE};
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
 
 #[multiversx_sc::module]
 pub trait TransferModule:
@@ -70,9 +70,15 @@ pub trait TransferModule:
 
         if !self.blockchain().is_smart_contract(&dest) {
             let owner = self.blockchain().get_owner_address();
-            self.send().direct_multi(&owner, &take_fees_result.fees);
+            self.tx()
+                .to(&owner)
+                .payment(&take_fees_result.fees)
+                .transfer();
 
-            self.send().direct_multi(&dest, &take_fees_result.transfers);
+            self.tx()
+                .to(&dest)
+                .payment(&take_fees_result.transfers)
+                .transfer();
 
             return;
         }
@@ -99,14 +105,12 @@ pub trait TransferModule:
         endpoint_name: ManagedBuffer,
         args: ManagedVec<ManagedBuffer>,
     ) -> ! {
-        ContractCallNoPayment::<_, MultiValueEncoded<ManagedBuffer>>::new(dest, endpoint_name)
+        self.tx()
+            .to(dest)
+            .raw_call(endpoint_name)
+            .arguments_raw(ManagedArgBuffer::from(args))
             .with_multi_token_transfer(take_fees_result.transfers.clone())
-            .with_raw_arguments(ManagedArgBuffer::from(args))
-            .async_call()
-            .with_callback(
-                <Self as TransferModule>::callbacks(self).transfer_to_sc_callback(take_fees_result),
-            )
-            .call_and_exit();
+            .async_call_and_exit();
     }
 
     #[callback]
@@ -119,14 +123,17 @@ pub trait TransferModule:
             ManagedAsyncCallResult::Ok(_) => {
                 if !take_fees_result.fees.is_empty() {
                     let owner = self.blockchain().get_owner_address();
-                    self.send().direct_multi(&owner, &take_fees_result.fees);
+                    self.tx()
+                        .to(&owner)
+                        .payment(&take_fees_result.fees)
+                        .transfer();
                 }
             }
             ManagedAsyncCallResult::Err(_) => {
-                self.send().direct_multi(
-                    &take_fees_result.original_caller,
-                    &take_fees_result.original_payments,
-                );
+                self.tx()
+                    .to(&take_fees_result.original_caller)
+                    .payment(&take_fees_result.original_payments)
+                    .transfer();
             }
         }
     }

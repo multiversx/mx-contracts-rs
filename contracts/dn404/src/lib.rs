@@ -1,6 +1,6 @@
 #![no_std]
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
 
 pub mod available_tokens;
 pub mod fee;
@@ -37,6 +37,6 @@ pub trait Dn404:
         self.set_paused(true);
     }
 
-    #[endpoint]
+    #[upgrade]
     fn upgrade(&self) {}
 }

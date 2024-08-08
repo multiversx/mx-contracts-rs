@@ -6,11 +6,12 @@ use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
 use crate::multisig_state::{ActionId, GroupId};
 
-multiversx_sc::derive_imports!();
+use multiversx_sc::derive_imports::*;
 
 pub type GasLimit = u64;
 
-#[derive(NestedEncode, NestedDecode, TypeAbi, Clone)]
+#[type_abi]
+#[derive(NestedEncode, NestedDecode, Clone)]
 pub struct CallActionData<M: ManagedTypeApi> {
     pub to: ManagedAddress<M>,
     pub egld_amount: BigUint<M>,
@@ -19,7 +20,8 @@ pub struct CallActionData<M: ManagedTypeApi> {
     pub arguments: ManagedVec<M, ManagedBuffer<M>>,
 }
 
-#[derive(NestedEncode, NestedDecode, TypeAbi, Clone)]
+#[type_abi]
+#[derive(NestedEncode, NestedDecode, Clone)]
 pub struct EsdtTransferExecuteData<M: ManagedTypeApi> {
     pub to: ManagedAddress<M>,
     pub tokens: PaymentsVec<M>,
@@ -28,7 +30,8 @@ pub struct EsdtTransferExecuteData<M: ManagedTypeApi> {
     pub arguments: ManagedVec<M, ManagedBuffer<M>>,
 }
 
-#[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, TypeAbi, Clone)]
+#[type_abi]
+#[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, Clone)]
 pub enum Action<M: ManagedTypeApi> {
     Nothing,
     AddBoardMember(ManagedAddress<M>),
@@ -84,7 +87,8 @@ impl<M: ManagedTypeApi> Action<M> {
 }
 
 /// Not used internally, just to retrieve results via endpoint.
-#[derive(TopEncode, TypeAbi)]
+#[type_abi]
+#[derive(TopEncode)]
 pub struct ActionFullInfo<M: ManagedTypeApi> {
     pub action_id: ActionId,
     pub group_id: GroupId,

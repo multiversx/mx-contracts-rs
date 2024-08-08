@@ -1,9 +1,10 @@
 #![no_std]
 
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::{derive_imports::*, imports::*};
+pub mod crowdfunding_esdt_proxy;
 
-#[derive(TopEncode, TopDecode, TypeAbi, PartialEq, Eq, Clone, Copy, Debug)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, PartialEq, Eq, Clone, Copy, Debug)]
 pub enum Status {
     FundingPeriod,
     Successful,
@@ -74,9 +75,11 @@ pub trait Crowdfunding {
                 let token_identifier = self.cf_token_identifier().get();
                 let sc_balance = self.get_current_funds();
 
-                self.send()
-                    .direct(&caller, &token_identifier, 0, &sc_balance);
-            },
+                self.tx()
+                    .to(&caller)
+                    .egld_or_single_esdt(&token_identifier, 0, &sc_balance)
+                    .transfer();
+            }
             Status::Failed => {
                 let caller = self.blockchain().get_caller();
                 let deposit = self.deposit(&caller).get();
@@ -85,9 +88,12 @@ pub trait Crowdfunding {
                     let token_identifier = self.cf_token_identifier().get();
 
                     self.deposit(&caller).clear();
-                    self.send().direct(&caller, &token_identifier, 0, &deposit);
+                    self.tx()
+                        .to(&caller)
+                        .egld_or_single_esdt(&token_identifier, 0, &deposit)
+                        .transfer();
                 }
-            },
+            }
         }
     }
 

@@ -1,7 +1,6 @@
 #![no_std]
 
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::imports::*;
 
 pub mod config;
 pub mod events;
@@ -91,8 +90,10 @@ pub trait MysteryBox:
         let mystery_box_attributes = winning_rates_mapper.get();
         let output_payment = self.create_new_tokens(amount, &mystery_box_attributes);
         let caller = self.blockchain().get_caller();
-        self.send()
-            .direct_non_zero_esdt_payment(&caller, &output_payment);
+        self.tx()
+            .to(&caller)
+            .payment(&output_payment)
+            .transfer_if_not_empty();
 
         self.emit_create_mystery_box_event(
             &caller,
@@ -150,7 +151,9 @@ pub trait MysteryBox:
         let new_attributes = self.winning_rates().get();
         let new_mystery_box_payment =
             self.create_new_tokens(BigUint::from(SFT_AMOUNT), &new_attributes);
-        self.send()
-            .direct_non_zero_esdt_payment(address, &new_mystery_box_payment);
+        self.tx()
+            .to(address)
+            .payment(&new_mystery_box_payment)
+            .transfer_if_not_empty();
     }
 }

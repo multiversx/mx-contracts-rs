@@ -2,8 +2,7 @@
 #![allow(unused_attributes)]
 
 pub use address_info::AddressInfo;
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::imports::*;
 
 pub mod address_info;
 pub mod config;

@@ -1,9 +1,10 @@
 #![no_std]
 
+pub mod liquid_locking_proxy;
 mod unlocked_token;
 use unlocked_token::UnlockedToken;
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
 
 #[multiversx_sc::contract]
 pub trait LiquidLocking {
@@ -132,7 +133,7 @@ pub trait LiquidLocking {
 
         require!(!unbond_tokens.is_empty(), "nothing to unbond");
         self.unbond_event(&caller, &unbond_tokens);
-        self.send().direct_multi(&caller, &unbond_tokens);
+        self.tx().to(ToCaller).payment(&unbond_tokens).transfer();
     }
 
     #[event("lock")]

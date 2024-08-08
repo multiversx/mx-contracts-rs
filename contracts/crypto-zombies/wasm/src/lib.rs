@@ -5,13 +5,12 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
+// Upgrade:                              1
 // Endpoints:                           17
 // Async Callback:                       1
-// Total number of exported functions:  19
+// Total number of exported functions:  20
 
 #![no_std]
-#![allow(internal_features)]
-#![feature(lang_items)]
 
 multiversx_sc_wasm_adapter::allocator!();
 multiversx_sc_wasm_adapter::panic_handler!();
@@ -20,13 +19,14 @@ multiversx_sc_wasm_adapter::endpoints! {
     crypto_zombies
     (
         init => init
+        upgrade => upgrade
         set_crypto_kitties_sc_address => set_crypto_kitties_sc_address
         generate_random_dna => generate_random_dna
         create_random_zombie => create_random_zombie
         is_ready => is_ready
         feed_on_kitty => feed_on_kitty
         dna_digits => dna_digits
-        zombies_count => zombies_count
+        zombie_last_index => zombie_last_index
         zombies => zombies
         zombie_owner => zombie_owner
         crypto_kitties_sc_address => crypto_kitties_sc_address

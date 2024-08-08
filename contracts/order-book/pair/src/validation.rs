@@ -1,5 +1,4 @@
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::imports::*;
 
 use crate::common::{FeeConfig, FeeConfigEnum};
 
@@ -42,13 +41,13 @@ pub trait ValidationModule: common::CommonModule {
                     params.fee_config.fixed_fee < params.amount,
                     "Invalid fee config fixed amount"
                 );
-            },
+            }
             FeeConfigEnum::Percent => {
                 require!(
                     params.fee_config.percent_fee < PERCENT_BASE_POINTS,
                     "Percent value above maximum value"
                 );
-            },
+            }
         }
 
         let amount_after_fee = self.calculate_amount_after_fee(&params.amount, &params.fee_config);

@@ -1,9 +1,8 @@
 use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
 use crate::{
-    common_types::action::{ActionFullInfo, GasLimit},
+    common_types::action::{ActionFullInfo, ActionId, GasLimit},
     common_types::user_role::UserRole,
-    state::ActionId,
 };
 
 multiversx_sc::imports!();
@@ -28,6 +27,20 @@ pub trait EventsModule {
         &self,
         #[indexed] action_id: ActionId,
         #[indexed] new_quorum: usize,
+    );
+
+    #[event("performAddModuleEvent")]
+    fn perform_add_module_event(
+        &self,
+        #[indexed] action_id: ActionId,
+        #[indexed] sc_address: &ManagedAddress,
+    );
+
+    #[event("performRemoveModuleEvent")]
+    fn perform_remove_module_event(
+        &self,
+        #[indexed] action_id: ActionId,
+        #[indexed] sc_address: &ManagedAddress,
     );
 
     #[event("performAsyncCall")]

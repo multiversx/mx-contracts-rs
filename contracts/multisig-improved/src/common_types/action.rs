@@ -1,14 +1,21 @@
-use multiversx_sc::{
-    api::ManagedTypeApi,
-    types::{BigUint, CodeMetadata, ManagedAddress, ManagedBuffer, ManagedVec},
-};
 use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 
-use crate::state::{ActionId, GroupId};
-
+multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
 pub type GasLimit = u64;
+pub type Nonce = u64;
+
+pub type ActionId = usize;
+pub type GroupId = usize;
+
+#[derive(
+    TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, PartialEq, Eq, Clone, Copy, Debug,
+)]
+pub enum ActionStatus {
+    Available,
+    Aborted,
+}
 
 #[derive(NestedEncode, NestedDecode, TypeAbi, Clone)]
 pub struct CallActionData<M: ManagedTypeApi> {
@@ -51,6 +58,8 @@ pub enum Action<M: ManagedTypeApi> {
         sc_address: ManagedAddress<M>,
         args: DeployArgs<M>,
     },
+    AddModule(ManagedAddress<M>),
+    RemoveModule(ManagedAddress<M>),
 }
 
 impl<M: ManagedTypeApi> Action<M> {

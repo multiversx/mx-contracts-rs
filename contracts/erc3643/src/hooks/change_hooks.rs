@@ -1,6 +1,6 @@
-use super::hook_type::{Hook, ErcHookType};
+use super::hook_type::{ErcHookType, Hook};
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
 
 #[multiversx_sc::module]
 pub trait ChangeHooksModule: super::call_hook::CallHookModule {

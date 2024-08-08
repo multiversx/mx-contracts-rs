@@ -5,13 +5,12 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           33
+// Upgrade:                              1
+// Endpoints:                           36
 // Async Callback:                       1
-// Total number of exported functions:  35
+// Total number of exported functions:  39
 
 #![no_std]
-#![allow(internal_features)]
-#![feature(lang_items)]
 
 multiversx_sc_wasm_adapter::allocator!();
 multiversx_sc_wasm_adapter::panic_handler!();
@@ -28,7 +27,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         getNumProposers => num_proposers
         getActionGroup => action_groups
         getLastGroupActionId => last_action_group_id
-        getActionLastIndex => get_action_last_index
+        quorumReached => quorum_reached
         proposeAddBoardMember => propose_add_board_member
         proposeAddProposer => propose_add_proposer
         proposeRemoveUser => propose_remove_user
@@ -38,20 +37,24 @@ multiversx_sc_wasm_adapter::endpoints! {
         proposeAsyncCall => propose_async_call
         proposeSCDeployFromSource => propose_sc_deploy_from_source
         proposeSCUpgradeFromSource => propose_sc_upgrade_from_source
+        proposeAddModule => propose_add_module
+        proposeRemoveModule => propose_remove_module
         proposeBatch => propose_batch
+        performAction => perform_action_endpoint
+        performBatch => perform_batch
+        discardAction => discard_action_endpoint
+        discardBatch => discard_batch
         sign => sign
         signBatch => sign_batch
         signAndPerform => sign_and_perform
         signBatchAndPerform => sign_batch_and_perform
         unsign => unsign
         unsignBatch => unsign_batch
-        signed => signed
         unsignForOutdatedBoardMembers => unsign_for_outdated_board_members
-        quorumReached => quorum_reached
-        performAction => perform_action_endpoint
-        performBatch => perform_batch
-        discardAction => discard_action_endpoint
-        discardBatch => discard_batch
+        getNrDeployedModules => nr_deployed_modules
+        signed => signed
+        getActionLastIndex => get_action_last_index
+        getUserNonce => get_user_nonce
         dnsRegister => dns_register
     )
 }

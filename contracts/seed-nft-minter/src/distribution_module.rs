@@ -1,9 +1,10 @@
-multiversx_sc::imports!();
-multiversx_sc::derive_imports!();
+use multiversx_sc::derive_imports::*;
+use multiversx_sc::imports::*;
 
 pub const MAX_DISTRIBUTION_PERCENTAGE: u64 = 100_000; // 100%
 
-#[derive(ManagedVecItem, NestedEncode, NestedDecode, TypeAbi)]
+#[type_abi]
+#[derive(ManagedVecItem, NestedEncode, NestedDecode)]
 pub struct Distribution<M: ManagedTypeApi> {
     pub address: ManagedAddress<M>,
     pub percentage: u64,
@@ -33,10 +34,16 @@ pub trait DistributionModule {
             if payment_amount == 0 {
                 continue;
             }
-            self.send()
-                .contract_call::<IgnoreValue>(distribution.address, distribution.endpoint)
-                .with_egld_or_single_esdt_transfer((token_id.clone(), token_nonce, payment_amount))
-                .with_gas_limit(distribution.gas_limit)
+
+            self.tx()
+                .to(distribution.address)
+                .raw_call(distribution.endpoint)
+                .payment(EgldOrEsdtTokenPayment::new(
+                    token_id.clone(),
+                    token_nonce,
+                    payment_amount,
+                ))
+                .gas(distribution.gas_limit)
                 .transfer_execute();
         }
     }

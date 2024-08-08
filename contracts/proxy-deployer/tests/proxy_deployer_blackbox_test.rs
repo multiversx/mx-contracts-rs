@@ -1,31 +1,26 @@
+use imports::{MxscPath, ReturnsResult, TestAddress, TestSCAddress};
 use multiversx_sc::{
     codec::{multi_types::OptionalValue, top_encode_to_vec_u8_or_panic},
-    storage::mappers::SingleValue,
     types::{Address, CodeMetadata, ManagedAddress, ManagedBuffer, MultiValueEncoded},
 };
 
-use multiversx_sc_scenario::{api::StaticApi, num_bigint::BigUint, scenario_model::*, *};
+use multiversx_sc_scenario::{api::StaticApi, scenario_model::*, *};
 
-use adder::ProxyTrait as _;
-use proxy_deployer::{config::ProxyTrait, contract_interactions::ProxyTrait as _, ProxyTrait as _};
+use adder::adder_proxy;
+use proxy_deployer::proxy_deployer_proxy;
 
-const PROXY_DEPLOYER_ADDRESS_EXPR: &str = "sc:proxy_deployer";
-const TEMPLATE_CONTRACT_ADDRESS_EXPR: &str = "sc:template_contract";
-const DEPLOYED_CONTRACT_ADDRESS_EXPR1: &str = "sc:deployed_contract1";
-const DEPLOYED_CONTRACT_ADDRESS_EXPR2: &str = "sc:deployed_contract2";
-const OWNER_ADDRESS_EXPR: &str = "address:owner";
-const USER_ADDRESS_EXPR: &str = "address:user";
+const PROXY_DEPLOYER_ADDRESS_EXPR: TestSCAddress = TestSCAddress::new("proxy_deployer");
+const TEMPLATE_CONTRACT_ADDRESS_EXPR: TestSCAddress = TestSCAddress::new("template_contract");
+const DEPLOYED_CONTRACT_ADDRESS_EXPR1: TestSCAddress = TestSCAddress::new("deployed_contract1");
+const DEPLOYED_CONTRACT_ADDRESS_EXPR2: TestSCAddress = TestSCAddress::new("deployed_contract2");
+const OWNER_ADDRESS_EXPR: TestAddress = TestAddress::new("owner");
+const USER_ADDRESS_EXPR: TestAddress = TestAddress::new("user");
 
-const PROXY_DEPLOYER_PATH_EXPR: &str = "file:output/proxy-deployer.wasm";
-const DEPLOYED_CONTRACT_PATH_EXPR: &str = "file:~/contracts/adder/output/adder.wasm";
-
-type ProxyDeployerContract = ContractInfo<proxy_deployer::Proxy<StaticApi>>;
-type TemplateContract = ContractInfo<adder::Proxy<StaticApi>>;
+const PROXY_DEPLOYER_PATH_EXPR: MxscPath = MxscPath::new("output/proxy-deployer.mxsc.json");
+const DEPLOYED_CONTRACT_PATH_EXPR: MxscPath = MxscPath::new("../adder/output/adder.mxsc.json");
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
-    blockchain.set_current_dir_from_workspace("contracts/proxy-deployer");
-
     blockchain.register_contract(PROXY_DEPLOYER_PATH_EXPR, proxy_deployer::ContractBuilder);
     blockchain.register_contract(DEPLOYED_CONTRACT_PATH_EXPR, adder::ContractBuilder);
 
@@ -34,184 +29,162 @@ fn world() -> ScenarioWorld {
 
 struct ProxyDeployerTestState {
     world: ScenarioWorld,
-    proxy_deployer_contract: ProxyDeployerContract,
-    template_contract: TemplateContract,
-    template_contract_address: Address,
     deployed_contracts: Vec<Address>,
 }
 
 impl ProxyDeployerTestState {
     fn new() -> Self {
         let mut world = world();
-        world.start_trace().set_state_step(
-            SetStateStep::new().put_account(OWNER_ADDRESS_EXPR, Account::new().nonce(1)),
-        );
-        world.start_trace().set_state_step(
-            SetStateStep::new().put_account(USER_ADDRESS_EXPR, Account::new().nonce(1)),
-        );
-        let proxy_deployer_contract = ProxyDeployerContract::new(PROXY_DEPLOYER_ADDRESS_EXPR);
-        let template_contract = TemplateContract::new(TEMPLATE_CONTRACT_ADDRESS_EXPR);
-        let template_contract_address =
-            AddressValue::from(TEMPLATE_CONTRACT_ADDRESS_EXPR).to_address();
+        world.start_trace();
+        world.account(OWNER_ADDRESS_EXPR).nonce(1);
+        world.account(USER_ADDRESS_EXPR).nonce(1);
 
         Self {
             world,
-            proxy_deployer_contract,
-            template_contract,
-            template_contract_address,
-            deployed_contracts: vec![],
+            deployed_contracts: Vec::new(),
         }
     }
 
     fn deploy_proxy_deployer_contract(&mut self) -> &mut Self {
-        let proxy_deployer_code = self.world.code_expression(PROXY_DEPLOYER_PATH_EXPR);
-        let template_contract_code = self.world.code_expression(DEPLOYED_CONTRACT_PATH_EXPR);
+        self.world
+            .new_address(OWNER_ADDRESS_EXPR, 1, PROXY_DEPLOYER_ADDRESS_EXPR);
 
         self.world
-            .set_state_step(SetStateStep::new().new_address(
-                OWNER_ADDRESS_EXPR,
-                1,
-                PROXY_DEPLOYER_ADDRESS_EXPR,
+            .tx()
+            .from(OWNER_ADDRESS_EXPR)
+            .typed(proxy_deployer_proxy::ProxyDeployerProxy)
+            .init(0u64)
+            .code(PROXY_DEPLOYER_PATH_EXPR)
+            .new_address(PROXY_DEPLOYER_ADDRESS_EXPR)
+            .run();
+        self.world
+            .new_address(OWNER_ADDRESS_EXPR, 2, TEMPLATE_CONTRACT_ADDRESS_EXPR);
+        self.world
+            .tx()
+            .from(OWNER_ADDRESS_EXPR)
+            .typed(adder_proxy::AdderProxy)
+            .init(0u64)
+            .code(DEPLOYED_CONTRACT_PATH_EXPR)
+            .new_address(TEMPLATE_CONTRACT_ADDRESS_EXPR)
+            .run();
+        self.world
+            .tx()
+            .from(OWNER_ADDRESS_EXPR)
+            .to(PROXY_DEPLOYER_ADDRESS_EXPR)
+            .typed(proxy_deployer_proxy::ProxyDeployerProxy)
+            .add_template_address(ManagedAddress::from_address(
+                &AddressValue::from(TEMPLATE_CONTRACT_ADDRESS_EXPR).to_address(),
             ))
-            .sc_deploy(
-                ScDeployStep::new()
-                    .from(OWNER_ADDRESS_EXPR)
-                    .code(proxy_deployer_code)
-                    .call(self.proxy_deployer_contract.init(0u64)),
-            )
-            .set_state_step(SetStateStep::new().new_address(
-                OWNER_ADDRESS_EXPR,
-                2,
-                TEMPLATE_CONTRACT_ADDRESS_EXPR,
-            ))
-            .sc_deploy(
-                ScDeployStep::new()
-                    .from(OWNER_ADDRESS_EXPR)
-                    .code(template_contract_code)
-                    .call(self.template_contract.init(BigUint::from(0u64))),
-            )
-            .sc_call(
-                ScCallStep::new()
-                    .from(OWNER_ADDRESS_EXPR)
-                    .to(PROXY_DEPLOYER_ADDRESS_EXPR)
-                    .call(self.proxy_deployer_contract.add_template_address(
-                        ManagedAddress::from_address(
-                            &AddressValue::from(TEMPLATE_CONTRACT_ADDRESS_EXPR).to_address(),
-                        ),
-                    )),
-            );
+            .run();
 
         self
     }
 
     fn deploy_contract(
         &mut self,
-        user: &str,
+        user: TestAddress,
         creator_nonce: u64,
-        deployed_address: &str,
-        template_address: &Address,
+        deployed_address: TestSCAddress,
+        template_address: TestSCAddress,
         args: MultiValueEncoded<StaticApi, ManagedBuffer<StaticApi>>,
     ) -> &mut Self {
         self.world
-            .set_state_step(SetStateStep::new().new_address(
-                PROXY_DEPLOYER_ADDRESS_EXPR,
-                creator_nonce,
-                deployed_address,
-            ))
-            .sc_call_use_result(
-                ScCallStep::new()
-                    .from(user)
-                    .to(PROXY_DEPLOYER_ADDRESS_EXPR)
-                    .call(
-                        self.proxy_deployer_contract
-                            .contract_deploy(ManagedAddress::from_address(template_address), args),
-                    ),
-                |r: TypedResponse<ManagedAddress<StaticApi>>| {
-                    self.deployed_contracts.push(r.result.unwrap().to_address());
-                },
-            );
+            .new_address(PROXY_DEPLOYER_ADDRESS_EXPR, creator_nonce, deployed_address);
+        let deploy_address = self
+            .world
+            .tx()
+            .from(user)
+            .to(PROXY_DEPLOYER_ADDRESS_EXPR)
+            .typed(proxy_deployer_proxy::ProxyDeployerProxy)
+            .contract_deploy(ManagedAddress::from(template_address.eval_to_array()), args)
+            .returns(ReturnsResult)
+            .run();
+        self.deployed_contracts.push(deploy_address.to_address());
 
         self
     }
 
     fn upgrade_contract(
         &mut self,
-        user: &str,
+        user: TestAddress,
         contract_address: &Address,
         args: MultiValueEncoded<StaticApi, ManagedBuffer<StaticApi>>,
     ) -> &mut Self {
-        self.world.sc_call(
-            ScCallStep::new()
-                .from(user)
-                .to(PROXY_DEPLOYER_ADDRESS_EXPR)
-                .call(
-                    self.proxy_deployer_contract
-                        .contract_upgrade(ManagedAddress::from_address(contract_address), args),
-                ),
-        );
+        self.world
+            .tx()
+            .from(user)
+            .to(PROXY_DEPLOYER_ADDRESS_EXPR)
+            .typed(proxy_deployer_proxy::ProxyDeployerProxy)
+            .contract_upgrade(contract_address, args)
+            .run();
 
         self
     }
 
     fn upgrade_by_template(
         &mut self,
-        template_address: &Address,
+        template_address: TestSCAddress,
         args: MultiValueEncoded<StaticApi, ManagedBuffer<StaticApi>>,
     ) -> &mut Self {
         let gas = 0u64; // Gas is not taken into account
-        self.world.sc_call(
-            ScCallStep::new()
-                .from(OWNER_ADDRESS_EXPR)
-                .to(PROXY_DEPLOYER_ADDRESS_EXPR)
-                .call(self.proxy_deployer_contract.upgrade_contracts_by_template(
-                    gas,
-                    OptionalValue::Some(ManagedAddress::from_address(template_address)),
-                    args,
-                )),
-        );
+
+        self.world
+            .tx()
+            .from(OWNER_ADDRESS_EXPR)
+            .to(PROXY_DEPLOYER_ADDRESS_EXPR)
+            .typed(proxy_deployer_proxy::ProxyDeployerProxy)
+            .upgrade_contracts_by_template(
+                gas,
+                OptionalValue::Some(ManagedAddress::from(template_address.eval_to_array())),
+                args,
+            )
+            .run();
 
         self
     }
 
     fn call_endpoint(
         &mut self,
-        user: &str,
+        user: TestAddress,
         contract_address: &Address,
         function_name: &str,
         args: MultiValueEncoded<StaticApi, ManagedBuffer<StaticApi>>,
     ) -> &mut Self {
         let function = ManagedBuffer::from(function_name);
-        self.world.sc_call(
-            ScCallStep::new()
-                .from(user)
-                .to(PROXY_DEPLOYER_ADDRESS_EXPR)
-                .call(self.proxy_deployer_contract.contract_call_by_address(
-                    ManagedAddress::from_address(contract_address),
-                    function,
-                    args,
-                )),
-        );
+        self.world
+            .tx()
+            .from(user)
+            .to(PROXY_DEPLOYER_ADDRESS_EXPR)
+            .typed(proxy_deployer_proxy::ProxyDeployerProxy)
+            .contract_call_by_address(
+                ManagedAddress::from_address(contract_address),
+                function,
+                args,
+            )
+            .run();
 
         self
     }
 
-    fn check_contract_storage(&mut self, deployed_address: &str, expected_value: u64) {
-        let mut deployed_contract = TemplateContract::new(deployed_address);
-
-        self.world.sc_query(
-            ScQueryStep::new()
-                .call(deployed_contract.sum())
-                .expect_value(SingleValue::from(BigUint::from(expected_value))),
-        );
+    fn check_contract_storage(&mut self, deployed_address: TestSCAddress, expected_value: u64) {
+        self.world
+            .query()
+            .to(deployed_address)
+            .typed(adder_proxy::AdderProxy)
+            .sum()
+            .with_result(ExpectValue(expected_value))
+            .run();
     }
 
-    fn check_contract_metadata(&mut self, deployed_address: &str, expected_value: CodeMetadata) {
+    fn check_contract_metadata(
+        &mut self,
+        deployed_address: TestSCAddress,
+        expected_value: CodeMetadata,
+    ) {
         let metadata = BytesValue::from(expected_value.to_byte_array().as_ref());
         self.world
-            .check_state_step(CheckStateStep::new().put_account(
-                deployed_address,
-                CheckAccount::new().code_metadata(metadata),
-            ));
+            .check_account(deployed_address)
+            .code_metadata(metadata);
     }
 }
 
@@ -220,8 +193,6 @@ fn proxy_deployer_blackbox_test() {
     let mut state = ProxyDeployerTestState::new();
     state.deploy_proxy_deployer_contract();
 
-    let template_address = state.template_contract_address.clone();
-
     // Test contract deploy
     let mut deploy_args = MultiValueEncoded::new();
     deploy_args.push(ManagedBuffer::from(top_encode_to_vec_u8_or_panic(&1u64)));
@@ -229,7 +200,7 @@ fn proxy_deployer_blackbox_test() {
         USER_ADDRESS_EXPR,
         0,
         DEPLOYED_CONTRACT_ADDRESS_EXPR1,
-        &template_address,
+        TEMPLATE_CONTRACT_ADDRESS_EXPR,
         deploy_args,
     );
     state.check_contract_storage(DEPLOYED_CONTRACT_ADDRESS_EXPR1, 1u64);
@@ -253,8 +224,6 @@ fn proxy_deployer_owner_bulk_upgrade() {
     let mut state = ProxyDeployerTestState::new();
     state.deploy_proxy_deployer_contract();
 
-    let template_address = state.template_contract_address.clone();
-
     // Test contract deploy
     let mut deploy_args = MultiValueEncoded::new();
     deploy_args.push(ManagedBuffer::from(top_encode_to_vec_u8_or_panic(&1u64)));
@@ -262,14 +231,14 @@ fn proxy_deployer_owner_bulk_upgrade() {
         USER_ADDRESS_EXPR,
         0,
         DEPLOYED_CONTRACT_ADDRESS_EXPR1,
-        &template_address,
+        TEMPLATE_CONTRACT_ADDRESS_EXPR,
         deploy_args.clone(),
     );
     state.deploy_contract(
         USER_ADDRESS_EXPR,
         1,
         DEPLOYED_CONTRACT_ADDRESS_EXPR2,
-        &template_address,
+        TEMPLATE_CONTRACT_ADDRESS_EXPR,
         deploy_args,
     );
     state.check_contract_storage(DEPLOYED_CONTRACT_ADDRESS_EXPR1, 1u64);
@@ -294,7 +263,7 @@ fn proxy_deployer_owner_bulk_upgrade() {
     // Test contract upgrade
     let mut upgrade_args = MultiValueEncoded::new();
     upgrade_args.push(ManagedBuffer::from(top_encode_to_vec_u8_or_panic(&5u64)));
-    state.upgrade_by_template(&template_address, upgrade_args);
+    state.upgrade_by_template(TEMPLATE_CONTRACT_ADDRESS_EXPR, upgrade_args);
     state.check_contract_storage(DEPLOYED_CONTRACT_ADDRESS_EXPR1, 5u64);
     // state.check_contract_storage(DEPLOYED_CONTRACT_ADDRESS_EXPR2, 5u64);
 }
@@ -303,8 +272,6 @@ fn proxy_deployer_owner_bulk_upgrade() {
 fn proxy_deployer_check_metadata_test() {
     let mut state = ProxyDeployerTestState::new();
     state.deploy_proxy_deployer_contract();
-
-    let template_address = state.template_contract_address.clone();
 
     state.check_contract_metadata(
         PROXY_DEPLOYER_ADDRESS_EXPR,
@@ -321,7 +288,7 @@ fn proxy_deployer_check_metadata_test() {
         USER_ADDRESS_EXPR,
         0,
         DEPLOYED_CONTRACT_ADDRESS_EXPR1,
-        &template_address,
+        TEMPLATE_CONTRACT_ADDRESS_EXPR,
         deploy_args,
     );
     state.check_contract_storage(DEPLOYED_CONTRACT_ADDRESS_EXPR1, 1u64);

@@ -1,6 +1,6 @@
 #![no_std]
 
-multiversx_sc::imports!();
+use multiversx_sc::imports::*;
 
 pub mod exchange_actions;
 pub mod hooks;
@@ -22,6 +22,6 @@ pub trait Erc3643:
         self.set_paused(true);
     }
 
-    #[endpoint]
+    #[upgrade]
     fn upgrade(&self) {}
 }
