@@ -1,9 +1,23 @@
 use adder::Adder;
-use multisig_improved::Multisig;
-use multiversx_sc::types::{Address, MultiValueEncoded};
+use multisig_improved::{
+    common_types::{
+        action::ActionId,
+        signature::{ActionType, SignatureArg, SignatureType},
+        user_role::UserRole,
+    },
+    external::views::ViewsModule,
+    ms_endpoints::{
+        perform::PerformEndpointsModule, propose::ProposeEndpointsModule, sign::SignEndpointsModule,
+    },
+    Multisig,
+};
+use multiversx_sc::{
+    imports::OptionalValue,
+    types::{Address, CodeMetadata, FunctionCall, MultiValueEncoded},
+};
 use multiversx_sc_scenario::{
     imports::{BlockchainStateWrapper, ContractObjWrapper},
-    managed_address, managed_biguint, rust_biguint, DebugApi,
+    managed_address, managed_biguint, managed_buffer, rust_biguint, DebugApi,
 };
 
 pub mod can_execute_mock;
@@ -67,5 +81,277 @@ where
             ms_wrapper,
             adder_wrapper,
         }
+    }
+
+    pub fn propose_add_board_member(&mut self, board_member: &Address) -> ActionId {
+        let mut action_id = 0;
+
+        self.b_mock
+            .execute_tx(
+                &self.first_board_member,
+                &self.ms_wrapper,
+                &rust_biguint!(0),
+                |sc| {
+                    action_id = sc.propose_add_board_member(
+                        managed_address!(board_member),
+                        OptionalValue::None,
+                    );
+                },
+            )
+            .assert_ok();
+
+        action_id
+    }
+
+    pub fn propose_add_proposer(&mut self, proposer: &Address) -> ActionId {
+        let mut action_id = 0;
+
+        self.b_mock
+            .execute_tx(
+                &self.first_board_member,
+                &self.ms_wrapper,
+                &rust_biguint!(0),
+                |sc| {
+                    action_id =
+                        sc.propose_add_proposer(managed_address!(proposer), OptionalValue::None);
+                },
+            )
+            .assert_ok();
+
+        action_id
+    }
+
+    pub fn propose_change_quorum(&mut self, new_quorum: usize) -> ActionId {
+        let mut action_id = 0;
+
+        self.b_mock
+            .execute_tx(
+                &self.first_board_member,
+                &self.ms_wrapper,
+                &rust_biguint!(0),
+                |sc| {
+                    action_id = sc.propose_change_quorum(new_quorum, OptionalValue::None);
+                },
+            )
+            .assert_ok();
+
+        action_id
+    }
+
+    pub fn propose_transfer_execute(
+        &mut self,
+        to: &Address,
+        egld_amount: u64,
+        function_name: &[u8],
+        args: Vec<&[u8]>,
+    ) -> ActionId {
+        let mut action_id = 0;
+
+        self.b_mock
+            .execute_tx(
+                &self.first_board_member,
+                &self.ms_wrapper,
+                &rust_biguint!(0),
+                |sc| {
+                    let mut function_call = FunctionCall::new(function_name);
+                    for arg in args {
+                        function_call = function_call.argument(&arg);
+                    }
+
+                    action_id = sc
+                        .propose_transfer_execute(
+                            managed_address!(to),
+                            managed_biguint!(egld_amount),
+                            None,
+                            function_call,
+                            OptionalValue::None,
+                        )
+                        .into_option()
+                        .unwrap();
+                },
+            )
+            .assert_ok();
+
+        action_id
+    }
+
+    pub fn propose_async_call(
+        &mut self,
+        to: &Address,
+        egld_amount: u64,
+        function_name: &[u8],
+        args: Vec<&[u8]>,
+    ) -> ActionId {
+        let mut action_id = 0;
+
+        self.b_mock
+            .execute_tx(
+                &self.first_board_member,
+                &self.ms_wrapper,
+                &rust_biguint!(0),
+                |sc| {
+                    let mut function_call = FunctionCall::new(function_name);
+                    for arg in args {
+                        function_call = function_call.argument(&arg);
+                    }
+
+                    action_id = sc.propose_async_call(
+                        managed_address!(to),
+                        managed_biguint!(egld_amount),
+                        None,
+                        function_call,
+                        OptionalValue::None,
+                    );
+                },
+            )
+            .assert_ok();
+
+        action_id
+    }
+
+    pub fn propose_remove_user(&mut self, user: &Address) -> ActionId {
+        let mut action_id = 0;
+
+        self.b_mock
+            .execute_tx(
+                &self.first_board_member,
+                &self.ms_wrapper,
+                &rust_biguint!(0),
+                |sc| {
+                    action_id = sc.propose_remove_user(managed_address!(user), OptionalValue::None);
+                },
+            )
+            .assert_ok();
+
+        action_id
+    }
+
+    pub fn propose_sc_deploy_from_source(
+        &mut self,
+        egld_amount: u64,
+        source: &Address,
+        code_metadata: CodeMetadata,
+        arguments: Vec<&[u8]>,
+    ) -> ActionId {
+        let mut action_id = 0;
+
+        self.b_mock
+            .execute_tx(
+                &self.first_board_member,
+                &self.ms_wrapper,
+                &rust_biguint!(0),
+                |sc| {
+                    let mut args = MultiValueEncoded::new();
+                    for arg in arguments {
+                        args.push(managed_buffer!(arg));
+                    }
+
+                    action_id = sc.propose_sc_deploy_from_source(
+                        managed_biguint!(egld_amount),
+                        managed_address!(source),
+                        code_metadata,
+                        None,
+                        args,
+                    );
+                },
+            )
+            .assert_ok();
+
+        action_id
+    }
+
+    pub fn propose_sc_upgrade_from_source(
+        &mut self,
+        sc_address: &Address,
+        egld_amount: u64,
+        source: &Address,
+        code_metadata: CodeMetadata,
+        arguments: Vec<&[u8]>,
+    ) -> ActionId {
+        let mut action_id = 0;
+
+        self.b_mock
+            .execute_tx(
+                &self.first_board_member,
+                &self.ms_wrapper,
+                &rust_biguint!(0),
+                |sc| {
+                    let mut args = MultiValueEncoded::new();
+                    for arg in arguments {
+                        args.push(managed_buffer!(arg));
+                    }
+
+                    action_id = sc.propose_sc_upgrade_from_source(
+                        managed_address!(sc_address),
+                        managed_biguint!(egld_amount),
+                        managed_address!(source),
+                        code_metadata,
+                        None,
+                        args,
+                    );
+                },
+            )
+            .assert_ok();
+
+        action_id
+    }
+
+    pub fn perform(&mut self, action_id: ActionId) {
+        self.b_mock
+            .execute_tx(
+                &self.first_board_member,
+                &self.ms_wrapper,
+                &rust_biguint!(0),
+                |sc| {
+                    let _ = sc.perform_action_endpoint(action_id);
+                },
+            )
+            .assert_ok();
+    }
+
+    pub fn perform_and_expect_err(&mut self, action_id: ActionId, err_message: &str) {
+        self.b_mock
+            .execute_tx(
+                &self.first_board_member,
+                &self.ms_wrapper,
+                &rust_biguint!(0),
+                |sc| {
+                    let _ = sc.perform_action_endpoint(action_id);
+                },
+            )
+            .assert_user_error(err_message);
+    }
+
+    pub fn sign(&mut self, action_id: ActionId) {
+        let signer_addr = self.second_board_member.clone();
+
+        self.b_mock
+            .execute_tx(
+                &self.second_board_member,
+                &self.ms_wrapper,
+                &rust_biguint!(0),
+                |sc| {
+                    let mut signatures = MultiValueEncoded::new();
+                    signatures.push(SignatureArg {
+                        user_address: managed_address!(&signer_addr),
+                        nonce: 0, // TODO: If ever signing multiple actions in test, give this as arg
+                        action_type: ActionType::SimpleAction,
+                        raw_sig_bytes: managed_buffer!(b"signature"),
+                        signature_type: SignatureType::Ed25519, // unused
+                    });
+
+                    let _ = sc.sign(action_id, signatures);
+                },
+            )
+            .assert_ok();
+    }
+
+    pub fn expect_user_role(&mut self, user: &Address, expected_user_role: UserRole) {
+        self.b_mock
+            .execute_query(&self.ms_wrapper, |sc| {
+                let actual_user_role = sc.user_role(managed_address!(user));
+                assert_eq!(actual_user_role, expected_user_role);
+            })
+            .assert_ok();
     }
 }
