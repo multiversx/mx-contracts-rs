@@ -10,7 +10,8 @@ use multisig_improved::{
     },
     external::views::ViewsModule,
     ms_endpoints::{
-        perform::PerformEndpointsModule, propose::ProposeEndpointsModule, sign::SignEndpointsModule,
+        discard::DiscardEndpointsModule, perform::PerformEndpointsModule,
+        propose::ProposeEndpointsModule, sign::SignEndpointsModule,
     },
 };
 use multiversx_sc::{
@@ -115,6 +116,104 @@ fn try_remove_all_board_members_test() {
     let action_id = ms_setup.propose_remove_user(&ms_setup.first_board_member.clone());
     ms_setup.sign(action_id, 0);
     ms_setup.perform_and_expect_err(action_id, "quorum cannot exceed board size");
+}
+
+#[test]
+fn change_quorum_test() {
+    let mut ms_setup = MsImprovedSetup::new(multisig_improved::contract_obj, adder::contract_obj);
+
+    // try change quorum > board size
+    let new_quorum = 3;
+    let action_id = ms_setup.propose_change_quorum(new_quorum);
+    ms_setup.sign(action_id, 0);
+    ms_setup.perform_and_expect_err(action_id, "quorum cannot exceed board size");
+
+    // try discard before unsigning
+    ms_setup
+        .b_mock
+        .execute_tx(
+            &ms_setup.first_board_member,
+            &ms_setup.ms_wrapper,
+            &rust_biguint!(0),
+            |sc| {
+                sc.discard_action_endpoint(action_id);
+            },
+        )
+        .assert_user_error("cannot discard action with valid signatures");
+
+    // unsign and discard action
+    ms_setup
+        .b_mock
+        .execute_tx(
+            &ms_setup.first_board_member,
+            &ms_setup.ms_wrapper,
+            &rust_biguint!(0),
+            |sc| {
+                sc.unsign(action_id);
+            },
+        )
+        .assert_ok();
+
+    ms_setup
+        .b_mock
+        .execute_tx(
+            &ms_setup.second_board_member,
+            &ms_setup.ms_wrapper,
+            &rust_biguint!(0),
+            |sc| {
+                sc.unsign(action_id);
+            },
+        )
+        .assert_ok();
+
+    ms_setup
+        .b_mock
+        .execute_tx(
+            &ms_setup.first_board_member,
+            &ms_setup.ms_wrapper,
+            &rust_biguint!(0),
+            |sc| {
+                sc.discard_action_endpoint(action_id);
+            },
+        )
+        .assert_ok();
+
+    // try sign discarded action
+    let signer_addr = ms_setup.first_board_member.clone();
+    ms_setup
+        .b_mock
+        .execute_tx(
+            &ms_setup.first_board_member,
+            &ms_setup.ms_wrapper,
+            &rust_biguint!(0),
+            |sc| {
+                let mut signatures = MultiValueEncoded::new();
+                signatures.push(SignatureArg {
+                    user_address: managed_address!(&signer_addr),
+                    nonce: 1,
+                    action_type: ActionType::SimpleAction,
+                    raw_sig_bytes: managed_buffer!(b"signature"),
+                    signature_type: SignatureType::Ed25519, // unused
+                });
+
+                sc.sign(action_id, signatures);
+            },
+        )
+        .assert_user_error("action does not exist");
+
+    // add another board member
+    let new_board_member = ms_setup.b_mock.create_user_account(&rust_biguint!(0));
+    ms_setup.expect_user_role(&new_board_member, UserRole::None);
+
+    let action_id = ms_setup.propose_add_board_member(&new_board_member);
+    ms_setup.sign(action_id, 1);
+    ms_setup.perform(action_id);
+    ms_setup.expect_user_role(&new_board_member, UserRole::BoardMember);
+
+    // change quorum to 3
+    let action_id = ms_setup.propose_change_quorum(new_quorum);
+    ms_setup.sign(action_id, 2);
+    ms_setup.perform(action_id);
 }
 
 #[test]
