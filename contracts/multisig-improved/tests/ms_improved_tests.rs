@@ -2,6 +2,7 @@ pub mod ms_improved_setup;
 
 use adder::Adder;
 use can_execute_mock::CanExecuteMock;
+use factorial::Factorial;
 use ms_improved_setup::*;
 use multisig_improved::{
     common_types::{
@@ -19,7 +20,9 @@ use multisig_improved::{
 use multiversx_sc::{
     codec::TopEncode,
     imports::OptionalValue,
-    types::{FunctionCall, ManagedArgBuffer, ManagedBuffer, ManagedVec, MultiValueEncoded},
+    types::{
+        CodeMetadata, FunctionCall, ManagedArgBuffer, ManagedBuffer, ManagedVec, MultiValueEncoded,
+    },
 };
 use multiversx_sc_scenario::{
     managed_address, managed_biguint, managed_buffer, rust_biguint, DebugApi,
@@ -387,6 +390,66 @@ fn async_call_to_sc_test() {
         .b_mock
         .execute_query(&ms_setup.adder_wrapper, |sc| {
             assert_eq!(sc.sum().get(), 5);
+        })
+        .assert_ok();
+}
+
+#[test]
+fn deploy_and_upgrade_from_source_test() {
+    let mut ms_setup = MsImprovedSetup::new(multisig_improved::contract_obj, adder::contract_obj);
+
+    let new_adder_wrapper = ms_setup
+        .b_mock
+        .prepare_deploy_from_sc(ms_setup.ms_wrapper.address_ref(), adder::contract_obj);
+
+    let args = [&[5u8][..]].to_vec();
+    let action_id = ms_setup.propose_sc_deploy_from_source(
+        0,
+        &ms_setup.adder_wrapper.address_ref().clone(),
+        CodeMetadata::all(),
+        args,
+    );
+    ms_setup.sign(action_id, 0);
+    ms_setup.perform(action_id);
+
+    let args = [&[5u8][..]].to_vec();
+    let action_id =
+        ms_setup.propose_transfer_execute(new_adder_wrapper.address_ref(), 0, b"add", args);
+    ms_setup.sign(action_id, 1);
+    ms_setup.perform(action_id);
+
+    ms_setup
+        .b_mock
+        .execute_query(&new_adder_wrapper, |sc| {
+            assert_eq!(sc.sum().get(), 10);
+        })
+        .assert_ok();
+
+    let factorial_wrapper = ms_setup.b_mock.create_sc_account(
+        &rust_biguint!(0),
+        Some(&ms_setup.first_board_member),
+        factorial::contract_obj,
+        "factorial",
+    );
+
+    let action_id = ms_setup.propose_sc_upgrade_from_source(
+        new_adder_wrapper.address_ref(),
+        0,
+        factorial_wrapper.address_ref(),
+        CodeMetadata::all(),
+        Vec::new(),
+    );
+    ms_setup.sign(action_id, 2);
+    ms_setup.perform(action_id);
+
+    let deployed_factorial_wrapper = ms_setup
+        .b_mock
+        .upgrade_wrapper(new_adder_wrapper, factorial::contract_obj);
+
+    ms_setup
+        .b_mock
+        .execute_query(&deployed_factorial_wrapper, |sc| {
+            assert_eq!(sc.factorial(managed_biguint!(5)), 120);
         })
         .assert_ok();
 }
