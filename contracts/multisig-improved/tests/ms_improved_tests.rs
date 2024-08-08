@@ -13,6 +13,7 @@ use multisig_improved::{
         discard::DiscardEndpointsModule, perform::PerformEndpointsModule,
         propose::ProposeEndpointsModule, sign::SignEndpointsModule,
     },
+    Multisig,
 };
 use multiversx_sc::{
     imports::OptionalValue,
@@ -214,6 +215,91 @@ fn change_quorum_test() {
     let action_id = ms_setup.propose_change_quorum(new_quorum);
     ms_setup.sign(action_id, 2);
     ms_setup.perform(action_id);
+}
+
+#[test]
+fn transfer_execute_to_user_test() {
+    let mut ms_setup = MsImprovedSetup::new(multisig_improved::contract_obj, adder::contract_obj);
+
+    let new_user = ms_setup.b_mock.create_user_account(&rust_biguint!(0));
+    let egld_balance = 100;
+    ms_setup
+        .b_mock
+        .set_egld_balance(&ms_setup.first_board_member, &rust_biguint!(egld_balance));
+
+    ms_setup
+        .b_mock
+        .execute_tx(
+            &ms_setup.first_board_member,
+            &ms_setup.ms_wrapper,
+            &rust_biguint!(egld_balance),
+            |sc| {
+                sc.deposit();
+            },
+        )
+        .assert_ok();
+
+    ms_setup.b_mock.check_egld_balance(
+        ms_setup.ms_wrapper.address_ref(),
+        &rust_biguint!(egld_balance),
+    );
+
+    // failed attempt
+    let mut action_id = 0;
+    ms_setup
+        .b_mock
+        .execute_tx(
+            &ms_setup.first_board_member,
+            &ms_setup.ms_wrapper,
+            &rust_biguint!(0),
+            |sc| {
+                action_id = sc
+                    .propose_transfer_execute(
+                        managed_address!(&new_user),
+                        managed_biguint!(0),
+                        None,
+                        FunctionCall::empty(),
+                        OptionalValue::None,
+                    )
+                    .into_option()
+                    .unwrap();
+            },
+        )
+        .assert_user_error("proposed action has no effect");
+
+    // propose
+    let action_id = ms_setup.propose_transfer_execute(&new_user, egld_balance, &[], Vec::new());
+    ms_setup.sign(action_id, 0);
+    ms_setup.perform(action_id);
+
+    ms_setup
+        .b_mock
+        .check_egld_balance(ms_setup.ms_wrapper.address_ref(), &rust_biguint!(0));
+    ms_setup
+        .b_mock
+        .check_egld_balance(&new_user, &rust_biguint!(egld_balance));
+}
+
+#[test]
+fn transfer_execute_sc_call_test() {
+    let mut ms_setup = MsImprovedSetup::new(multisig_improved::contract_obj, adder::contract_obj);
+
+    let args = [&[5u8][..]].to_vec();
+    let action_id = ms_setup.propose_transfer_execute(
+        &ms_setup.adder_wrapper.address_ref().clone(),
+        0,
+        b"add",
+        args,
+    );
+    ms_setup.sign(action_id, 0);
+    ms_setup.perform(action_id);
+
+    ms_setup
+        .b_mock
+        .execute_query(&ms_setup.adder_wrapper, |sc| {
+            assert_eq!(sc.sum().get(), 5);
+        })
+        .assert_ok();
 }
 
 #[test]
