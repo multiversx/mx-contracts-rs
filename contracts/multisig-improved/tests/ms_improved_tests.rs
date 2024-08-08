@@ -370,6 +370,28 @@ fn transfer_execute_batch_test() {
 }
 
 #[test]
+fn async_call_to_sc_test() {
+    let mut ms_setup = MsImprovedSetup::new(multisig_improved::contract_obj, adder::contract_obj);
+
+    let args = [&[5u8][..]].to_vec();
+    let action_id = ms_setup.propose_async_call(
+        &ms_setup.adder_wrapper.address_ref().clone(),
+        0,
+        b"add",
+        args,
+    );
+    ms_setup.sign(action_id, 0);
+    ms_setup.perform(action_id);
+
+    ms_setup
+        .b_mock
+        .execute_query(&ms_setup.adder_wrapper, |sc| {
+            assert_eq!(sc.sum().get(), 5);
+        })
+        .assert_ok();
+}
+
+#[test]
 fn add_can_execute_module_test() {
     let mut ms_setup = MsImprovedSetup::new(multisig_improved::contract_obj, adder::contract_obj);
     let can_execute_mock = ms_setup.b_mock.create_sc_account(
