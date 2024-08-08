@@ -1,7 +1,7 @@
 use adder::Adder;
 use multisig_improved::{
     common_types::{
-        action::ActionId,
+        action::{ActionId, Nonce},
         signature::{ActionType, SignatureArg, SignatureType},
         user_role::UserRole,
     },
@@ -322,7 +322,7 @@ where
             .assert_user_error(err_message);
     }
 
-    pub fn sign(&mut self, action_id: ActionId) {
+    pub fn sign(&mut self, action_id: ActionId, signer_nonce: Nonce) {
         let signer_addr = self.second_board_member.clone();
 
         self.b_mock
@@ -334,7 +334,7 @@ where
                     let mut signatures = MultiValueEncoded::new();
                     signatures.push(SignatureArg {
                         user_address: managed_address!(&signer_addr),
-                        nonce: 0, // TODO: If ever signing multiple actions in test, give this as arg
+                        nonce: signer_nonce,
                         action_type: ActionType::SimpleAction,
                         raw_sig_bytes: managed_buffer!(b"signature"),
                         signature_type: SignatureType::Ed25519, // unused

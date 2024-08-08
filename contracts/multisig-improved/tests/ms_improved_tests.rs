@@ -4,7 +4,11 @@ use adder::Adder;
 use can_execute_mock::CanExecuteMock;
 use ms_improved_setup::*;
 use multisig_improved::{
-    common_types::signature::{ActionType, SignatureArg, SignatureType},
+    common_types::{
+        signature::{ActionType, SignatureArg, SignatureType},
+        user_role::UserRole,
+    },
+    external::views::ViewsModule,
     ms_endpoints::{
         perform::PerformEndpointsModule, propose::ProposeEndpointsModule, sign::SignEndpointsModule,
     },
@@ -20,6 +24,97 @@ use multiversx_sc_scenario::{
 #[test]
 fn init_test() {
     let _ = MsImprovedSetup::new(multisig_improved::contract_obj, adder::contract_obj);
+}
+
+#[test]
+fn add_board_member_test() {
+    let mut ms_setup = MsImprovedSetup::new(multisig_improved::contract_obj, adder::contract_obj);
+
+    let new_board_member = ms_setup.b_mock.create_user_account(&rust_biguint!(0));
+    ms_setup.expect_user_role(&new_board_member, UserRole::None);
+
+    let action_id = ms_setup.propose_add_board_member(&new_board_member);
+    ms_setup.sign(action_id, 0);
+    ms_setup.perform(action_id);
+    ms_setup.expect_user_role(&new_board_member, UserRole::BoardMember);
+
+    let first_board_member = ms_setup.first_board_member.clone();
+    let second_board_member = ms_setup.second_board_member.clone();
+    ms_setup
+        .b_mock
+        .execute_query(&ms_setup.ms_wrapper, |sc| {
+            let mut expected_board_members = MultiValueEncoded::new();
+            expected_board_members.push(managed_address!(&first_board_member));
+            expected_board_members.push(managed_address!(&second_board_member));
+            expected_board_members.push(managed_address!(&new_board_member));
+
+            let actual_board_members = sc.get_all_board_members();
+            assert_eq!(expected_board_members, actual_board_members);
+        })
+        .assert_ok();
+}
+
+#[test]
+fn add_proposer_test() {
+    let mut ms_setup = MsImprovedSetup::new(multisig_improved::contract_obj, adder::contract_obj);
+
+    let new_proposer = ms_setup.b_mock.create_user_account(&rust_biguint!(0));
+    ms_setup.expect_user_role(&new_proposer, UserRole::None);
+
+    let action_id = ms_setup.propose_add_proposer(&new_proposer);
+    ms_setup.sign(action_id, 0);
+    ms_setup.perform(action_id);
+    ms_setup.expect_user_role(&new_proposer, UserRole::Proposer);
+
+    ms_setup
+        .b_mock
+        .execute_query(&ms_setup.ms_wrapper, |sc| {
+            let mut expected_proposers = MultiValueEncoded::new();
+            expected_proposers.push(managed_address!(&new_proposer));
+
+            let actual_proposers = sc.get_all_proposers();
+            assert_eq!(expected_proposers, actual_proposers);
+        })
+        .assert_ok();
+}
+
+#[test]
+fn remove_proposer_test() {
+    let mut ms_setup = MsImprovedSetup::new(multisig_improved::contract_obj, adder::contract_obj);
+
+    let new_proposer = ms_setup.b_mock.create_user_account(&rust_biguint!(0));
+    ms_setup.expect_user_role(&new_proposer, UserRole::None);
+
+    let action_id = ms_setup.propose_add_proposer(&new_proposer);
+    ms_setup.sign(action_id, 0);
+    ms_setup.perform(action_id);
+    ms_setup.expect_user_role(&new_proposer, UserRole::Proposer);
+
+    ms_setup
+        .b_mock
+        .execute_query(&ms_setup.ms_wrapper, |sc| {
+            let mut expected_proposers = MultiValueEncoded::new();
+            expected_proposers.push(managed_address!(&new_proposer));
+
+            let actual_proposers = sc.get_all_proposers();
+            assert_eq!(expected_proposers, actual_proposers);
+        })
+        .assert_ok();
+
+    let action_id = ms_setup.propose_remove_user(&new_proposer);
+    ms_setup.sign(action_id, 1);
+    ms_setup.perform(action_id);
+
+    ms_setup.expect_user_role(&new_proposer, UserRole::None);
+}
+
+#[test]
+fn try_remove_all_board_members_test() {
+    let mut ms_setup = MsImprovedSetup::new(multisig_improved::contract_obj, adder::contract_obj);
+
+    let action_id = ms_setup.propose_remove_user(&ms_setup.first_board_member.clone());
+    ms_setup.sign(action_id, 0);
+    ms_setup.perform_and_expect_err(action_id, "quorum cannot exceed board size");
 }
 
 #[test]
