@@ -5,6 +5,7 @@ use can_execute_mock::CanExecuteMock;
 use ms_improved_setup::*;
 use multisig_improved::{
     common_types::{
+        action::{Action, CallActionData},
         signature::{ActionType, SignatureArg, SignatureType},
         user_role::UserRole,
     },
@@ -16,8 +17,9 @@ use multisig_improved::{
     Multisig,
 };
 use multiversx_sc::{
+    codec::TopEncode,
     imports::OptionalValue,
-    types::{FunctionCall, ManagedArgBuffer, MultiValueEncoded},
+    types::{FunctionCall, ManagedArgBuffer, ManagedBuffer, ManagedVec, MultiValueEncoded},
 };
 use multiversx_sc_scenario::{
     managed_address, managed_biguint, managed_buffer, rust_biguint, DebugApi,
@@ -298,6 +300,71 @@ fn transfer_execute_sc_call_test() {
         .b_mock
         .execute_query(&ms_setup.adder_wrapper, |sc| {
             assert_eq!(sc.sum().get(), 5);
+        })
+        .assert_ok();
+}
+
+#[test]
+fn transfer_execute_batch_test() {
+    let mut ms_setup = MsImprovedSetup::new(multisig_improved::contract_obj, adder::contract_obj);
+
+    let adder_addr = ms_setup.adder_wrapper.address_ref().clone();
+    let mut group_id = 0;
+    ms_setup
+        .b_mock
+        .execute_tx(
+            &ms_setup.first_board_member,
+            &ms_setup.ms_wrapper,
+            &rust_biguint!(0),
+            |sc| {
+                let mut args = ManagedVec::new();
+                let mut encoded_arg = ManagedBuffer::<DebugApi>::new();
+                let _ = 5u32.top_encode(&mut encoded_arg);
+                args.push(encoded_arg);
+
+                let single_action = Action::SendTransferExecuteEgld(CallActionData {
+                    to: managed_address!(&adder_addr),
+                    egld_amount: managed_biguint!(0),
+                    opt_gas_limit: None,
+                    endpoint_name: managed_buffer!(b"add"),
+                    arguments: args,
+                });
+
+                let mut multi_action_vec = MultiValueEncoded::new();
+                multi_action_vec.push(single_action.clone());
+                multi_action_vec.push(single_action);
+
+                group_id = sc.propose_batch(multi_action_vec);
+            },
+        )
+        .assert_ok();
+
+    let signer_addr = ms_setup.second_board_member.clone();
+    ms_setup
+        .b_mock
+        .execute_tx(
+            &ms_setup.second_board_member,
+            &ms_setup.ms_wrapper,
+            &rust_biguint!(0),
+            |sc| {
+                let mut signatures = MultiValueEncoded::new();
+                signatures.push(SignatureArg {
+                    user_address: managed_address!(&signer_addr),
+                    nonce: 0,
+                    action_type: ActionType::Group,
+                    raw_sig_bytes: managed_buffer!(b"signature"),
+                    signature_type: SignatureType::Ed25519, // unused
+                });
+
+                sc.sign_batch_and_perform(group_id, signatures)
+            },
+        )
+        .assert_ok();
+
+    ms_setup
+        .b_mock
+        .execute_query(&ms_setup.adder_wrapper, |sc| {
+            assert_eq!(sc.sum().get(), 10);
         })
         .assert_ok();
 }

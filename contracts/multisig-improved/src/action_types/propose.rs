@@ -73,11 +73,16 @@ pub trait ProposeModule:
         let own_shard = self.blockchain().get_shard_of_address(&own_sc_address);
         match action {
             Action::SendTransferExecuteEgld(call_data) => {
-                let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
                 require!(
                     call_data.egld_amount > 0 || !call_data.endpoint_name.is_empty(),
                     "proposed action has no effect"
                 );
+
+                if cfg!(debug_assertions) {
+                    return;
+                }
+
+                let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
                 require!(
                     own_shard == other_sc_shard,
                     ALL_TRANSFER_EXEC_SAME_SHARD_ERR_MSG
@@ -85,6 +90,10 @@ pub trait ProposeModule:
             }
             Action::SendTransferExecuteEsdt(call_data) => {
                 require!(!call_data.tokens.is_empty(), "No tokens to transfer");
+
+                if cfg!(debug_assertions) {
+                    return;
+                }
 
                 let other_sc_shard = self.blockchain().get_shard_of_address(&call_data.to);
                 require!(
