@@ -49,7 +49,7 @@ pub trait OnChainClaimContract:
                 address_info.last_epoch_claimed + 1 == current_epoch,
                 "missed epoch"
             );
-            
+
             address_info.current_streak += 1;
             address_info.total_epochs_claimed += 1;
             address_info.last_epoch_claimed = current_epoch;
@@ -68,7 +68,10 @@ pub trait OnChainClaimContract:
         let current_epoch = self.blockchain().get_block_epoch();
 
         let address_info_mapper = self.address_info(&caller);
-        require!(!address_info_mapper.is_empty(), "can't reset streak for new address");
+        require!(
+            !address_info_mapper.is_empty(),
+            "can't reset streak for new address"
+        );
 
         address_info_mapper.update(|address_info| {
             address_info.current_streak = 1;

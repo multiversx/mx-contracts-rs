@@ -243,10 +243,7 @@ fn check_after_claim() {
         .set_state_step(SetStateStep::new().block_epoch(25))
         .whitebox_call_check(
             &on_chain_claim_whitebox,
-            ScCallStep::new()
-                .from(USER1_ADDR)
-                .to(SC_ADDR)
-                .no_expect(),
+            ScCallStep::new().from(USER1_ADDR).to(SC_ADDR).no_expect(),
             |sc| {
                 sc.claim();
             },
