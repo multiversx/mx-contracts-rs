@@ -241,10 +241,23 @@ fn check_after_claim() {
             assert_eq!(address_info.last_epoch_claimed, 21);
         })
         .set_state_step(SetStateStep::new().block_epoch(25))
+        .whitebox_call_check(
+            &on_chain_claim_whitebox,
+            ScCallStep::new()
+                .from(USER1_ADDR)
+                .to(SC_ADDR)
+                .no_expect(),
+            |sc| {
+                sc.claim();
+            },
+            |r| {
+                r.assert_user_error("missed epoch");
+            },
+        )
         .whitebox_call(
             &on_chain_claim_whitebox,
             ScCallStep::new().from(USER1_ADDR),
-            |sc| sc.claim(),
+            |sc| sc.reset(),
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
@@ -552,7 +565,7 @@ fn test_best_streak() {
         .whitebox_call(
             &on_chain_claim_whitebox,
             ScCallStep::new().from(USER1_ADDR),
-            |sc| sc.claim(),
+            |sc| sc.reset(),
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
@@ -725,7 +738,7 @@ fn on_chain_claim_whitebox() {
         .whitebox_call(
             &on_chain_claim_whitebox,
             ScCallStep::new().from(USER1_ADDR),
-            |sc| sc.claim(),
+            |sc| sc.reset(),
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();

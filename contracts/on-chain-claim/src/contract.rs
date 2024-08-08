@@ -72,7 +72,7 @@ pub trait OnChainClaimContract:
 
         address_info_mapper.update(|address_info| {
             address_info.current_streak = 1;
-            address_info.total_epochs_claimed = 1;
+            address_info.total_epochs_claimed += 1;
             address_info.last_epoch_claimed = current_epoch;
 
             self.new_claim_event(&caller, address_info);
