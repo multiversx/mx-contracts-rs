@@ -49,8 +49,6 @@ members = [
   "contracts/multisig",
   "contracts/multisig/meta",
   "contracts/multisig/interact",
-  "contracts/multisig-improved",
-  "contracts/multisig-improved/meta",
   "contracts/mystery-box",
   "contracts/mystery-box/meta",
   "contracts/nft-escrow",
