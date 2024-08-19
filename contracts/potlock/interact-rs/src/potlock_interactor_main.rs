@@ -46,6 +46,7 @@ async fn main() {
         "addAdmin" => interact.add_admin().await,
         "removeAdmin" => interact.remove_admin().await,
         "getAdmins" => interact.admins().await,
+        "getPotlocks" => interact.get_potlocks().await,
         _ => panic!("unknown command: {}", &cmd),
     }
 }
@@ -514,5 +515,22 @@ impl ContractInteract {
             .await;
 
         println!("Result: {result_value:?}");
+    }
+
+    async fn get_potlocks(&mut self) {
+        let result_value = self
+            .interactor
+            .query()
+            .to(self.state.current_address())
+            .typed(proxy::PotlockProxy)
+            .potlocks()
+            .returns(ReturnsResultUnmanaged)
+            .prepare_async()
+            .run()
+            .await;
+
+        for pot in result_value.iter() {
+            println!("Result: {}", pot.name);
+        }
     }
 }

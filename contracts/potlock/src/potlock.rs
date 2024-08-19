@@ -6,7 +6,6 @@ pub mod potlock_admin_interactions;
 pub mod potlock_interactions;
 pub mod potlock_storage;
 
-/// An empty contract. To be used as a template when starting a new contract from scratch.
 #[multiversx_sc::contract]
 pub trait Potlock:
     potlock_admin_interactions::PotlockAdminInteractions

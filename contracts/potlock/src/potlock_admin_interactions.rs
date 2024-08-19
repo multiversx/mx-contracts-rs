@@ -18,7 +18,7 @@ pub trait PotlockAdminInteractions:
             "Invalid token provided"
         );
         require!(
-            token_identifier.is_valid_esdt_identifier() && fee.ge(&BigUint::zero()),
+            token_identifier.is_valid_esdt_identifier() && fee.gt(&BigUint::zero()),
             "Invalid token identifier or amount is 0"
         );
         self.fee_token_identifier().set(&token_identifier);
