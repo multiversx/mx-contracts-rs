@@ -22,7 +22,7 @@ pub trait PotlockAdminInteractions:
             "Invalid token provided"
         );
         require!(fee > 0, "Amount is 0");
-        self.fee_token_identifier().set(&token_identifier);
+        self.fee_token_identifier().set_if_empty(&token_identifier);
         self.fee_amount().set_if_empty(fee);
     }
 
