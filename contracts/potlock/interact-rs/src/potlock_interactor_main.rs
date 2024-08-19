@@ -39,7 +39,6 @@ async fn main() {
         "getFeeTokenIdentifier" => interact.fee_token_identifier().await,
         "getFeeAmount" => interact.fee_amount().await,
         "feePotPayments" => interact.fee_pot_proposer().await,
-        "feeAmountAcceptPots" => interact.fee_amount_accepted_pots().await,
         "potDonations" => interact.pot_donations().await,
         "projectDonations" => interact.project_donations().await,
         "isAdmin" => interact.is_admin().await,
@@ -392,21 +391,6 @@ impl ContractInteract {
             .to(self.state.current_address())
             .typed(proxy::PotlockProxy)
             .fee_pot_proposer(potlock_id)
-            .returns(ReturnsResultUnmanaged)
-            .prepare_async()
-            .run()
-            .await;
-
-        println!("Result: {result_value:?}");
-    }
-
-    async fn fee_amount_accepted_pots(&mut self) {
-        let result_value = self
-            .interactor
-            .query()
-            .to(self.state.current_address())
-            .typed(proxy::PotlockProxy)
-            .fee_amount_accepted_pots()
             .returns(ReturnsResultUnmanaged)
             .prepare_async()
             .run()

@@ -279,15 +279,6 @@ where
             .original_result()
     }
 
-    pub fn fee_amount_accepted_pots(
-        self,
-    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
-        self.wrapped_tx
-            .payment(NotPayable)
-            .raw_call("feeAmountAcceptPots")
-            .original_result()
-    }
-
     pub fn pot_donations<
         Arg0: ProxyArg<usize>,
     >(

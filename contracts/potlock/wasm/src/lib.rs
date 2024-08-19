@@ -24,6 +24,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         acceptPot => accept_pot
         removePot => remove_pot
         acceptApplication => accept_application
+        removeApplication => remove_application
         rejectDonation => reject_donation
         distributePotToProjects => distribute_pot_to_projects
         addPot => add_pot
@@ -34,7 +35,6 @@ multiversx_sc_wasm_adapter::endpoints! {
         getFeeAmount => fee_amount
         getPotlocks => potlocks
         getProjects => projects
-        feeAmountAcceptPots => fee_amount_accepted_pots
         potDonations => pot_donations
         projectDonations => project_donations
         isAdmin => is_admin

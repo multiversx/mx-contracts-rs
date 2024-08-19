@@ -4,12 +4,14 @@ multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 pub mod potlock_admin_interactions;
 pub mod potlock_interactions;
+pub mod potlock_requirements;
 pub mod potlock_storage;
 
 #[multiversx_sc::contract]
 pub trait Potlock:
     potlock_admin_interactions::PotlockAdminInteractions
     + potlock_interactions::PotlockInteractions
+    + potlock_requirements::PotlockRequirements
     + potlock_storage::PotlockStorage
     + multiversx_sc_modules::only_admin::OnlyAdminModule
 {

@@ -1,3 +1,4 @@
+use crate::potlock_requirements;
 use crate::potlock_storage::{self, Pot, Project};
 use crate::potlock_storage::{PotlockId, ProjectId};
 
@@ -6,7 +7,9 @@ multiversx_sc::derive_imports!();
 
 #[multiversx_sc::module]
 pub trait PotlockInteractions:
-    potlock_storage::PotlockStorage + multiversx_sc_modules::only_admin::OnlyAdminModule
+    potlock_requirements::PotlockRequirements
+    + potlock_storage::PotlockStorage
+    + multiversx_sc_modules::only_admin::OnlyAdminModule
 {
     #[payable("*")]
     #[endpoint(addPot)]
@@ -33,21 +36,32 @@ pub trait PotlockInteractions:
         potlock_id: PotlockId,
         project_name: ManagedBuffer,
         description: ManagedBuffer,
-    ) {
-        let project_id = self.projects().len() + 1;
+    ) -> usize {
         let owner = self.blockchain().get_caller();
-        let project = Project::new(project_id, potlock_id, project_name, description, owner);
-        self.projects().push(&project);
+        let project = Project::new(potlock_id, project_name, description, owner);
+        self.projects().push(&project)
     }
 
     #[payable("*")]
     #[endpoint(donateToPot)]
     fn donate_to_pot(&self, potlock_id: PotlockId) {
-        let payment = self.call_value().single_esdt();
-        let caller = self.blockchain().get_caller();
         self.require_potlock_exists(potlock_id);
         self.require_potlock_is_active(potlock_id);
-        self.pot_donations(potlock_id).insert(caller, payment);
+
+        let payment = self.call_value().single_esdt();
+        let caller = self.blockchain().get_caller();
+        let mut pot_donations = self.pot_donations(potlock_id);
+
+        match pot_donations.get(&caller) {
+            Some(mut previous_payment) => {
+                // let a = pot_donations.get(&caller).unwrap();
+                previous_payment.amount += payment.amount;
+                pot_donations.insert(caller, previous_payment);
+            }
+            None => {
+                self.pot_donations(potlock_id).insert(caller, payment);
+            }
+        }
     }
 
     #[payable("*")]
@@ -60,7 +74,7 @@ pub trait PotlockInteractions:
 
         let mut donation_mapper = self.project_donations(project_id);
         if donation_mapper.contains_key(&caller) {
-            let opt_payment = donation_mapper.remove(&caller);
+            let opt_payment = donation_mapper.get(&caller);
             if opt_payment.is_some() {
                 let mut previous_payment = opt_payment.unwrap();
                 require!(
@@ -68,8 +82,7 @@ pub trait PotlockInteractions:
                     "Already made a payment with a different TokenID"
                 );
                 previous_payment.amount += payment.amount;
-                self.project_donations(project_id)
-                    .insert(caller, previous_payment);
+                donation_mapper.insert(caller, previous_payment);
             }
         } else {
             self.project_donations(project_id).insert(caller, payment);
