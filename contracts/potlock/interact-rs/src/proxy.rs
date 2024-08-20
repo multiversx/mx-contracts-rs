@@ -44,15 +44,15 @@ where
     Gas: TxGas<Env>,
 {
     pub fn init<
-        Arg0: ProxyArg<ManagedAddress<Env::Api>>,
+        Arg0: ProxyArg<MultiValueEncoded<Env::Api, ManagedAddress<Env::Api>>>,
     >(
         self,
-        admin: Arg0,
+        admins: Arg0,
     ) -> TxTypedDeploy<Env, From, NotPayable, Gas, ()> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_deploy()
-            .argument(&admin)
+            .argument(&admins)
             .original_result()
     }
 }
@@ -85,6 +85,22 @@ where
     To: TxTo<Env>,
     Gas: TxGas<Env>,
 {
+    pub fn change_fee_for_pots<
+        Arg0: ProxyArg<TokenIdentifier<Env::Api>>,
+        Arg1: ProxyArg<BigUint<Env::Api>>,
+    >(
+        self,
+        token_identifier: Arg0,
+        fee: Arg1,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("changeFeeForPots")
+            .argument(&token_identifier)
+            .argument(&fee)
+            .original_result()
+    }
+
     pub fn accept_pot<
         Arg0: ProxyArg<usize>,
     >(
@@ -124,6 +140,19 @@ where
             .original_result()
     }
 
+    pub fn remove_application<
+        Arg0: ProxyArg<usize>,
+    >(
+        self,
+        project_id: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("removeApplication")
+            .argument(&project_id)
+            .original_result()
+    }
+
     pub fn reject_donation<
         Arg0: ProxyArg<usize>,
         Arg1: ProxyArg<ManagedAddress<Env::Api>>,
@@ -146,13 +175,13 @@ where
     >(
         self,
         potlock_id: Arg0,
-        project_percentage: Arg1,
+        project_percentages: Arg1,
     ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("distributePotToProjects")
             .argument(&potlock_id)
-            .argument(&project_percentage)
+            .argument(&project_percentages)
             .original_result()
     }
 
@@ -180,7 +209,7 @@ where
         potlock_id: Arg0,
         project_name: Arg1,
         description: Arg2,
-    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, usize> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("applyForPot")
@@ -211,22 +240,6 @@ where
         self.wrapped_tx
             .raw_call("donateToProject")
             .argument(&project_id)
-            .original_result()
-    }
-
-    pub fn change_fee_for_pots<
-        Arg0: ProxyArg<TokenIdentifier<Env::Api>>,
-        Arg1: ProxyArg<BigUint<Env::Api>>,
-    >(
-        self,
-        token_identifier: Arg0,
-        fee: Arg1,
-    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
-        self.wrapped_tx
-            .payment(NotPayable)
-            .raw_call("changeFeeForPots")
-            .argument(&token_identifier)
-            .argument(&fee)
             .original_result()
     }
 
@@ -266,29 +279,16 @@ where
             .original_result()
     }
 
-    pub fn fee_pot_proposer<
-        Arg0: ProxyArg<usize>,
-    >(
-        self,
-        potlock_id: Arg0,
-    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ManagedAddress<Env::Api>> {
-        self.wrapped_tx
-            .payment(NotPayable)
-            .raw_call("feePotPayments")
-            .argument(&potlock_id)
-            .original_result()
-    }
-
     pub fn pot_donations<
         Arg0: ProxyArg<usize>,
     >(
         self,
-        project_id: Arg0,
+        potlock_id: Arg0,
     ) -> TxTypedCall<Env, From, To, NotPayable, Gas, MultiValueEncoded<Env::Api, MultiValue2<ManagedAddress<Env::Api>, EsdtTokenPayment<Env::Api>>>> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("potDonations")
-            .argument(&project_id)
+            .argument(&potlock_id)
             .original_result()
     }
 
@@ -361,6 +361,7 @@ where
     Api: ManagedTypeApi,
 {
     pub potlock_id: usize,
+    pub proposer: ManagedAddress<Api>,
     pub token_identifier: TokenIdentifier<Api>,
     pub fee: BigUint<Api>,
     pub name: ManagedBuffer<Api>,
@@ -369,7 +370,7 @@ where
 }
 
 #[type_abi]
-#[derive(TopEncode, TopDecode, PartialEq, Eq, Debug, NestedEncode, NestedDecode)]
+#[derive(TopEncode, TopDecode, NestedDecode, NestedEncode)]
 pub enum Status {
     Inactive,
     Active,
@@ -381,7 +382,6 @@ pub struct Project<Api>
 where
     Api: ManagedTypeApi,
 {
-    pub project_id: usize,
     pub potlock_id: usize,
     pub name: ManagedBuffer<Api>,
     pub description: ManagedBuffer<Api>,
