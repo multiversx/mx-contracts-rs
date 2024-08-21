@@ -1,2 +1,6 @@
 [[proxy]]
 path = "src/paymaster_proxy.rs"
+
+[[proxy]]
+path = "interactor/src/proxy.rs"
+ 
