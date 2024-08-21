@@ -50,18 +50,33 @@ pub trait PotlockInteractions:
 
         let payment = self.call_value().single_esdt();
         let caller = self.blockchain().get_caller();
-        let mut pot_donations = self.pot_donations(potlock_id);
+        let mut donation_mapper = self.pot_donations(potlock_id);
 
-        match pot_donations.get(&caller) {
-            Some(mut previous_payment) => {
-                // let a = pot_donations.get(&caller).unwrap();
+        if donation_mapper.contains_key(&caller) {
+            let opt_payment = donation_mapper.get(&caller);
+            if opt_payment.is_some() {
+                let mut previous_payment = opt_payment.unwrap();
+                require!(
+                    previous_payment.token_identifier == payment.token_identifier.clone(),
+                    "Already made a payment with a different TokenID"
+                );
                 previous_payment.amount += payment.amount;
-                pot_donations.insert(caller, previous_payment);
+                donation_mapper.insert(caller, previous_payment);
             }
-            None => {
-                self.pot_donations(potlock_id).insert(caller, payment);
-            }
+        } else {
+            donation_mapper.insert(caller, payment);
         }
+
+        // match donation_mapper.get(&caller) {
+        //     Some(mut previous_payment) => {
+        //         // let a = pot_donations.get(&caller).unwrap();
+        //         previous_payment.amount += payment.amount;
+        //         pot_donations.insert(caller, previous_payment);
+        //     }
+        //     None => {
+        //         self.pot_donations(potlock_id).insert(caller, payment);
+        //     }
+        // }
     }
 
     #[payable("*")]
@@ -85,7 +100,7 @@ pub trait PotlockInteractions:
                 donation_mapper.insert(caller, previous_payment);
             }
         } else {
-            self.project_donations(project_id).insert(caller, payment);
+            donation_mapper.insert(caller, payment);
         }
     }
 }
