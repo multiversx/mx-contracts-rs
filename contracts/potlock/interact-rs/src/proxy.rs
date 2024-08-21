@@ -355,7 +355,7 @@ where
 }
 
 #[type_abi]
-#[derive(TopEncode, TopDecode)]
+#[derive(TopEncode, TopDecode, Debug)]
 pub struct Pot<Api>
 where
     Api: ManagedTypeApi,
@@ -370,14 +370,14 @@ where
 }
 
 #[type_abi]
-#[derive(TopEncode, TopDecode, NestedDecode, NestedEncode)]
+#[derive(TopEncode, TopDecode, NestedDecode, NestedEncode, Debug)]
 pub enum Status {
     Inactive,
     Active,
 }
 
 #[type_abi]
-#[derive(TopEncode, TopDecode)]
+#[derive(TopEncode, TopDecode, Debug)]
 pub struct Project<Api>
 where
     Api: ManagedTypeApi,
