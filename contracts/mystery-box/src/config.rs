@@ -10,6 +10,8 @@ pub const COLLECTION_NAME: &str = "Mystery Box";
 #[derive(
     ManagedVecItem, NestedEncode, NestedDecode, TopEncode, TopDecode, PartialEq, Eq, Clone,
 )]
+
+#[derive(Debug)]
 pub enum RewardType {
     None,
     ExperiencePoints,
@@ -24,6 +26,9 @@ pub enum RewardType {
 #[derive(
     ManagedVecItem, NestedEncode, NestedDecode, TopEncode, TopDecode, PartialEq, Eq, Clone,
 )]
+
+
+#[derive(Debug)]
 pub struct Reward<M: ManagedTypeApi> {
     pub reward_type: RewardType,
     pub reward_token_id: EgldOrEsdtTokenIdentifier<M>,

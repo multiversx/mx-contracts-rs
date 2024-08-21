@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           12
+// Endpoints:                           13
 // Async Callback (empty):               1
-// Total number of exported functions:  14
+// Total number of exported functions:  15
 
 #![no_std]
 
@@ -20,6 +20,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         init => init
         setupMysteryBox => setup_mystery_box
         updateMysteryBoxUris => update_mystery_box_uris
+        set_roles => set_roles
         createMysteryBox => create_mystery_box
         openMysteryBox => open_mystery_box
         getMysteryBoxTokenIdentifier => mystery_box_token_id

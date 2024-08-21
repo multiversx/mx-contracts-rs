@@ -3,7 +3,7 @@ name = "rust-interact"
 path = "src/potlock_interactor_main.rs"
 
 [package]
-name = "rust-interact"
+name = "potlock-interact"
 version = "0.0.0"
 authors = ["you"]
 edition = "2021"
@@ -28,3 +28,5 @@ features = ["derive"]
 [dependencies.serde]
 version = "1.0"
 features = ["derive"]
+
+

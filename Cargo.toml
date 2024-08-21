@@ -51,6 +51,7 @@ members = [
   "contracts/multisig/interact",
   "contracts/mystery-box",
   "contracts/mystery-box/meta",
+   "contracts/mystery-box/interactor",
   "contracts/nft-escrow",
   "contracts/nft-escrow/meta",
   "contracts/nft-minter",

@@ -13,10 +13,11 @@ path = "src/potlock.rs"
 version = "0.52.1"
 
 [dependencies.multiversx-sc-modules]
-version = "=0.52.1"
+version = "=0.52.3"
 
 [dev-dependencies]
 num-bigint = "0.4.2"
 
 [dev-dependencies.multiversx-sc-scenario]
 version = "0.52.1"
+

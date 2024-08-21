@@ -45,4 +45,11 @@ pub trait TokenAttributesModule: config::ConfigModule {
 
     #[storage_mapper("attributesToNonceMapping")]
     fn attributes_to_nonce_mapping(&self, attributes: &ManagedBuffer) -> SingleValueMapper<u64>;
+
+    
+
 }
+
+
+
+

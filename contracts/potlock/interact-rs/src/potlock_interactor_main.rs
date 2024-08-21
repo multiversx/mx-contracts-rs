@@ -22,32 +22,32 @@ async fn main() {
 
     let mut args = std::env::args();
     let _ = args.next();
-    let cmd = args.next().expect("at least one argument required");
-    let mut interact = ContractInteract::new().await;
-    match cmd.as_str() {
-        "deploy" => interact.deploy().await,
-        "acceptPot" => interact.accept_pot().await,
-        "removePot" => interact.remove_pot().await,
-        "acceptApplication" => interact.accept_application().await,
-        "rejectDonation" => interact.reject_donation().await,
-        "distributePotToProjects" => interact.distribute_pot_to_projects().await,
-        "addPot" => interact.add_pot().await,
-        "applyForPot" => interact.apply_for_pot().await,
-        "donateToPot" => interact.donate_to_pot().await,
-        "donateToProject" => interact.donate_to_project().await,
-        "changeFeeForPots" => interact.change_fee_for_pots().await,
-        "getFeeTokenIdentifier" => interact.fee_token_identifier().await,
-        "getFeeAmount" => interact.fee_amount().await,
-        "feePotPayments" => interact.fee_pot_proposer().await,
-        "feeAmountAcceptPots" => interact.fee_amount_accepted_pots().await,
-        "potDonations" => interact.pot_donations().await,
-        "projectDonations" => interact.project_donations().await,
-        "isAdmin" => interact.is_admin().await,
-        "addAdmin" => interact.add_admin().await,
-        "removeAdmin" => interact.remove_admin().await,
-        "getAdmins" => interact.admins().await,
-        _ => panic!("unknown command: {}", &cmd),
-    }
+    // let cmd = args.next().expect("at least one argument required");
+    // let mut interact = ContractInteract::new().await;
+    // match cmd.as_str() {
+    //     "deploy" => interact.deploy().await,
+    //     "acceptPot" => interact.accept_pot().await,
+    //     "removePot" => interact.remove_pot().await,
+    //     "acceptApplication" => interact.accept_application().await,
+    //     "rejectDonation" => interact.reject_donation().await,
+    //     "distributePotToProjects" => interact.distribute_pot_to_projects().await,
+    //     "addPot" => interact.add_pot().await,
+    //     "applyForPot" => interact.apply_for_pot().await,
+    //     "donateToPot" => interact.donate_to_pot().await,
+    //     "donateToProject" => interact.donate_to_project().await,
+    //     "changeFeeForPots" => interact.change_fee_for_pots().await,
+    //     "getFeeTokenIdentifier" => interact.fee_token_identifier().await,
+    //     "getFeeAmount" => interact.fee_amount().await,
+    //     "feePotPayments" => interact.fee_pot_proposer().await,
+    //     "feeAmountAcceptPots" => interact.fee_amount_accepted_pots().await,
+    //     "potDonations" => interact.pot_donations().await,
+    //     "projectDonations" => interact.project_donations().await,
+    //     "isAdmin" => interact.is_admin().await,
+    //     "addAdmin" => interact.add_admin().await,
+    //     "removeAdmin" => interact.remove_admin().await,
+    //     "getAdmins" => interact.admins().await,
+    //     _ => panic!("unknown command: {}", &cmd),
+    // }
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
@@ -117,9 +117,8 @@ impl ContractInteract {
             config: Config::load_config(),
         }
     }
-
-    async fn deploy(&mut self) {
-        let admin = &self.config.admin;
+    async fn deploy(&mut self, admin : &Bech32Address ) {
+      //  let admin: &Bech32Address = &self.config.admin;
 
         let new_address = self
             .interactor
@@ -140,7 +139,6 @@ impl ContractInteract {
 
         println!("new address: {new_address_bech32}");
     }
-
     async fn accept_pot(&mut self) {
         let admin = &self.config.admin;
         let potlock_id = 1u32;
@@ -515,4 +513,21 @@ impl ContractInteract {
 
         println!("Result: {result_value:?}");
     }
+}
+
+
+
+//TESTE
+
+
+//Test pentru deploy
+#[tokio::test]
+async fn test_deploy() 
+{
+    let mut interact = ContractInteract::new().await;
+
+    let admin = interact.config.admin.clone();
+
+    interact.deploy(&admin).await;
+
 }
