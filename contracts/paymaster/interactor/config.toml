@@ -1,0 +1,7 @@
+gateway = 'https://devnet-gateway.multiversx.com'
+
+relayer_addr = "erd19azy5vlq343un82cqz03744vmta9ya8l5xwj3ywz7r8m8pkttd0syhkffa"
+egld_mex_pair_address = "erd1qqqqqqqqqqqqqpgqzw0d0tj25qme9e4ukverjjjqle6xamay0n4s5r0v9g"
+egld_usdc_pair_address = "erd1qqqqqqqqqqqqqpgqtqfhy99su9xzjjrq59kpzpp25udtc9eq0n4sr90ax6"
+wegld_address = "erd1qqqqqqqqqqqqqpgqpv09kfzry5y4sj05udcngesat07umyj70n4sa2c0rp"
+router_address = "erd1qqqqqqqqqqqqqpgqa7hv0nahgsl8tz0psat46x0tchm0wuyc0n4s6q28ad"
