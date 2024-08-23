@@ -126,6 +126,16 @@ impl PriceAggregatorTestState {
             .run();
     }
 
+    fn pause_endpoint(&mut self) {
+        self.world
+            .tx()
+            .from(OWNER_ADDRESS)
+            .to(PRICE_AGGREGATOR_ADDRESS)
+            .typed(price_aggregator_proxy::PriceAggregatorProxy)
+            .pause_endpoint()
+            .run();
+    }
+
     fn submit(&mut self, from: &AddressValue, submission_timestamp: u64, price: u64) {
         self.world
             .tx()
@@ -384,4 +394,31 @@ fn test_price_aggregator_slashing() {
         10_000,
         "only oracles allowed",
     );
+}
+
+#[test]
+fn test_set_decimals_pause() {
+    let mut state = PriceAggregatorTestState::new();
+    state.deploy();
+
+    state.unpause_endpoint();
+
+    // First setPair can be done if contract is unpaused
+    state.set_pair_decimals();
+
+    // Second setPair cannot be done if contract is unpaused
+    state
+        .world
+        .tx()
+        .from(OWNER_ADDRESS)
+        .to(PRICE_AGGREGATOR_ADDRESS)
+        .typed(price_aggregator_proxy::PriceAggregatorProxy)
+        .set_pair_decimals(EGLD_TICKER, USD_TICKER, DECIMALS)
+        .returns(ExpectError(4, "Contract is not paused"))
+        .run();
+
+    state.pause_endpoint();
+
+    // setPair can be done while contract is paused
+    state.set_pair_decimals();
 }
