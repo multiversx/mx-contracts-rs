@@ -40,7 +40,7 @@ pub trait ForwardCall {
                 .payment(&back_transfers.esdt_payments)
                 .transfer();
         }
-        if back_transfers.total_egld_amount != BigUint::zero() {
+        if back_transfers.total_egld_amount > 0 {
             self.tx()
                 .to(&original_caller)
                 .egld(back_transfers.total_egld_amount)
