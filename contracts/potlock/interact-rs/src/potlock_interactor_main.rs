@@ -1,5 +1,7 @@
 #![allow(non_snake_case)]
-
+#[allow(unused_imports)]
+#[allow(dead_code)]
+#[allow(unused_variables)]
 mod proxy;
 
 use multiversx_sc_snippets::imports::*;
@@ -16,13 +18,12 @@ const GATEWAY: &str = sdk::gateway::TESTNET_GATEWAY;
 const STATE_FILE: &str = "state.toml";
 const TOKEN_ID: &str = "VLD-070dac";
 const SECOND_TOKEN_ID: &str = "SCND-620d29";
-const THIRD_TOKEN_ID: &str = "RAND-e3641c";
 const INVALID_TOKEN_ID: &str = "123";
 const FEE_AMOUNT: u64 = 1;
 const DONATION_AMOUNT: u64 = 10;
-const OWNER_ADDR: &str = "erd1r6f7nfpyzul2tef7gne5h6nx9xqnyt5gehwltlxymnqkztjjzvuqdhderc";
-const SECOND_USER_ADDR: &str = "erd1tjusdv806tuwzllgesljglm7y9jef38wdylkvp85v7a46z9x23us0z5xtr";
-const THIRD_USER_ADDR: &str = "erd1pu4r9rxgn8f7a7gwjchtxjz6y4u3ha7fy93w6r3fjeq26jaqkqjs4ly8fd";
+const OWNER_ADDR: &str = "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th";
+const SECOND_USER_ADDR: &str = "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx";
+const THIRD_USER_ADDR: &str = "erd1k2s324ww2g0yj38qn2ch2jwctdy8mnfxep94q9arncc6xecg3xaq6mjse8";
 const MAX_PERCENTAGE: u64 = 10_000;
 const BIG_ID: u32 = 1000u32;
 
@@ -114,12 +115,9 @@ struct ContractInteract {
 impl ContractInteract {
     async fn new() -> Self {
         let mut interactor = Interactor::new(GATEWAY).await;
-        let owner_address = interactor
-            .register_wallet(Wallet::from_pem_file("wallet1.pem").expect("wallet 1 not found"));
-        let second_address = interactor
-            .register_wallet(Wallet::from_pem_file("wallet2.pem").expect("wallet 2 not found"));
-        let third_address = interactor
-            .register_wallet(Wallet::from_pem_file("wallet3.pem").expect("wallet 3 not found"));
+        let owner_address = interactor.register_wallet(test_wallets::alice());
+        let second_address = interactor.register_wallet(test_wallets::bob());
+        let third_address = interactor.register_wallet(test_wallets::carol());
 
         let contract_code = BytesValue::interpret_from(
             "mxsc:../output/potlock.mxsc.json",
@@ -817,6 +815,16 @@ async fn test_deploy_and_config() {
 #[tokio::test]
 async fn test_add_pot() {
     let mut interact = ContractInteract::new().await;
+
+    interact.deploy().await;
+
+    interact
+        .change_fee_for_pots(
+            &Bech32Address::from_bech32_string(OWNER_ADDR.to_string()),
+            TOKEN_ID,
+            FEE_AMOUNT.into(),
+        )
+        .await;
 
     interact
         .add_pot(
