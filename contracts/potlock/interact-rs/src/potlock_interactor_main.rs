@@ -20,7 +20,7 @@ const STATE_FILE: &str = "state.toml";
 const TOKEN_ID: &str = "VLD-070dac";
 const SECOND_TOKEN_ID: &str = "SCND-620d29";
 const INVALID_TOKEN_ID: &str = "123";
-const FEE_AMOUNT: u64 = 1;
+const FEE_AMOUNT: u128 = 1;
 const DONATION_AMOUNT: u64 = 10;
 const OWNER_ADDR: &str = "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th";
 const SECOND_USER_ADDR: &str = "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx";
@@ -38,28 +38,6 @@ async fn main() {
     let mut interact = ContractInteract::new().await;
     match cmd.as_str() {
         "deploy" => interact.deploy().await,
-        // "upgrade" => interact.upgrade().await,
-        // "changeFeeForPots" => interact.change_fee_for_pots().await,
-        // "acceptPot" => interact.accept_pot().await,
-        // "removePot" => interact.remove_pot().await,
-        // "acceptApplication" => interact.accept_application().await,
-        // "removeApplication" => interact.remove_application().await,
-        // "rejectDonation" => interact.reject_donation().await,
-        // "distributePotToProjects" => interact.distribute_pot_to_projects().await,
-        // "addPot" => interact.add_pot().await,
-        // "applyForPot" => interact.apply_for_pot().await,
-        // "donateToPot" => interact.donate_to_pot().await,
-        // "donateToProject" => interact.donate_to_project().await,
-        // "getFeeTokenIdentifier" => interact.fee_token_identifier().await,
-        // "getFeeAmount" => interact.fee_amount().await,
-        // "getPotlocks" => interact.potlocks().await,
-        // "getProjects" => interact.projects().await,
-        // "potDonations" => interact.pot_donations().await,
-        // "projectDonations" => interact.project_donations().await,
-        // "isAdmin" => interact.is_admin().await,
-        // "addAdmin" => interact.add_admin().await,
-        // "removeAdmin" => interact.remove_admin().await,
-        // "getAdmins" => interact.admins().await,
         _ => panic!("unknown command: {}", &cmd),
     }
 }
@@ -420,7 +398,6 @@ impl ContractInteract {
     }
 
     async fn add_pot(&mut self, caller: &Bech32Address, token_id: &str, fee: u128) {
-        let token_id = token_id.to_string();
         let token_nonce = 0u64;
         let token_amount = BigUint::<StaticApi>::from(fee);
 
@@ -435,11 +412,7 @@ impl ContractInteract {
             .gas(70_000_000u64)
             .typed(proxy::PotlockProxy)
             .add_pot(name, description)
-            .payment((
-                TokenIdentifier::from(token_id.as_str()),
-                token_nonce,
-                token_amount,
-            ))
+            .payment((TokenIdentifier::from(token_id), token_nonce, token_amount))
             .returns(ReturnsResultUnmanaged)
             .prepare_async()
             .run()
@@ -455,7 +428,6 @@ impl ContractInteract {
         fee: u128,
         expected_result: ExpectError<'_>,
     ) {
-        let token_id = token_id.to_string();
         let token_nonce = 0u64;
         let token_amount = BigUint::<StaticApi>::from(fee);
 
@@ -470,11 +442,7 @@ impl ContractInteract {
             .gas(70_000_000u64)
             .typed(proxy::PotlockProxy)
             .add_pot(name, description)
-            .payment((
-                TokenIdentifier::from(token_id.as_str()),
-                token_nonce,
-                token_amount,
-            ))
+            .payment((TokenIdentifier::from(token_id), token_nonce, token_amount))
             .returns(expected_result)
             .prepare_async()
             .run()
@@ -510,7 +478,6 @@ impl ContractInteract {
         token_id: &str,
         amount: u128,
     ) {
-        let token_id = token_id.to_string();
         let token_nonce = 0u64;
         let token_amount = BigUint::<StaticApi>::from(amount);
 
@@ -522,11 +489,7 @@ impl ContractInteract {
             .gas(70_000_000u64)
             .typed(proxy::PotlockProxy)
             .donate_to_pot(potlock_id)
-            .payment((
-                TokenIdentifier::from(token_id.as_str()),
-                token_nonce,
-                token_amount,
-            ))
+            .payment((TokenIdentifier::from(token_id), token_nonce, token_amount))
             .returns(ReturnsResultUnmanaged)
             .prepare_async()
             .run()
@@ -543,7 +506,6 @@ impl ContractInteract {
         amount: u128,
         expected_result: ExpectError<'_>,
     ) {
-        let token_id = token_id.to_string();
         let token_nonce = 0u64;
         let token_amount = BigUint::<StaticApi>::from(amount);
 
@@ -555,11 +517,7 @@ impl ContractInteract {
             .gas(70_000_000u64)
             .typed(proxy::PotlockProxy)
             .donate_to_pot(potlock_id)
-            .payment((
-                TokenIdentifier::from(token_id.as_str()),
-                token_nonce,
-                token_amount,
-            ))
+            .payment((TokenIdentifier::from(token_id), token_nonce, token_amount))
             .returns(expected_result)
             .prepare_async()
             .run()
@@ -575,7 +533,6 @@ impl ContractInteract {
         token_id: &str,
         amount: u128,
     ) {
-        let token_id = token_id.to_string();
         let token_nonce = 0u64;
         let token_amount = BigUint::<StaticApi>::from(amount);
 
@@ -587,11 +544,7 @@ impl ContractInteract {
             .gas(70_000_000u64)
             .typed(proxy::PotlockProxy)
             .donate_to_project(project_id)
-            .payment((
-                TokenIdentifier::from(token_id.as_str()),
-                token_nonce,
-                token_amount,
-            ))
+            .payment((TokenIdentifier::from(token_id), token_nonce, token_amount))
             .returns(ReturnsResultUnmanaged)
             .prepare_async()
             .run()
@@ -608,7 +561,6 @@ impl ContractInteract {
         amount: u128,
         expected_result: ExpectError<'_>,
     ) {
-        let token_id = token_id.to_string();
         let token_nonce = 0u64;
         let token_amount = BigUint::<StaticApi>::from(amount);
 
@@ -620,11 +572,7 @@ impl ContractInteract {
             .gas(70_000_000u64)
             .typed(proxy::PotlockProxy)
             .donate_to_project(project_id)
-            .payment((
-                TokenIdentifier::from(token_id.as_str()),
-                token_nonce,
-                token_amount,
-            ))
+            .payment((TokenIdentifier::from(token_id), token_nonce, token_amount))
             .returns(expected_result)
             .prepare_async()
             .run()
@@ -809,7 +757,7 @@ async fn test_deploy_and_config() {
         .change_fee_for_pots(
             &Bech32Address::from_bech32_string(OWNER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 }
@@ -825,7 +773,7 @@ async fn test_add_pot() {
         .change_fee_for_pots(
             &Bech32Address::from_bech32_string(OWNER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -833,7 +781,7 @@ async fn test_add_pot() {
         .add_pot(
             &Bech32Address::from_bech32_string(SECOND_USER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 }
@@ -849,7 +797,7 @@ async fn test_accept_pot() {
         .change_fee_for_pots(
             &Bech32Address::from_bech32_string(OWNER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -857,7 +805,7 @@ async fn test_accept_pot() {
         .add_pot(
             &Bech32Address::from_bech32_string(SECOND_USER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -880,7 +828,7 @@ async fn test_remove_pot() {
         .change_fee_for_pots(
             &Bech32Address::from_bech32_string(OWNER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -888,7 +836,7 @@ async fn test_remove_pot() {
         .add_pot(
             &Bech32Address::from_bech32_string(SECOND_USER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -911,7 +859,7 @@ async fn test_donate_to_pot() {
         .change_fee_for_pots(
             &Bech32Address::from_bech32_string(OWNER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -919,7 +867,7 @@ async fn test_donate_to_pot() {
         .add_pot(
             &Bech32Address::from_bech32_string(SECOND_USER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -951,7 +899,7 @@ async fn test_accept_application() {
         .change_fee_for_pots(
             &Bech32Address::from_bech32_string(OWNER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -959,7 +907,7 @@ async fn test_accept_application() {
         .add_pot(
             &Bech32Address::from_bech32_string(SECOND_USER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -996,7 +944,7 @@ async fn test_donate_to_project() {
         .change_fee_for_pots(
             &Bech32Address::from_bech32_string(OWNER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -1004,7 +952,7 @@ async fn test_donate_to_project() {
         .add_pot(
             &Bech32Address::from_bech32_string(SECOND_USER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -1050,7 +998,7 @@ async fn test_distribute_pot_to_projects() {
         .change_fee_for_pots(
             &Bech32Address::from_bech32_string(OWNER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -1058,7 +1006,7 @@ async fn test_distribute_pot_to_projects() {
         .add_pot(
             &Bech32Address::from_bech32_string(SECOND_USER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -1114,7 +1062,7 @@ async fn test_donate_to_pot_twice_with_same_token() {
         .change_fee_for_pots(
             &Bech32Address::from_bech32_string(OWNER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -1122,7 +1070,7 @@ async fn test_donate_to_pot_twice_with_same_token() {
         .add_pot(
             &Bech32Address::from_bech32_string(SECOND_USER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -1163,7 +1111,7 @@ async fn test_multiple_change_fee_for_pots() {
         .change_fee_for_pots(
             &Bech32Address::from_bech32_string(OWNER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -1197,7 +1145,7 @@ async fn test_change_fee_for_pots_non_admin() {
         .change_fee_for_pots_fail(
             &Bech32Address::from_bech32_string(SECOND_USER_ADDR.to_string()),
             INVALID_TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
             ExpectError(4, "Endpoint can only be called by admins"),
         )
         .await;
@@ -1273,7 +1221,7 @@ async fn test_distribute_pot_to_projects_more_than_max_percent() {
         .change_fee_for_pots(
             &Bech32Address::from_bech32_string(OWNER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -1281,7 +1229,7 @@ async fn test_distribute_pot_to_projects_more_than_max_percent() {
         .add_pot(
             &Bech32Address::from_bech32_string(SECOND_USER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -1339,7 +1287,7 @@ async fn test_donate_to_project_with_different_token() {
         .change_fee_for_pots(
             &Bech32Address::from_bech32_string(OWNER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -1347,7 +1295,7 @@ async fn test_donate_to_project_with_different_token() {
         .add_pot(
             &Bech32Address::from_bech32_string(SECOND_USER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -1403,7 +1351,7 @@ async fn test_donate_to_project_inactive_project() {
         .change_fee_for_pots(
             &Bech32Address::from_bech32_string(OWNER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -1411,7 +1359,7 @@ async fn test_donate_to_project_inactive_project() {
         .add_pot(
             &Bech32Address::from_bech32_string(SECOND_USER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -1451,7 +1399,7 @@ async fn test_donate_to_pot_inactive_pot() {
         .change_fee_for_pots(
             &Bech32Address::from_bech32_string(OWNER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -1459,7 +1407,7 @@ async fn test_donate_to_pot_inactive_pot() {
         .add_pot(
             &Bech32Address::from_bech32_string(SECOND_USER_ADDR.to_string()),
             TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
         )
         .await;
 
@@ -1483,7 +1431,7 @@ async fn test_add_pot_wrong_payment() {
         .add_pot_fail(
             &Bech32Address::from_bech32_string(SECOND_USER_ADDR.to_string()),
             SECOND_TOKEN_ID,
-            FEE_AMOUNT.into(),
+            FEE_AMOUNT,
             ExpectError(4, "Wrong token identifier for creating a pot!"),
         )
         .await;
