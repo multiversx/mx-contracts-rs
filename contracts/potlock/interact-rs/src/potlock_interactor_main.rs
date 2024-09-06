@@ -799,6 +799,7 @@ impl ContractInteract {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_deploy_and_config() {
     let mut interact = ContractInteract::new().await;
 
@@ -814,6 +815,7 @@ async fn test_deploy_and_config() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_add_pot() {
     let mut interact = ContractInteract::new().await;
 
@@ -837,6 +839,7 @@ async fn test_add_pot() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_accept_pot() {
     let mut interact = ContractInteract::new().await;
 
@@ -867,6 +870,7 @@ async fn test_accept_pot() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_remove_pot() {
     let mut interact = ContractInteract::new().await;
 
@@ -897,6 +901,7 @@ async fn test_remove_pot() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_donate_to_pot() {
     let mut interact = ContractInteract::new().await;
 
@@ -936,6 +941,7 @@ async fn test_donate_to_pot() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_accept_application() {
     let mut interact = ContractInteract::new().await;
 
@@ -980,6 +986,7 @@ async fn test_accept_application() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_donate_to_project() {
     let mut interact = ContractInteract::new().await;
 
@@ -1033,6 +1040,7 @@ async fn test_donate_to_project() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_distribute_pot_to_projects() {
     let mut interact = ContractInteract::new().await;
 
@@ -1096,6 +1104,7 @@ async fn test_distribute_pot_to_projects() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_donate_to_pot_twice_with_same_token() {
     let mut interact = ContractInteract::new().await;
 
@@ -1144,6 +1153,7 @@ async fn test_donate_to_pot_twice_with_same_token() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_multiple_change_fee_for_pots() {
     let mut interact = ContractInteract::new().await;
 
@@ -1179,6 +1189,7 @@ async fn test_multiple_change_fee_for_pots() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_change_fee_for_pots_non_admin() {
     let mut interact = ContractInteract::new().await;
 
@@ -1193,6 +1204,7 @@ async fn test_change_fee_for_pots_non_admin() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_accept_pot_non_admin() {
     let mut interact = ContractInteract::new().await;
 
@@ -1206,6 +1218,7 @@ async fn test_accept_pot_non_admin() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_remove_pot_non_admin() {
     let mut interact = ContractInteract::new().await;
 
@@ -1219,6 +1232,7 @@ async fn test_remove_pot_non_admin() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_accept_application_non_admin() {
     let mut interact = ContractInteract::new().await;
 
@@ -1232,6 +1246,7 @@ async fn test_accept_application_non_admin() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_distribute_pot_to_projects_non_admin() {
     let mut interact = ContractInteract::new().await;
 
@@ -1248,6 +1263,7 @@ async fn test_distribute_pot_to_projects_non_admin() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_distribute_pot_to_projects_more_than_max_percent() {
     let mut interact = ContractInteract::new().await;
 
@@ -1313,6 +1329,7 @@ async fn test_distribute_pot_to_projects_more_than_max_percent() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_donate_to_project_with_different_token() {
     let mut interact = ContractInteract::new().await;
 
@@ -1376,6 +1393,7 @@ async fn test_donate_to_project_with_different_token() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_donate_to_project_inactive_project() {
     let mut interact = ContractInteract::new().await;
 
@@ -1423,6 +1441,7 @@ async fn test_donate_to_project_inactive_project() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_donate_to_pot_inactive_pot() {
     let mut interact = ContractInteract::new().await;
 
@@ -1456,6 +1475,7 @@ async fn test_donate_to_pot_inactive_pot() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_add_pot_wrong_payment() {
     let mut interact = ContractInteract::new().await;
 
@@ -1479,6 +1499,7 @@ async fn test_add_pot_wrong_payment() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_accept_pot_non_existent() {
     let mut interact = ContractInteract::new().await;
 
@@ -1492,6 +1513,7 @@ async fn test_accept_pot_non_existent() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_remove_pot_non_existent() {
     let mut interact = ContractInteract::new().await;
 
@@ -1505,6 +1527,7 @@ async fn test_remove_pot_non_existent() {
 }
 
 #[tokio::test]
+#[ignore = "run on demand"]
 async fn test_donate_to_pot_non_existent() {
     let mut interact = ContractInteract::new().await;
 
