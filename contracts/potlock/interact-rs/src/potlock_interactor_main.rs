@@ -1125,7 +1125,7 @@ async fn test_multiple_change_fee_for_pots() {
         .change_fee_for_pots(
             &Bech32Address::from_bech32_string(OWNER_ADDR.to_string()),
             SECOND_TOKEN_ID,
-            (FEE_AMOUNT + 1).into(),
+            FEE_AMOUNT + 1,
         )
         .await;
 
@@ -1440,7 +1440,7 @@ async fn test_add_pot_wrong_payment() {
         .add_pot_fail(
             &Bech32Address::from_bech32_string(SECOND_USER_ADDR.to_string()),
             TOKEN_ID,
-            (FEE_AMOUNT + 1).into(),
+            FEE_AMOUNT + 1,
             ExpectError(4, "Wrong fee amount for creating a pot"),
         )
         .await;
