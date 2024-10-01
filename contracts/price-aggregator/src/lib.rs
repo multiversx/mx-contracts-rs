@@ -5,8 +5,8 @@ use multiversx_sc::imports::*;
 mod events;
 pub mod median;
 pub mod price_aggregator_data;
+pub mod staking;
 
-use multiversx_sc_modules::staking;
 use price_aggregator_data::{OracleStatus, PriceFeed, TimestampedPrice, TokenPair};
 
 const SUBMISSION_LIST_MAX_LEN: usize = 50;
