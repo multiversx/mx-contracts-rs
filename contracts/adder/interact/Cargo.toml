@@ -24,4 +24,4 @@ features = ["derive"]
 path = ".."
 
 [dependencies.multiversx-sc-snippets]
-version = "0.52.3"
+version = "0.53.2"
