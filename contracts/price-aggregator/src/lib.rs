@@ -183,10 +183,15 @@ pub trait PriceAggregator:
         let accepted = !submissions.contains_key(&caller)
             && (is_first_submission || submission_timestamp >= first_submission_timestamp);
         if accepted {
-            submissions.insert(caller, price);
+            submissions.insert(caller.clone(), price.clone());
             last_sub_time_mapper.set(current_timestamp);
-
-            self.create_new_round(token_pair, submissions, decimals);
+            self.create_new_round(token_pair.clone(), submissions, decimals);
+            let wrapped_rounds = self.rounds().get(&token_pair);
+            let mut round_id = 0;
+            if wrapped_rounds.is_some() {
+                round_id = wrapped_rounds.unwrap().len();
+            }
+            self.add_submission_event(&caller, &price, round_id);
         }
 
         self.oracle_status()
@@ -282,6 +287,13 @@ pub trait PriceAggregator:
                 .get()
                 .push(&price_feed);
             self.emit_new_round_event(&token_pair, &price_feed);
+        } else {
+            let wrapped_rounds = self.rounds().get(&token_pair);
+            let mut round_id = 0;
+            if wrapped_rounds.is_some() {
+                round_id = wrapped_rounds.unwrap().len();
+            }
+            self.discard_round_event(&token_pair.from.clone(), &token_pair.to.clone(), round_id);
         }
     }
 
