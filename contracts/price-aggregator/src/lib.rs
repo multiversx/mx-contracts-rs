@@ -1,6 +1,6 @@
 #![no_std]
 
-use multiversx_sc::imports::*;
+multiversx_sc::imports!();
 
 mod events;
 pub mod median;
@@ -183,10 +183,21 @@ pub trait PriceAggregator:
         let accepted = !submissions.contains_key(&caller)
             && (is_first_submission || submission_timestamp >= first_submission_timestamp);
         if accepted {
-            submissions.insert(caller, price);
+            submissions.insert(caller.clone(), price.clone());
             last_sub_time_mapper.set(current_timestamp);
 
-            self.create_new_round(token_pair, submissions, decimals);
+            let mut round_id = 0;
+            let wrapped_rounds = self.rounds().get(&token_pair);
+            if wrapped_rounds.is_some() {
+                round_id = wrapped_rounds.unwrap().len() + 1;
+            }
+            self.create_new_round(token_pair.clone(), round_id, submissions, decimals);
+            self.add_submission_event(
+                &token_pair.from.clone(),
+                &token_pair.to.clone(),
+                round_id,
+                &price,
+            );
         }
 
         self.oracle_status()
@@ -248,6 +259,7 @@ pub trait PriceAggregator:
     fn create_new_round(
         &self,
         token_pair: TokenPair<Self::Api>,
+        round_id: usize,
         mut submissions: MapMapper<ManagedAddress, BigUint>,
         decimals: u8,
     ) {
@@ -281,7 +293,9 @@ pub trait PriceAggregator:
                 .or_default()
                 .get()
                 .push(&price_feed);
-            self.emit_new_round_event(&token_pair, &price_feed);
+            self.emit_new_round_event(&token_pair, round_id, &price_feed);
+        } else {
+            self.discard_round_event(&token_pair.from.clone(), &token_pair.to.clone(), round_id);
         }
     }
 
