@@ -47,6 +47,11 @@ pub trait PriceAggregator:
         self.set_paused(true);
     }
 
+    #[upgrade]
+    fn upgrade(&self) {
+        self.set_paused(true);
+    }
+
     #[only_owner]
     #[endpoint(changeAmounts)]
     fn change_amounts(&self, staking_amount: BigUint, slash_amount: BigUint) {
