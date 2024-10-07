@@ -67,6 +67,7 @@ members = [
   "contracts/pair-mock/meta",
   "contracts/paymaster",
   "contracts/paymaster/meta",
+  "contracts/paymaster/interactor",
   "contracts/ping-pong-egld",
   "contracts/ping-pong-egld/meta",
   "contracts/potlock",

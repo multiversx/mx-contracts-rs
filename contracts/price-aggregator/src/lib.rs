@@ -1,6 +1,6 @@
 #![no_std]
 
-use multiversx_sc::imports::*;
+multiversx_sc::imports!();
 
 mod events;
 pub mod median;
@@ -44,6 +44,11 @@ pub trait PriceAggregator:
         self.require_valid_submission_count(submission_count);
         self.submission_count().set(submission_count);
 
+        self.set_paused(true);
+    }
+
+    #[upgrade]
+    fn upgrade(&self) {
         self.set_paused(true);
     }
 
@@ -154,6 +159,12 @@ pub trait PriceAggregator:
         let first_sub_time_mapper = self.first_submission_timestamp(&token_pair);
         let last_sub_time_mapper = self.last_submission_timestamp(&token_pair);
 
+        let mut round_id = 0;
+        let wrapped_rounds = self.rounds().get(&token_pair);
+        if wrapped_rounds.is_some() {
+            round_id = wrapped_rounds.unwrap().len() + 1;
+        }
+
         let current_timestamp = self.blockchain().get_block_timestamp();
         let mut is_first_submission = false;
         let mut first_submission_timestamp = if submissions.is_empty() {
@@ -177,16 +188,32 @@ pub trait PriceAggregator:
 
             first_submission_timestamp = current_timestamp;
             is_first_submission = true;
+            self.discard_round_event(&token_pair.from.clone(), &token_pair.to.clone(), round_id)
         }
 
         let caller = self.blockchain().get_caller();
-        let accepted = !submissions.contains_key(&caller)
+        let has_caller_already_submitted = submissions.contains_key(&caller);
+        let accepted = !has_caller_already_submitted
             && (is_first_submission || submission_timestamp >= first_submission_timestamp);
         if accepted {
-            submissions.insert(caller, price);
+            submissions.insert(caller.clone(), price.clone());
             last_sub_time_mapper.set(current_timestamp);
 
-            self.create_new_round(token_pair, submissions, decimals);
+            self.create_new_round(token_pair.clone(), round_id, submissions, decimals);
+            self.add_submission_event(
+                &token_pair.from.clone(),
+                &token_pair.to.clone(),
+                round_id,
+                &price,
+            );
+        } else {
+            self.emit_discard_submission_event(
+                &token_pair,
+                round_id,
+                submission_timestamp,
+                first_submission_timestamp,
+                has_caller_already_submitted,
+            );
         }
 
         self.oracle_status()
@@ -248,6 +275,7 @@ pub trait PriceAggregator:
     fn create_new_round(
         &self,
         token_pair: TokenPair<Self::Api>,
+        round_id: usize,
         mut submissions: MapMapper<ManagedAddress, BigUint>,
         decimals: u8,
     ) {
@@ -281,7 +309,7 @@ pub trait PriceAggregator:
                 .or_default()
                 .get()
                 .push(&price_feed);
-            self.emit_new_round_event(&token_pair, &price_feed);
+            self.emit_new_round_event(&token_pair, round_id, &price_feed);
         }
     }
 
@@ -377,9 +405,11 @@ pub trait PriceAggregator:
     #[only_owner]
     #[endpoint(setPairDecimals)]
     fn set_pair_decimals(&self, from: ManagedBuffer, to: ManagedBuffer, decimals: u8) {
-        self.require_paused();
-
-        self.pair_decimals(&from, &to).set(Some(decimals));
+        let pair_decimals_mapper = self.pair_decimals(&from, &to);
+        if !pair_decimals_mapper.is_empty() {
+            self.require_paused();
+        }
+        pair_decimals_mapper.set(Some(decimals));
         let pair = TokenPair { from, to };
         self.clear_submissions(&pair);
     }
