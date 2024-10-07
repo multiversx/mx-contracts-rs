@@ -168,8 +168,6 @@ pub trait PriceAggregator:
         let current_timestamp = self.blockchain().get_block_timestamp();
         let mut is_first_submission = false;
         let mut first_submission_timestamp = if submissions.is_empty() {
-            self.require_valid_first_submission(submission_timestamp, current_timestamp);
-
             first_sub_time_mapper.set(current_timestamp);
             is_first_submission = true;
 
@@ -180,8 +178,6 @@ pub trait PriceAggregator:
 
         // round was not completed in time, so it's discarded
         if current_timestamp > first_submission_timestamp + MAX_ROUND_DURATION_SECONDS {
-            self.require_valid_first_submission(submission_timestamp, current_timestamp);
-
             submissions.clear();
             first_sub_time_mapper.set(current_timestamp);
             last_sub_time_mapper.set(current_timestamp);
@@ -194,7 +190,7 @@ pub trait PriceAggregator:
         let caller = self.blockchain().get_caller();
         let has_caller_already_submitted = submissions.contains_key(&caller);
         let accepted = !has_caller_already_submitted
-            && (is_first_submission || submission_timestamp >= first_submission_timestamp);
+            && (is_first_submission || current_timestamp >= first_submission_timestamp);
         if accepted {
             submissions.insert(caller.clone(), price.clone());
             last_sub_time_mapper.set(current_timestamp);
@@ -224,7 +220,11 @@ pub trait PriceAggregator:
             });
     }
 
-    fn require_valid_first_submission(&self, submission_timestamp: u64, current_timestamp: u64) {
+    fn require_valid_submission_timestamp(&self, submission_timestamp: u64, current_timestamp: u64) {
+        require!(
+            submission_timestamp <= current_timestamp,
+            "Timestamp is from the future"
+        );
         require!(
             current_timestamp - submission_timestamp <= FIRST_SUBMISSION_TIMESTAMP_MAX_DIFF_SECONDS,
             "First submission too old"
@@ -244,10 +244,7 @@ pub trait PriceAggregator:
             .into_iter()
             .map(|submission| submission.into_tuple())
         {
-            require!(
-                submission_timestamp <= current_timestamp,
-                "Timestamp is from the future"
-            );
+            self.require_valid_submission_timestamp(submission_timestamp, current_timestamp);
 
             self.check_decimals(&from, &to, decimals);
 
