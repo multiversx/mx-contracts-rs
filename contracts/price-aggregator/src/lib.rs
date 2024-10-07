@@ -130,22 +130,17 @@ pub trait PriceAggregator:
         self.require_not_paused();
         self.require_is_oracle();
 
-        let current_timestamp = self.blockchain().get_block_timestamp();
-        require!(
-            submission_timestamp <= current_timestamp,
-            "Timestamp is from the future"
-        );
+        self.require_valid_submission_timestamp(submission_timestamp);
 
         self.check_decimals(&from, &to, decimals);
 
-        self.submit_unchecked(from, to, submission_timestamp, price, decimals);
+        self.submit_unchecked(from, to, price, decimals);
     }
 
     fn submit_unchecked(
         &self,
         from: ManagedBuffer,
         to: ManagedBuffer,
-        submission_timestamp: u64,
         price: BigUint,
         decimals: u8,
     ) {
@@ -206,7 +201,7 @@ pub trait PriceAggregator:
             self.emit_discard_submission_event(
                 &token_pair,
                 round_id,
-                submission_timestamp,
+                current_timestamp,
                 first_submission_timestamp,
                 has_caller_already_submitted,
             );
@@ -220,7 +215,8 @@ pub trait PriceAggregator:
             });
     }
 
-    fn require_valid_submission_timestamp(&self, submission_timestamp: u64, current_timestamp: u64) {
+    fn require_valid_submission_timestamp(&self, submission_timestamp: u64) {
+        let current_timestamp = self.blockchain().get_block_timestamp();
         require!(
             submission_timestamp <= current_timestamp,
             "Timestamp is from the future"
@@ -239,16 +235,15 @@ pub trait PriceAggregator:
         self.require_not_paused();
         self.require_is_oracle();
 
-        let current_timestamp = self.blockchain().get_block_timestamp();
         for (from, to, submission_timestamp, price, decimals) in submissions
             .into_iter()
             .map(|submission| submission.into_tuple())
         {
-            self.require_valid_submission_timestamp(submission_timestamp, current_timestamp);
+            self.require_valid_submission_timestamp(submission_timestamp);
 
             self.check_decimals(&from, &to, decimals);
 
-            self.submit_unchecked(from, to, submission_timestamp, price, decimals);
+            self.submit_unchecked(from, to, price, decimals);
         }
     }
 
