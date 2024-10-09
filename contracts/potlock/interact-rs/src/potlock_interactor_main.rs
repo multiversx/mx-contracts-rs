@@ -608,6 +608,8 @@ impl ContractInteract {
             .run()
             .await;
 
+        println!("Result: {result_value:?}");
+
         result_value
     }
 
