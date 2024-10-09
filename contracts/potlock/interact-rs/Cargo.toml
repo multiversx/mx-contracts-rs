@@ -1,9 +1,9 @@
 [[bin]]
-name = "rust-interact"
+name = "potlock-interact"
 path = "src/potlock_interactor_main.rs"
 
 [package]
-name = "rust-interact"
+name = "potlock-interact"
 version = "0.0.0"
 authors = ["you"]
 edition = "2021"
@@ -16,10 +16,10 @@ toml = "0.8.6"
 path = ".."
 
 [dependencies.multiversx-sc-snippets]
-version = "0.52.3"
+version = "0.53.2"
 
 [dependencies.multiversx-sc]
-version = "0.52.3"
+version = "0.53.2"
 
 [dependencies.clap]
 version = "4.4.7"

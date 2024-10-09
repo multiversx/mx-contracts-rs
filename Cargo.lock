@@ -20,7 +20,6 @@ dependencies = [
 
 [[package]]
 name = "addr2line"
-
 version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f5fb1d8e4442bd405fdfd1dacb42792696b0cf9cb15882e5d097b742a676d375"
@@ -2012,6 +2011,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "potlock-interact"
+version = "0.0.0"
+dependencies = [
+ "clap",
+ "multiversx-sc",
+ "multiversx-sc-snippets",
+ "potlock",
+ "serde",
+ "toml",
+]
+
+[[package]]
 name = "potlock-meta"
 version = "0.0.0"
 dependencies = [
@@ -2258,7 +2269,6 @@ dependencies = [
  "clap",
  "multiversx-sc",
  "multiversx-sc-snippets",
- "potlock",
  "paymaster",
  "serde",
  "toml",
