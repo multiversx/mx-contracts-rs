@@ -20,6 +20,7 @@ pub trait PaymasterContract: forward_call::ForwardCall {
         &self,
         relayer_addr: ManagedAddress,
         dest: ManagedAddress,
+        min_gas_limit: u64,
         endpoint_name: ManagedBuffer,
         endpoint_args: MultiValueEncoded<ManagedBuffer>,
     ) {
@@ -48,6 +49,12 @@ pub trait PaymasterContract: forward_call::ForwardCall {
         let mut payments_without_fee = payments.clone_value();
         payments_without_fee.remove(FEE_PAYMENT_INDEX);
 
-        self.forward_call(dest, endpoint_name, payments_without_fee, endpoint_args);
+        self.forward_call(
+            dest,
+            min_gas_limit,
+            endpoint_name,
+            payments_without_fee,
+            endpoint_args,
+        );
     }
 }

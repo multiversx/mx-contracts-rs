@@ -9,10 +9,16 @@ pub trait ForwardCall {
     fn forward_call(
         &self,
         dest: ManagedAddress,
+        min_gas_limit: u64,
         endpoint_name: ManagedBuffer,
         payments: PaymentsVec<Self::Api>,
         endpoint_args: MultiValueEncoded<ManagedBuffer>,
     ) {
+        let gas_left = self.blockchain().get_gas_left();
+        require!(
+            gas_left >= min_gas_limit,
+            "Minimum required gas not provided"
+        );
         let original_caller = self.blockchain().get_caller();
 
         self.tx()
