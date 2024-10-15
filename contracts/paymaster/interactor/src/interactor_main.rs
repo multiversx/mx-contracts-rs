@@ -162,7 +162,13 @@ impl ContractInteract {
             .to(self.state.current_address())
             .gas(30_000_000u64)
             .typed(proxy::PaymasterContractProxy)
-            .forward_execution(relayer_addr, dest, endpoint_name, endpoint_args)
+            .forward_execution(
+                relayer_addr,
+                dest,
+                1_000_000u64,
+                endpoint_name,
+                endpoint_args,
+            )
             .payment(payments)
             .returns(ReturnsResultUnmanaged)
             .prepare_async()
