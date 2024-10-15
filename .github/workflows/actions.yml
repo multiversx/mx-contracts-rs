@@ -13,7 +13,7 @@ permissions:
 jobs:
   contracts:
     name: Contracts
-    uses: multiversx/mx-sc-actions/.github/workflows/contracts.yml@ad5ce795fd3010026361d88a6c8bd3c5df987a7b
+    uses: multiversx/mx-sc-actions/.github/workflows/contracts.yml@1ca1d800cb591b788e274743316245edd32ed3f7
     with:
       rust-toolchain: stable
       enable-contracts-size-report: false
