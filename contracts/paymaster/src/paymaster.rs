@@ -24,14 +24,7 @@ pub trait PaymasterContract: forward_call::ForwardCall {
         endpoint_name: ManagedBuffer,
         endpoint_args: MultiValueEncoded<ManagedBuffer>,
     ) {
-        let own_sc_address = self.blockchain().get_sc_address();
-        let own_shard = self.blockchain().get_shard_of_address(&own_sc_address);
-        let dest_shard = self.blockchain().get_shard_of_address(&dest);
-        require!(
-            own_shard == dest_shard,
-            "Destination must be in the same shard"
-        );
-
+        self.require_dest_same_shard(&dest);
         let payments = self.call_value().all_esdt_transfers();
         require!(!payments.is_empty(), "There is no fee for payment!");
 
@@ -54,6 +47,16 @@ pub trait PaymasterContract: forward_call::ForwardCall {
             endpoint_name,
             payments_without_fee,
             endpoint_args,
+        );
+    }
+
+    fn require_dest_same_shard(&self, dest: &ManagedAddress) {
+        let own_sc_address = self.blockchain().get_sc_address();
+        let own_shard = self.blockchain().get_shard_of_address(&own_sc_address);
+        let dest_shard = self.blockchain().get_shard_of_address(dest);
+        require!(
+            own_shard == dest_shard,
+            "Destination must be in the same shard"
         );
     }
 }

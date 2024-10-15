@@ -14,11 +14,7 @@ pub trait ForwardCall {
         payments: PaymentsVec<Self::Api>,
         endpoint_args: MultiValueEncoded<ManagedBuffer>,
     ) {
-        let gas_left = self.blockchain().get_gas_left();
-        require!(
-            gas_left >= min_gas_limit,
-            "Minimum required gas not provided"
-        );
+        self.require_min_gas_limit(min_gas_limit);
         let original_caller = self.blockchain().get_caller();
 
         self.tx()
@@ -65,5 +61,13 @@ pub trait ForwardCall {
                 err_result
             }
         }
+    }
+
+    fn require_min_gas_limit(&self, min_gas_limit: u64) {
+        let gas_left = self.blockchain().get_gas_left();
+        require!(
+            gas_left >= min_gas_limit,
+            "Minimum required gas not provided"
+        );
     }
 }
