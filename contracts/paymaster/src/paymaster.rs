@@ -24,13 +24,12 @@ pub trait PaymasterContract: forward_call::ForwardCall {
         endpoint_name: ManagedBuffer,
         endpoint_args: MultiValueEncoded<ManagedBuffer>,
     ) {
-        let original_caller = self.blockchain().get_caller();
         let own_sc_address = self.blockchain().get_sc_address();
         let own_shard = self.blockchain().get_shard_of_address(&own_sc_address);
-        let original_caller_shard = self.blockchain().get_shard_of_address(&original_caller);
+        let dest_shard = self.blockchain().get_shard_of_address(&dest);
         require!(
-            own_shard == original_caller_shard,
-            "Caller must be in the same shard"
+            own_shard == dest_shard,
+            "Destination must be in the same shard"
         );
 
         let payments = self.call_value().all_esdt_transfers();
