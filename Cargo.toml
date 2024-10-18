@@ -40,6 +40,8 @@ members = [
   "contracts/factorial/meta",
   "contracts/fair-launch",
   "contracts/fair-launch/meta",
+  "contracts/faucet",
+  "contracts/faucet/meta",
   "contracts/fractional-nfts",
   "contracts/fractional-nfts/meta",
   "contracts/lottery-esdt",
