@@ -48,13 +48,10 @@ pub trait Faucet {
         caller: &ManagedAddress<Self::Api>,
         signature: &Signature<Self::Api>,
     ) {
-        let mut data = ManagedBuffer::new();
-        let _ = caller.dep_encode(&mut data);
-
         let signer = self.signer().get();
         self.crypto().verify_ed25519(
             signer.as_managed_buffer(),
-            &data,
+            caller.as_managed_buffer(),
             signature.as_managed_buffer(),
         );
     }
