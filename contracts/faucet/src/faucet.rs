@@ -30,7 +30,7 @@ pub trait Faucet {
     fn claim(&self, signature: &Signature<Self::Api>) {
         let caller = self.blockchain().get_caller();
         let claimers_mapper = self.claimers();
-        require!(claimers_mapper.contains(&caller) == false, "Caller already claimed");
+        require!(!claimers_mapper.contains(&caller), "Caller already claimed");
 
         self.verify_signature(&caller, signature);
         self.claimers().add(&caller);
