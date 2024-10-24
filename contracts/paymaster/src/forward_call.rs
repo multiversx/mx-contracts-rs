@@ -9,10 +9,12 @@ pub trait ForwardCall {
     fn forward_call(
         &self,
         dest: ManagedAddress,
+        min_gas_limit: u64,
         endpoint_name: ManagedBuffer,
         payments: PaymentsVec<Self::Api>,
         endpoint_args: MultiValueEncoded<ManagedBuffer>,
     ) {
+        self.require_min_gas_limit(min_gas_limit);
         let original_caller = self.blockchain().get_caller();
 
         self.tx()
@@ -30,7 +32,6 @@ pub trait ForwardCall {
         original_caller: ManagedAddress,
         #[call_result] result: ManagedAsyncCallResult<MultiValueEncoded<ManagedBuffer>>,
     ) -> MultiValueEncoded<ManagedBuffer> {
-        // TODO: use ManagedGetBackTransfers once rc1.6 is activated
         let back_transfers = self.blockchain().get_back_transfers();
 
         // Send the original input tokens back to the original caller
@@ -60,5 +61,13 @@ pub trait ForwardCall {
                 err_result
             }
         }
+    }
+
+    fn require_min_gas_limit(&self, min_gas_limit: u64) {
+        let gas_left = self.blockchain().get_gas_left();
+        require!(
+            gas_left >= min_gas_limit,
+            "Minimum required gas not provided"
+        );
     }
 }
