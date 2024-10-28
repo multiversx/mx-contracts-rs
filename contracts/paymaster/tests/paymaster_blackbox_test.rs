@@ -160,6 +160,7 @@ fn test_forward_call_no_fee_payment() {
         .forward_execution(
             RELAYER_ADDRESS_EXPR,
             CALLEE_USER_ADDRESS_EXPR,
+            0u64,
             b"add",
             MultiValueVec::<Vec<u8>>::new(),
         )
@@ -181,6 +182,7 @@ fn test_forward_call_user() {
         .forward_execution(
             RELAYER_ADDRESS_EXPR,
             CALLEE_USER_ADDRESS_EXPR,
+            0u64,
             b"add",
             MultiValueVec::<Vec<u8>>::new(),
         )
@@ -215,6 +217,7 @@ fn test_forward_call_sc_adder() {
         .forward_execution(
             RELAYER_ADDRESS_EXPR,
             CALLEE_SC_ADDER_ADDRESS_EXPR,
+            0u64,
             b"add",
             MultiValueVec::from([top_encode_to_vec_u8_or_panic(&ADDITIONAL_ADD_VALUE)]),
         )
@@ -256,6 +259,7 @@ fn test_forward_call_sc_adder_with_relayer_address() {
         .forward_execution(
             RELAYER_ADDRESS_EXPR,
             CALLEE_SC_ADDER_ADDRESS_EXPR,
+            0u64,
             b"add",
             MultiValueVec::from([top_encode_to_vec_u8_or_panic(&ADDITIONAL_ADD_VALUE)]),
         )
@@ -310,6 +314,7 @@ fn test_forward_call_wegld() {
         .forward_execution(
             RELAYER_ADDRESS_EXPR,
             CALLEE_SC_WEGLD_ADDRESS_EXPR,
+            0u64,
             UNWRAP_ENDPOINT_NAME,
             MultiValueEncoded::new(),
         )
@@ -358,6 +363,7 @@ fn test_forward_call_fails_wegld_0_amount() {
         .forward_execution(
             RELAYER_ADDRESS_EXPR,
             CALLEE_SC_WEGLD_ADDRESS_EXPR,
+            0u64,
             UNWRAP_ENDPOINT_NAME,
             MultiValueEncoded::new(),
         )
