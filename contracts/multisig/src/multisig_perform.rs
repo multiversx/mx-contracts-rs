@@ -210,10 +210,12 @@ pub trait MultisigPerformModule:
                     self.quorum().get() <= self.num_board_members().get(),
                     "quorum cannot exceed board size"
                 );
+
                 OptionalValue::None
             }
             Action::RemoveUser(user_address) => {
                 self.change_user_role(action_id, user_address, UserRole::None);
+
                 let num_board_members = self.num_board_members().get();
                 let num_proposers = self.num_proposers().get();
                 require!(
@@ -224,6 +226,7 @@ pub trait MultisigPerformModule:
                     self.quorum().get() <= num_board_members,
                     "quorum cannot exceed board size"
                 );
+
                 OptionalValue::None
             }
             Action::ChangeQuorum(new_quorum) => {
@@ -233,6 +236,7 @@ pub trait MultisigPerformModule:
                 );
                 self.quorum().set(new_quorum);
                 self.perform_change_quorum_event(action_id, new_quorum);
+
                 OptionalValue::None
             }
             Action::SendTransferExecuteEgld(call_data) => {
@@ -329,6 +333,7 @@ pub trait MultisigPerformModule:
                     code_metadata,
                     &arguments.into(),
                 );
+
                 OptionalValue::Some(new_address)
             }
             Action::SCUpgradeFromSource {
@@ -356,6 +361,30 @@ pub trait MultisigPerformModule:
                     code_metadata,
                     &arguments.into(),
                 );
+
+                OptionalValue::None
+            }
+            Action::SendSyncCall(call_data) => {
+                let gas = call_data
+                    .opt_gas_limit
+                    .unwrap_or_else(|| self.ensure_and_get_gas_for_transfer_exec());
+                self.perform_sync_call_event(
+                    action_id,
+                    &call_data.to,
+                    &call_data.egld_amount,
+                    gas,
+                    &call_data.endpoint_name,
+                    call_data.arguments.as_multi(),
+                );
+
+                let (_, _transfers): (IgnoreValue, _) = self
+                    .send()
+                    .contract_call::<()>(call_data.to, call_data.endpoint_name)
+                    .with_egld_transfer(call_data.egld_amount)
+                    .with_raw_arguments(call_data.arguments.into())
+                    .with_gas_limit(gas)
+                    .execute_on_dest_context_with_back_transfers();
+
                 OptionalValue::None
             }
         }
