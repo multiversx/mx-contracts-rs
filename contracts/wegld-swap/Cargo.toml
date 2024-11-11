@@ -29,10 +29,10 @@ edition = "2021"
 path = "src/wegld.rs"
 
 [dependencies.multiversx-sc]
-version = "0.53.2"
+version = "0.54.0"
 
 [dependencies.multiversx-sc-modules]
-version = "0.53.2"
+version = "0.54.0"
 
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.53.2"
+version = "0.54.0"
