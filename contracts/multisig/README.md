@@ -11,6 +11,10 @@ As an example, let us imagine the following scenario. An institution launches a 
 
 Thus, essentially the multisig SC (we will refer to it, from now on, as MSC) enables multiple parties to sign or approve an action that takes place - typically a requirement for certain wallets, accounts, and smart contracts to prevent a rogue or hacked individual from performing detrimental actions.
 
+## Developer's note
+
+Starting with the release version v0.45.5 of mx-contracts-rs, this contract has beed audited and changed to meet the required standards.
+
 ## Multisig transaction flow
 On-chain multisig wallets are made possible by the fact that smart contracts can call other smart contracts. To execute a multisig transaction the flow would be:
 
