@@ -21,8 +21,11 @@ pub trait ForwardCall {
             .to(&dest)
             .raw_call(endpoint_name)
             .arguments_raw(endpoint_args.to_arg_buffer())
-            .payment(payments)
-            .callback(self.callbacks().transfer_callback(original_caller))
+            .payment(payments.clone())
+            .callback(
+                self.callbacks()
+                    .transfer_callback(original_caller, payments),
+            )
             .async_call_and_exit();
     }
 
@@ -30,6 +33,7 @@ pub trait ForwardCall {
     fn transfer_callback(
         &self,
         original_caller: ManagedAddress,
+        payments: PaymentsVec<Self::Api>,
         #[call_result] result: ManagedAsyncCallResult<MultiValueEncoded<ManagedBuffer>>,
     ) -> MultiValueEncoded<ManagedBuffer> {
         let back_transfers = self.blockchain().get_back_transfers();
@@ -54,6 +58,11 @@ pub trait ForwardCall {
                 return_values
             }
             ManagedAsyncCallResult::Err(err) => {
+                let egld_value = self.call_value().egld_value();
+                // Send the resulted tokens to the original caller
+                self.tx().to(&original_caller).payment(&payments).transfer();
+                self.tx().to(&original_caller).egld(egld_value).transfer();
+
                 let mut err_result = MultiValueEncoded::new();
                 err_result.push(ManagedBuffer::new_from_bytes(ERR_CALLBACK_MSG));
                 err_result.push(err.err_msg);
