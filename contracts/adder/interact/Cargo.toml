@@ -1,6 +1,6 @@
 [[bin]]
 name = "basic-interact"
-path = "src/basic_interact.rs"
+path = "src/basic_interact_main.rs"
 
 [package]
 name = "basic-interact"
@@ -9,19 +9,20 @@ authors = ["Ovidiu Stinga <ovidiu.stinga@multiversx.com>"]
 edition = "2021"
 publish = false
 
+[lib]
+path = "src/basic_interact.rs"
+
 [dependencies]
+clap = { version = "4.4.7", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
 toml = "0.8.6"
-
-[dependencies.clap]
-version = "4.4.7"
-features = ["derive"]
-
-[dependencies.serde]
-version = "1.0"
-features = ["derive"]
+tokio = { version = "1.24" }
 
 [dependencies.adder]
 path = ".."
 
 [dependencies.multiversx-sc-snippets]
-version = "0.53.2"
+version = "0.54.0"
+
+[features]
+chain-simulator-tests = []
