@@ -378,3 +378,61 @@ fn test_forward_call_fails_wegld_0_amount() {
     // Caller has the original balance
     state.check_esdt_balance(CALLER_ADDRESS_EXPR, WEGLD_TOKEN_ID_EXPR, BALANCE);
 }
+
+#[test]
+fn test_forward_call_fails_check_amounts() {
+    let mut state = PaymasterTestState::new();
+    state.deploy_paymaster_contract();
+    state.deploy_wegld_contract();
+
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, BALANCE);
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, WEGLD_TOKEN_ID_EXPR, BALANCE);
+
+    let mut payments: MultiEsdtPayment<StaticApi> = MultiEsdtPayment::new();
+    payments.push(EsdtTokenPayment::new(
+        TokenIdentifier::from(FEE_TOKEN_ID_EXPR),
+        0,
+        BigUint::from(FEE_AMOUNT),
+    ));
+
+    let sent_amount = 1_000u64;
+    payments.push(EsdtTokenPayment::new(
+        TokenIdentifier::from(WEGLD_TOKEN_ID),
+        0,
+        BigUint::from(sent_amount),
+    ));
+
+    state
+        .world
+        .tx()
+        .from(OWNER_ADDRESS_EXPR)
+        .to(CALLEE_SC_WEGLD_ADDRESS_EXPR)
+        .typed(wegld_proxy::EgldEsdtSwapProxy)
+        .pause_endpoint()
+        .run();
+
+    // Call fails because wrong WEGLD token provided
+    state
+        .world
+        .tx()
+        .from(CALLER_ADDRESS_EXPR)
+        .to(PAYMASTER_ADDRESS_EXPR)
+        .typed(paymaster_proxy::PaymasterContractProxy)
+        .forward_execution(
+            RELAYER_ADDRESS_EXPR,
+            CALLEE_SC_WEGLD_ADDRESS_EXPR,
+            100u64,
+            UNWRAP_ENDPOINT_NAME,
+            MultiValueEncoded::new(),
+        )
+        .multi_esdt(payments)
+        .run();
+
+    // Fee is kept by the relayer
+    let new_fee_amount: u64 = 99_980_000;
+    state.check_esdt_balance(RELAYER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, FEE_AMOUNT);
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, new_fee_amount);
+
+    // Caller has the original balance
+    state.check_esdt_balance(CALLER_ADDRESS_EXPR, WEGLD_TOKEN_ID_EXPR, BALANCE);
+}
