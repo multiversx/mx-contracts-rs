@@ -363,6 +363,19 @@ fn test_price_aggregator_discarded_round() {
 fn test_price_aggregator_slashing() {
     let (mut world, oracles) = setup();
 
+    // configure the number of decimals
+    world
+        .tx()
+        .from(OWNER_ADDRESS)
+        .to(PRICE_AGGREGATOR_ADDRESS)
+        .whitebox(multiversx_price_aggregator_sc::contract_obj, |sc| {
+            sc.set_pair_decimals(
+                ManagedBuffer::from(EGLD_TICKER.as_str()),
+                ManagedBuffer::from(USD_TICKER.as_str()),
+                DECIMALS,
+            )
+        });
+
     // unpause
     world
         .tx()
@@ -395,6 +408,16 @@ fn test_price_aggregator_slashing() {
         .whitebox(multiversx_price_aggregator_sc::contract_obj, |sc| {
             sc.vote_slash_member(ManagedAddress::from(oracles[1].clone()))
         });
+
+    world.query().to(PRICE_AGGREGATOR_ADDRESS).whitebox(
+        multiversx_price_aggregator_sc::contract_obj,
+        |sc| {
+            let list = sc.slashing_proposal_voters(&ManagedAddress::from(&oracles[1]));
+            assert!(list.contains(&ManagedAddress::from(&oracles[0])));
+            assert!(list.contains(&ManagedAddress::from(&oracles[2])));
+            assert!(list.contains(&ManagedAddress::from(&oracles[3])));
+        },
+    );
 
     world
         .tx()
@@ -431,7 +454,7 @@ fn setup() -> (ScenarioWorld, Vec<Address>) {
 
     let mut oracles = Vec::new();
     for i in 1..=NR_ORACLES {
-        let oracle_address_expr = format!("address:oracle{i}");
+        let oracle_address_expr = format!("oracle{i}");
         let oracle_address = TestAddress::new(&oracle_address_expr);
 
         world.account(oracle_address).nonce(1).balance(STAKE_AMOUNT);

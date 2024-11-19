@@ -319,39 +319,6 @@ fn test_price_aggregator_submit_round_ok() {
             );
         },
     );
-    state.world.query().to(PRICE_AGGREGATOR_ADDRESS).whitebox(
-        multiversx_price_aggregator_sc::contract_obj,
-        |sc| {
-            let result = sc.latest_price_feed(
-                ManagedBuffer::from(EGLD_TICKER.as_str()),
-                ManagedBuffer::from(USD_TICKER.as_str()),
-            );
-
-            let (round_id, from, to, timestamp, price, decimals) = result.into_tuple();
-            assert_eq!(round_id, 1);
-            assert_eq!(from, ManagedBuffer::from(EGLD_TICKER.as_str()));
-            assert_eq!(to, ManagedBuffer::from(USD_TICKER.as_str()));
-            assert_eq!(timestamp, current_timestamp);
-            assert_eq!(price, managed_biguint!(11_000));
-            assert_eq!(decimals, DECIMALS);
-
-            // submissions are deleted after round is created
-            let token_pair = TokenPair { from, to };
-            let submissions = sc.submissions().get(&token_pair).unwrap();
-            assert_eq!(submissions.len(), 0);
-
-            let rounds = sc.rounds().get(&token_pair).unwrap();
-            assert_eq!(rounds.len(), 1);
-            assert_eq!(
-                rounds.get(1),
-                TimestampedPrice {
-                    timestamp,
-                    price,
-                    decimals
-                }
-            );
-        },
-    );
 }
 
 #[test]
