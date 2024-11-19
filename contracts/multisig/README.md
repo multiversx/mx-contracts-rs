@@ -13,7 +13,7 @@ Thus, essentially the multisig SC (we will refer to it, from now on, as MSC) ena
 
 ## Developer's note
 
-Starting with the release version v0.45.5 of mx-contracts-rs, this contract has beed audited and changed to meet the required standards.
+The release version v0.45.5 of mx-contracts-rs, contains the audited of for the multisig contract. It can be found here: https://github.com/multiversx/mx-contracts-rs/releases/tag/v0.45.5
 
 ## Multisig transaction flow
 On-chain multisig wallets are made possible by the fact that smart contracts can call other smart contracts. To execute a multisig transaction the flow would be:
