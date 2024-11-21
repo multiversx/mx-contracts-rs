@@ -28,6 +28,12 @@ pub struct MysteryBoxSetup {
     pub world: ScenarioWorld,
 }
 
+impl Default for MysteryBoxSetup {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MysteryBoxSetup {
     pub fn new() -> Self {
         let mut mystery_box = MysteryBoxSetup { world: world() };
@@ -77,17 +83,8 @@ impl MysteryBoxSetup {
         custom_reward_percentage: u64,
         custom_reward_cooldown: u64,
     ) {
-        let mut rewards_list: MultiValueEncoded<
-            StaticApi,
-            MultiValue6<
-                mystery_box_proxy::RewardType,
-                EgldOrEsdtTokenIdentifier<StaticApi>,
-                BigUint<StaticApi>,
-                ManagedBuffer<StaticApi>,
-                u64,
-                u64,
-            >,
-        > = MultiValueEncoded::new();
+        let mut rewards_list: MultiValueEncoded<StaticApi, MultiValue6<_, _, _, _, _, _>> =
+            MultiValueEncoded::new();
         let mut reward = (
             mystery_box_proxy::RewardType::ExperiencePoints,
             EgldOrEsdtTokenIdentifier::egld(),
