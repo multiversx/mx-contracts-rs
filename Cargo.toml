@@ -9,7 +9,7 @@ members = [
 
   "contracts/adder",
   "contracts/adder/meta",
-  "contracts/adder/interact",
+  "contracts/adder/interactor",
   "contracts/esdt-transfer-with-fee",
   "contracts/esdt-transfer-with-fee/meta",
   "contracts/bonding-curve-contract",
