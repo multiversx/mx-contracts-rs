@@ -1,7 +1,6 @@
 use fair_launch::{common::Percentage, fair_launch_proxy, token_info::TokenInfoModule};
-use multiversx_sc::{
-    imports::StorageTokenWrapper,
-    types::{ManagedBuffer, MultiValueEncoded, TestAddress, TestSCAddress, TestTokenIdentifier},
+use multiversx_sc::types::{
+    ManagedBuffer, MultiValueEncoded, TestAddress, TestSCAddress, TestTokenIdentifier,
 };
 use multiversx_sc_scenario::{imports::MxscPath, ScenarioTxRun, ScenarioTxWhitebox, ScenarioWorld};
 use pair_mock::PairMock;

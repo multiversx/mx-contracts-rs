@@ -52,7 +52,6 @@ impl MultisigInteract {
                     .argument(&0u32),
             )
             .returns(ReturnsResult)
-            .prepare_async()
             .run()
             .await;
 
@@ -77,7 +76,6 @@ impl MultisigInteract {
             .typed(multisig_proxy::MultisigProxy)
             .perform_action_endpoint(action_id)
             .returns(ReturnsNewTokenIdentifier)
-            .prepare_async()
             .run()
             .await;
         self.collection_token_identifier = new_token_id.to_string();
@@ -105,7 +103,6 @@ impl MultisigInteract {
                     .argument(&COLLECTION_TICKER),
             )
             .returns(ReturnsResult)
-            .prepare_async()
             .run()
             .await;
 
@@ -130,7 +127,6 @@ impl MultisigInteract {
             .typed(multisig_proxy::MultisigProxy)
             .perform_action_endpoint(action_id)
             .returns(ReturnsNewTokenIdentifier)
-            .prepare_async()
             .run()
             .await;
         self.collection_token_identifier = new_token_id;
@@ -160,7 +156,6 @@ impl MultisigInteract {
                     .argument(&"ESDTRoleNFTCreate"),
             )
             .returns(ReturnsResult)
-            .prepare_async()
             .run()
             .await;
 
