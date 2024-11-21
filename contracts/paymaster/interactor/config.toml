@@ -1,4 +1,5 @@
-gateway = 'https://devnet-gateway.multiversx.com'
+chain_type = 'real'
+gateway_uri = 'https://devnet-gateway.multiversx.com'
 
 relayer_addr = "erd19azy5vlq343un82cqz03744vmta9ya8l5xwj3ywz7r8m8pkttd0syhkffa"
 egld_mex_pair_address = "erd1qqqqqqqqqqqqqpgqzw0d0tj25qme9e4ukverjjjqle6xamay0n4s5r0v9g"
