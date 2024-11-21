@@ -284,9 +284,10 @@ fn test_forward_call_wegld() {
     state.check_esdt_balance(CALLER_ADDRESS_EXPR, FEE_TOKEN_ID_EXPR, BALANCE);
     state.check_esdt_balance(CALLER_ADDRESS_EXPR, WEGLD_TOKEN_ID_EXPR, BALANCE);
 
-    let mut payments = Vec::new();
-    payments.push(TestEsdtTransfer(FEE_TOKEN_ID_EXPR, 0, FEE_AMOUNT));
-    payments.push(TestEsdtTransfer(WEGLD_TOKEN_ID_EXPR, 0, FEE_AMOUNT));
+    let payments = vec![
+        TestEsdtTransfer(FEE_TOKEN_ID_EXPR, 0, FEE_AMOUNT),
+        TestEsdtTransfer(WEGLD_TOKEN_ID_EXPR, 0, FEE_AMOUNT),
+    ];
 
     // Call fails because unwrap amount is 0
     state
@@ -325,9 +326,10 @@ fn test_forward_call_fails_wegld_0_amount() {
 
     let failling_amount = 0u64;
 
-    let mut payments = Vec::new();
-    payments.push(TestEsdtTransfer(FEE_TOKEN_ID_EXPR, 0, FEE_AMOUNT));
-    payments.push(TestEsdtTransfer(WEGLD_TOKEN_ID_EXPR, 0, failling_amount));
+    let payments = vec![
+        TestEsdtTransfer(FEE_TOKEN_ID_EXPR, 0, FEE_AMOUNT),
+        TestEsdtTransfer(WEGLD_TOKEN_ID_EXPR, 0, failling_amount),
+    ];
 
     // Call fails because unwrap amount is 0
     state

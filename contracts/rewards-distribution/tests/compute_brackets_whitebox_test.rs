@@ -42,8 +42,7 @@ fn test_compute_brackets() {
                 (2_500, 10_000),
                 (25_000, 35_000),
                 (72_000, 40_000),
-            ])
-            .into();
+            ]);
 
             let computed_brackets = sc.compute_brackets(brackets, 10_000);
 
