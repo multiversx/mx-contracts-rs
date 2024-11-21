@@ -1,40 +1,49 @@
-#![allow(deprecated)] // TODO: migrate tests
-
 use core::iter::zip;
 
-use multiversx_sc_scenario::{rust_biguint, testing_framework::BlockchainStateWrapper, DebugApi};
-use rewards_distribution::{RewardsDistribution, DIVISION_SAFETY_CONSTANT};
+use multiversx_sc_scenario::{imports::MxscPath, DebugApi, ScenarioTxWhitebox, ScenarioWorld};
+use rewards_distribution::{Bracket, RewardsDistribution, DIVISION_SAFETY_CONSTANT};
+
+const OWNER: TestAddress = TestAddress::new("owner");
+const REWARDS_DISTRIBUTION_ADDRESS: TestSCAddress = TestSCAddress::new("rewards_distribution");
+const CODE_PATH: MxscPath = MxscPath::new("output/rewards-distribution.mxsc.json");
 
 mod utils;
 
-#[allow(unused_imports)]
 use multiversx_sc::imports::*;
+
+fn world() -> ScenarioWorld {
+    let mut blockchain: ScenarioWorld = ScenarioWorld::new();
+
+    blockchain.set_current_dir_from_workspace("contracts/rewards-distribution");
+    blockchain.register_contract(CODE_PATH, rewards_distribution::ContractBuilder);
+    blockchain
+}
 
 #[test]
 fn test_compute_brackets() {
-    DebugApi::dummy();
+    let mut world = world();
 
-    let mut wrapper = BlockchainStateWrapper::new();
+    world.account(OWNER).nonce(1);
+    world
+        .account(REWARDS_DISTRIBUTION_ADDRESS)
+        .nonce(1)
+        .owner(OWNER)
+        .code(CODE_PATH);
 
-    let owner = wrapper.create_user_account(&rust_biguint!(0u64));
-
-    let rewards_distribution_sc = wrapper.create_sc_account(
-        &rust_biguint!(0u64),
-        Some(&owner),
-        rewards_distribution::contract_obj,
-        "rewards-distribution.mxsc.json",
-    );
-
-    wrapper
-        .execute_tx(&owner, &rewards_distribution_sc, &rust_biguint!(0), |sc| {
-            let brackets = utils::to_brackets(&[
+    world
+        .tx()
+        .from(OWNER)
+        .to(REWARDS_DISTRIBUTION_ADDRESS)
+        .whitebox(rewards_distribution::contract_obj, |sc| {
+            let brackets: ManagedVec<DebugApi, Bracket> = utils::to_brackets(&[
                 (10, 2_000),
                 (90, 6_000),
                 (400, 7_000),
                 (2_500, 10_000),
                 (25_000, 35_000),
                 (72_000, 40_000),
-            ]);
+            ])
+            .into();
 
             let computed_brackets = sc.compute_brackets(brackets, 10_000);
 
@@ -53,6 +62,5 @@ fn test_compute_brackets() {
                 assert_eq!(computed.end_index, expected_end_index);
                 assert_eq!(computed.nft_reward_percent, expected_reward_percent);
             }
-        })
-        .assert_ok();
+        });
 }
