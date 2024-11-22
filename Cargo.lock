@@ -160,13 +160,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
-name = "basic-interact"
+name = "basic-interactor"
 version = "0.0.0"
 dependencies = [
  "adder",
  "clap",
  "multiversx-sc-snippets",
  "serde",
+ "tokio",
  "toml",
 ]
 
@@ -1951,6 +1952,19 @@ version = "0.0.2"
 dependencies = [
  "multiversx-sc",
  "multiversx-sc-scenario",
+]
+
+[[package]]
+name = "ping-pong-egld-interact"
+version = "0.0.0"
+dependencies = [
+ "clap",
+ "multiversx-sc",
+ "multiversx-sc-snippets",
+ "ping-pong-egld",
+ "serde",
+ "tokio",
+ "toml",
 ]
 
 [[package]]
