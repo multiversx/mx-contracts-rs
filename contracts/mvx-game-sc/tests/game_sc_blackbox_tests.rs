@@ -1,23 +1,18 @@
 use imports::{
-    MxscPath, ReturnsResult, ReturnsResultUnmanaged, TestAddress, TestSCAddress,
+    MxscPath, ReturnsResult, ReturnsResultUnmanaged, TestAddress, TestEsdtTransfer, TestSCAddress,
     TestTokenIdentifier,
 };
 use multiversx_sc::{
     codec::multi_types::OptionalValue,
     storage::mappers::SingleValue,
-    types::{
-        BigUint, EgldOrEsdtTokenIdentifier, ManagedAddress, MultiValueEncoded, TokenIdentifier,
-    },
+    types::{BigUint, ManagedAddress, MultiValueEncoded},
 };
 use multiversx_sc_scenario::{api::StaticApi, scenario_model::*, *};
 use mvx_game_sc::game_proxy;
 
-type RustBigUint = num_bigint::BigUint;
-
 const GAME_SC_PATH: MxscPath = MxscPath::new("output/mvx-game-sc.mxsc.json");
 const BALANCE: u64 = 100_000_000u64;
 const TOKEN_GAME: TestTokenIdentifier = TestTokenIdentifier::new("GAME-123456");
-const TOKEN_GAME_ID: &[u8] = b"GAME-123456";
 const STARTING_FEE: u64 = 20u64;
 const USER1_ADDR: TestAddress = TestAddress::new("user1");
 const USER2_ADDR: TestAddress = TestAddress::new("user2");
@@ -90,9 +85,7 @@ impl GameContractState {
             .init(
                 OptionalValue::Some(true),
                 OptionalValue::Some(BigUint::from(STARTING_FEE)),
-                OptionalValue::Some(EgldOrEsdtTokenIdentifier::esdt(TokenIdentifier::from(
-                    TOKEN_GAME_ID,
-                ))),
+                OptionalValue::Some(TOKEN_GAME),
             )
             .code(GAME_SC_PATH)
             .new_address(GAME_SC_ADDR)
@@ -106,7 +99,7 @@ impl GameContractState {
         waiting_time: u64,
         number_of_players_min: u64,
         number_of_players_max: u64,
-        wager: RustBigUint,
+        wager: u64,
         caller: TestAddress,
         expected_game_id: u64,
     ) -> &mut Self {
@@ -121,11 +114,7 @@ impl GameContractState {
                 number_of_players_max,
                 wager,
             )
-            .egld_or_single_esdt(
-                &EgldOrEsdtTokenIdentifier::esdt(TOKEN_GAME_ID),
-                0u64,
-                &BigUint::from(STARTING_FEE),
-            )
+            .esdt(TestEsdtTransfer(TOKEN_GAME, 0, STARTING_FEE))
             .with_result(ExpectValue(expected_game_id))
             .run();
 
@@ -136,37 +125,29 @@ impl GameContractState {
         &mut self,
         game_id: u64,
         caller: TestAddress,
-        amount: RustBigUint,
-        expected_error: OptionalValue<(u64, &str)>,
+        amount: u64,
+        expected_error: Option<(u64, &str)>,
     ) -> &mut Self {
         match expected_error {
-            OptionalValue::Some(val) => {
+            Some(val) => {
                 self.world
                     .tx()
                     .from(caller)
                     .to(GAME_SC_ADDR)
                     .typed(game_proxy::MvxGameScProxy)
                     .join_game(game_id)
-                    .egld_or_single_esdt(
-                        &EgldOrEsdtTokenIdentifier::esdt(TOKEN_GAME_ID),
-                        0u64,
-                        &BigUint::from(amount),
-                    )
+                    .esdt(TestEsdtTransfer(TOKEN_GAME, 0, amount))
                     .with_result(ExpectError(val.0, val.1))
                     .run();
             }
-            OptionalValue::None => {
+            None => {
                 self.world
                     .tx()
                     .from(caller)
                     .to(GAME_SC_ADDR)
                     .typed(game_proxy::MvxGameScProxy)
                     .join_game(game_id)
-                    .egld_or_single_esdt(
-                        &EgldOrEsdtTokenIdentifier::esdt(TOKEN_GAME_ID),
-                        0u64,
-                        &BigUint::from(amount),
-                    )
+                    .esdt(TestEsdtTransfer(TOKEN_GAME, 0, amount))
                     .run();
             }
         }
@@ -178,10 +159,10 @@ impl GameContractState {
         &mut self,
         game_id: u64,
         caller: TestAddress,
-        expected_error: OptionalValue<(u64, &str)>,
+        expected_error: Option<(u64, &str)>,
     ) -> &mut Self {
         match expected_error {
-            OptionalValue::Some(val) => {
+            Some(val) => {
                 self.world
                     .tx()
                     .from(caller)
@@ -191,7 +172,7 @@ impl GameContractState {
                     .with_result(ExpectError(val.0, val.1))
                     .run();
             }
-            OptionalValue::None => {
+            None => {
                 self.world
                     .tx()
                     .from(caller)
@@ -209,10 +190,10 @@ impl GameContractState {
         &mut self,
         game_id: u64,
         winners: OptionalValue<MultiValueEncoded<StaticApi, (ManagedAddress<StaticApi>, u64)>>,
-        expected_error: OptionalValue<(u64, &str)>,
+        expected_error: Option<(u64, &str)>,
     ) -> &mut Self {
         match expected_error {
-            OptionalValue::Some(val) => {
+            Some(val) => {
                 self.world
                     .tx()
                     .from(OWNER_ADDR)
@@ -222,7 +203,7 @@ impl GameContractState {
                     .with_result(ExpectError(val.0, val.1))
                     .run();
             }
-            OptionalValue::None => {
+            None => {
                 self.world
                     .tx()
                     .from(OWNER_ADDR)
@@ -251,7 +232,7 @@ fn game_sc_simple_game_flow() {
     let waiting_time = 100u64;
     let number_of_players_min = 1u64;
     let number_of_players_max = 4u64;
-    let wager = RustBigUint::from(100u64);
+    let wager = 100u64;
 
     // deploy
     state.deploy();
@@ -270,7 +251,7 @@ fn game_sc_simple_game_flow() {
         waiting_time,
         number_of_players_min,
         number_of_players_max,
-        wager.clone(),
+        wager,
         OWNER_ADDR,
         1u64,
     );
@@ -286,7 +267,7 @@ fn game_sc_simple_game_flow() {
         .run();
 
     // user1 tries to join the game, timestamp is ok, max players not reached, should work
-    state.join_game(1u64, USER1_ADDR, wager.clone(), OptionalValue::None);
+    state.join_game(1u64, USER1_ADDR, wager, None);
 
     // min number of players reached, game should be valid
     let game_setting = state
@@ -302,7 +283,7 @@ fn game_sc_simple_game_flow() {
     assert_eq!(game_settings.into().status, game_proxy::Status::Valid);
 
     // user2 tries to join the game, shuld work
-    state.join_game(1u64, USER2_ADDR, wager, OptionalValue::None);
+    state.join_game(1u64, USER2_ADDR, wager, None);
 
     // both users should be in players vec
     let players = state
@@ -312,35 +293,35 @@ fn game_sc_simple_game_flow() {
         .to(GAME_SC_ADDR)
         .typed(game_proxy::MvxGameScProxy)
         .players(1u64)
-        .returns(ReturnsResult)
+        .returns(ReturnsResultUnmanaged)
         .run();
-    let players_vec = players.to_vec();
+    let players_vec = players.0.to_vec();
 
-    assert!(players_vec.contains(&ManagedAddress::from(USER1_ADDR.eval_to_array())));
-    assert!(players_vec.contains(&ManagedAddress::from(USER2_ADDR.eval_to_array())));
+    assert!(players_vec.contains(&USER1_ADDR.to_address()));
+    assert!(players_vec.contains(&USER2_ADDR.to_address()));
 
     // game should be in users'storage
-    let games_per_user1: MultiValueEncoded<StaticApi, u64> = state
+    let games_per_user1 = state
         .world
         .tx()
         .from(USER2_ADDR)
         .to(GAME_SC_ADDR)
         .typed(game_proxy::MvxGameScProxy)
-        .games_per_user(USER1_ADDR.eval_to_array())
-        .returns(ReturnsResult)
+        .games_per_user(USER1_ADDR)
+        .returns(ReturnsResultUnmanaged)
         .run();
-    let games_per_user1_vec = games_per_user1.to_vec();
+    let games_per_user1_vec = games_per_user1.0.to_vec();
 
-    let games_per_user2: MultiValueEncoded<StaticApi, u64> = state
+    let games_per_user2 = state
         .world
         .tx()
         .from(USER2_ADDR)
         .to(GAME_SC_ADDR)
         .typed(game_proxy::MvxGameScProxy)
-        .games_per_user(USER2_ADDR.eval_to_array())
-        .returns(ReturnsResult)
+        .games_per_user(USER2_ADDR)
+        .returns(ReturnsResultUnmanaged)
         .run();
-    let games_per_user2_vec = games_per_user2.to_vec();
+    let games_per_user2_vec = games_per_user2.0.to_vec();
 
     assert!((games_per_user1_vec.contains(&1u64) && games_per_user2_vec.contains(&1u64)));
 }
@@ -353,8 +334,8 @@ fn game_sc_complex_flow() {
     let waiting_time = 100u64; // => timestamp 102 should be out of waiting time
     let number_of_players_min = 2u64;
     let number_of_players_max = 4u64;
-    let wager = RustBigUint::from(100u64);
-    let diff_amount = RustBigUint::from(5u64);
+    let wager = 100u64;
+    let diff_amount = 5u64;
 
     // deploy
     state.deploy();
@@ -367,13 +348,13 @@ fn game_sc_complex_flow() {
         waiting_time,
         number_of_players_min,
         number_of_players_max,
-        wager.clone(),
+        wager,
         OWNER_ADDR,
         1,
     );
 
     // user1 joins
-    state.join_game(1u64, USER1_ADDR, wager.clone(), OptionalValue::None);
+    state.join_game(1u64, USER1_ADDR, wager, None);
 
     let game_setting = state
         .world
@@ -389,26 +370,22 @@ fn game_sc_complex_flow() {
     assert_eq!(game_settings.into().status, game_proxy::Status::Invalid);
 
     // user1 tries to claim back wager, should fail (waiting time not passed)
-    state.claim_back_wager(
-        1u64,
-        USER1_ADDR,
-        OptionalValue::Some((4, "waiting time is not over yet")),
-    );
+    state.claim_back_wager(1u64, USER1_ADDR, Some((4, "waiting time is not over yet")));
 
     // user2 joins
     state.join_game(
         1u64,
         USER2_ADDR,
         diff_amount,
-        OptionalValue::Some((4, "wrong amount paid")),
+        Some((4, "wrong amount paid")),
     ); // wrong amount paid
 
-    state.join_game(1u64, USER2_ADDR, wager.clone(), OptionalValue::None);
+    state.join_game(1u64, USER2_ADDR, wager, None);
     state.join_game(
         1u64,
         USER2_ADDR,
-        wager.clone(),
-        OptionalValue::Some((4, "user already joined this game")),
+        wager,
+        Some((4, "user already joined this game")),
     ); // user already joined
 
     let game_setting = state
@@ -418,14 +395,12 @@ fn game_sc_complex_flow() {
         .to(GAME_SC_ADDR)
         .typed(game_proxy::MvxGameScProxy)
         .game_settings(1u64)
-        .returns(ReturnsResultUnmanaged)
+        .returns(ReturnsResult)
         .run();
-    let game_settings = SingleValue::from(game_setting);
-
-    assert_eq!(game_settings.into().status, game_proxy::Status::Valid);
+    assert_eq!(game_setting.status, game_proxy::Status::Valid);
 
     // user3 joins
-    state.join_game(1u64, USER3_ADDR, wager.clone(), OptionalValue::None);
+    state.join_game(1u64, USER3_ADDR, wager, None);
 
     // set timestamp after time limit
     state.world.current_block().block_timestamp(102u64);
@@ -435,21 +410,21 @@ fn game_sc_complex_flow() {
         1u64,
         USER4_ADDR,
         wager,
-        OptionalValue::Some((4, "waiting time has passed")),
+        Some((4, "waiting time has passed")),
     );
 
     // user4 tries to claim back wager, fails
     state.claim_back_wager(
         1u64,
         USER4_ADDR,
-        OptionalValue::Some((4, "caller has not joined the game")),
+        Some((4, "caller has not joined the game")),
     );
 
     // user1 tries to claim back wager, fails
     state.claim_back_wager(
         1u64,
         USER1_ADDR,
-        OptionalValue::Some((
+        Some((
             4,
             "can manually claim back wager only if the game is invalid",
         )),
@@ -458,9 +433,9 @@ fn game_sc_complex_flow() {
     // send tokens to sc
     state.world.transfer_step(
         TransferStep::new()
-            .from(OWNER_ADDR.eval_to_expr().as_str())
-            .to(GAME_SC_ADDR.eval_to_expr().as_str())
-            .esdt_transfer(TOKEN_GAME_ID, 0, "10_000"),
+            .from(OWNER_ADDR)
+            .to(GAME_SC_ADDR)
+            .esdt_transfer(TOKEN_GAME.eval_to_expr(), 0, "10_000"),
     );
 
     state
@@ -470,8 +445,8 @@ fn game_sc_complex_flow() {
 
     // owner sends rewards
     let mut winners = MultiValueEncoded::<StaticApi, (ManagedAddress<StaticApi>, u64)>::new();
-    winners.push((ManagedAddress::from(USER1_ADDR.eval_to_array()), 8000u64)); // 80%
-    winners.push((ManagedAddress::from(USER2_ADDR.eval_to_array()), 2000u64)); // 20%
+    winners.push((ManagedAddress::from(USER1_ADDR.to_address()), 8000u64)); // 80%
+    winners.push((ManagedAddress::from(USER2_ADDR.to_address()), 2000u64)); // 20%
 
     // make owner admin first
     state
@@ -484,7 +459,7 @@ fn game_sc_complex_flow() {
         .run();
 
     // send reward
-    state.send_reward(1u64, OptionalValue::Some(winners), OptionalValue::None);
+    state.send_reward(1u64, OptionalValue::Some(winners), None);
 
     // user1 should receive 80% of the reward
     // reward = 3 * wager = 300 => user1's reward = 240
@@ -508,7 +483,7 @@ fn invalid_game_test() {
     let waiting_time = 100u64; // => timestamp 102 should be out of waiting time
     let number_of_players_min = 3u64;
     let number_of_players_max = 5u64;
-    let wager = RustBigUint::from(100u64);
+    let wager = 100u64;
 
     // deploy
     state.deploy();
@@ -521,16 +496,16 @@ fn invalid_game_test() {
         waiting_time,
         number_of_players_min,
         number_of_players_max,
-        wager.clone(),
+        wager,
         OWNER_ADDR,
         1,
     );
 
     // user1 joins
-    state.join_game(1u64, USER1_ADDR, wager.clone(), OptionalValue::None);
+    state.join_game(1u64, USER1_ADDR, wager, None);
 
     // user2 joins
-    state.join_game(1u64, USER2_ADDR, wager, OptionalValue::None);
+    state.join_game(1u64, USER2_ADDR, wager, None);
 
     // game is still invalid, min number of players not reached
     let game_setting = state
@@ -540,11 +515,10 @@ fn invalid_game_test() {
         .to(GAME_SC_ADDR)
         .typed(game_proxy::MvxGameScProxy)
         .game_settings(1u64)
-        .returns(ReturnsResultUnmanaged)
+        .returns(ReturnsResult)
         .run();
-    let game_settings = SingleValue::from(game_setting);
 
-    assert_eq!(game_settings.into().status, game_proxy::Status::Invalid);
+    assert_eq!(game_setting.status, game_proxy::Status::Invalid);
 
     // set now = 102, past waiting time
     state.world.current_block().block_timestamp(102);
@@ -560,7 +534,7 @@ fn invalid_game_test() {
         .run();
 
     // send reward, invalid game => players should receive back wager, creator should receive the creation fee back
-    state.send_reward(1u64, OptionalValue::None, OptionalValue::None);
+    state.send_reward(1u64, OptionalValue::None, None);
 
     state
         .world

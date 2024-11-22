@@ -21,6 +21,8 @@ const DEPLOYED_CONTRACT_PATH_EXPR: MxscPath = MxscPath::new("../adder/output/add
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
+
+    blockchain.set_current_dir_from_workspace("contracts/proxy-developer");
     blockchain.register_contract(PROXY_DEPLOYER_PATH_EXPR, proxy_deployer::ContractBuilder);
     blockchain.register_contract(DEPLOYED_CONTRACT_PATH_EXPR, adder::ContractBuilder);
 
@@ -72,9 +74,7 @@ impl ProxyDeployerTestState {
             .from(OWNER_ADDRESS_EXPR)
             .to(PROXY_DEPLOYER_ADDRESS_EXPR)
             .typed(proxy_deployer_proxy::ProxyDeployerProxy)
-            .add_template_address(ManagedAddress::from_address(
-                &AddressValue::from(TEMPLATE_CONTRACT_ADDRESS_EXPR).to_address(),
-            ))
+            .add_template_address(TEMPLATE_CONTRACT_ADDRESS_EXPR.to_address())
             .run();
 
         self
@@ -96,7 +96,7 @@ impl ProxyDeployerTestState {
             .from(user)
             .to(PROXY_DEPLOYER_ADDRESS_EXPR)
             .typed(proxy_deployer_proxy::ProxyDeployerProxy)
-            .contract_deploy(ManagedAddress::from(template_address.eval_to_array()), args)
+            .contract_deploy(template_address.to_managed_address(), args)
             .returns(ReturnsResult)
             .run();
         self.deployed_contracts.push(deploy_address.to_address());
@@ -135,7 +135,7 @@ impl ProxyDeployerTestState {
             .typed(proxy_deployer_proxy::ProxyDeployerProxy)
             .upgrade_contracts_by_template(
                 gas,
-                OptionalValue::Some(ManagedAddress::from(template_address.eval_to_array())),
+                OptionalValue::Some(template_address.to_managed_address()),
                 args,
             )
             .run();
