@@ -31,6 +31,12 @@ pub struct Dn404Setup {
     pub b_mock: ScenarioWorld,
 }
 
+impl Default for Dn404Setup {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Dn404Setup {
     pub fn new() -> Self {
         let mut b_mock = world();
