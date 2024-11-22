@@ -3,7 +3,7 @@ use multiversx_sc::imports::*;
 pub type PaymentsVec<M> = ManagedVec<M, EsdtTokenPayment<M>>;
 
 static ERR_CALLBACK_MSG: &[u8] = b"Error received in callback:";
-pub const ESDT_TRANSFER_FUNC_NAME: &str = "ESDTTransfer";
+
 #[multiversx_sc::module]
 pub trait ForwardCall {
     fn forward_call(
