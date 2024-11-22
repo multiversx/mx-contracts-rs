@@ -9,7 +9,7 @@ members = [
 
   "contracts/adder",
   "contracts/adder/meta",
-  "contracts/adder/interact",
+  "contracts/adder/interactor",
   "contracts/esdt-transfer-with-fee",
   "contracts/esdt-transfer-with-fee/meta",
   "contracts/bonding-curve-contract",
@@ -70,6 +70,7 @@ members = [
   "contracts/paymaster/interactor",
   "contracts/ping-pong-egld",
   "contracts/ping-pong-egld/meta",
+  "contracts/ping-pong-egld/interactor",
   "contracts/proxy-deployer",
   "contracts/proxy-deployer/meta",
   "contracts/proxy-pause",
@@ -81,5 +82,5 @@ members = [
   "contracts/token-release",
   "contracts/token-release/meta",
   "contracts/mvx-game-sc",
-  "contracts/mvx-game-sc/meta"
+  "contracts/mvx-game-sc/meta",
 ]

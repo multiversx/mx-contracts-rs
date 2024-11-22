@@ -1,12 +1,12 @@
 use multiversx_price_aggregator_sc::{
     price_aggregator_data::{OracleStatus, TokenPair},
-    ContractObj, PriceAggregator,
+    PriceAggregator,
 };
 
 use multiversx_sc_scenario::imports::*;
 
 const DECIMALS: u8 = 0;
-const EGLD_TICKER: &[u8] = b"EGLD";
+const EGLD_TICKER: TestTokenIdentifier = TestTokenIdentifier::new("EGLD");
 const NR_ORACLES: usize = 50;
 const OWNER: TestAddress = TestAddress::new("owner");
 const PRICE_AGGREGATOR_ADDRESS: TestSCAddress = TestSCAddress::new("price-aggregator");
@@ -16,7 +16,7 @@ const SLASH_AMOUNT: u64 = 10;
 const SLASH_QUORUM: usize = 3;
 const STAKE_AMOUNT: u64 = 20;
 const SUBMISSION_COUNT: usize = 50;
-const USD_TICKER: &[u8] = b"USDC";
+const USD_TICKER: TestTokenIdentifier = TestTokenIdentifier::new("USDC");
 
 mod price_aggregator_proxy;
 
@@ -34,7 +34,6 @@ fn world() -> ScenarioWorld {
 struct PriceAggregatorTestState {
     world: ScenarioWorld,
     oracles: Vec<AddressValue>,
-    price_aggregator_whitebox: WhiteboxContract<ContractObj<DebugApi>>,
 }
 
 impl PriceAggregatorTestState {
@@ -60,16 +59,7 @@ impl PriceAggregatorTestState {
             oracles.push(address_value);
         }
 
-        let price_aggregator_whitebox = WhiteboxContract::new(
-            PRICE_AGGREGATOR_ADDRESS,
-            multiversx_price_aggregator_sc::contract_obj,
-        );
-
-        Self {
-            world,
-            oracles,
-            price_aggregator_whitebox,
-        }
+        Self { world, oracles }
     }
 
     fn deploy(&mut self) -> &mut Self {
@@ -117,7 +107,7 @@ impl PriceAggregatorTestState {
             .from(OWNER)
             .to(PRICE_AGGREGATOR_ADDRESS)
             .typed(price_aggregator_proxy::PriceAggregatorProxy)
-            .set_pair_decimals(EGLD_TICKER, USD_TICKER, DECIMALS)
+            .set_pair_decimals(EGLD_TICKER.as_str(), USD_TICKER.as_str(), DECIMALS)
             .run();
     }
 
@@ -140,8 +130,8 @@ impl PriceAggregatorTestState {
             .gas(7_000_000u64)
             .typed(price_aggregator_proxy::PriceAggregatorProxy)
             .submit(
-                EGLD_TICKER,
-                USD_TICKER,
+                EGLD_TICKER.as_str(),
+                USD_TICKER.as_str(),
                 submission_timestamp,
                 price,
                 DECIMALS,
@@ -170,14 +160,14 @@ fn test_price_aggregator_submit() {
     }
 
     let current_timestamp = 100;
-    state
-        .world
-        .whitebox_query(&state.price_aggregator_whitebox, |sc| {
+    state.world.query().to(PRICE_AGGREGATOR_ADDRESS).whitebox(
+        multiversx_price_aggregator_sc::contract_obj,
+        |sc| {
             let blockchain_timestamp = sc.blockchain().get_block_timestamp();
 
             let token_pair = TokenPair {
-                from: managed_buffer!(EGLD_TICKER),
-                to: managed_buffer!(USD_TICKER),
+                from: ManagedBuffer::from(EGLD_TICKER.as_str()),
+                to: ManagedBuffer::from(USD_TICKER.as_str()),
             };
             assert_eq!(blockchain_timestamp, current_timestamp);
 
@@ -207,7 +197,8 @@ fn test_price_aggregator_submit() {
                     }
                 );
             }
-        });
+        },
+    );
 
     // submit last that resets the round
     state.submit(

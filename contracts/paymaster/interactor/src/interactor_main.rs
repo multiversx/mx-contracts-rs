@@ -4,7 +4,6 @@ mod paymaster_config;
 mod proxy;
 
 use multiversx_sc_snippets::imports::*;
-use multiversx_sc_snippets::sdk;
 use paymaster_config::Config;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -12,7 +11,6 @@ use std::{
     path::Path,
 };
 
-const GATEWAY: &str = sdk::gateway::DEVNET_GATEWAY;
 const STATE_FILE: &str = "state.toml";
 
 const ONE_UNIT: u64 = 1_000_000_000_000_000_000;
@@ -92,9 +90,13 @@ struct ContractInteract {
 
 impl ContractInteract {
     async fn new() -> Self {
-        let mut interactor = Interactor::new(GATEWAY).await;
-        let wallet_address = interactor.register_wallet(test_wallets::alice());
+        let config = Config::load_config();
+        let mut interactor = Interactor::new(config.gateway_uri())
+            .await
+            .use_chain_simulator(config.use_chain_simulator());
+        let wallet_address = interactor.register_wallet(test_wallets::alice()).await;
 
+        interactor.set_current_dir_from_workspace("contracts/paymaster/interactor");
         let contract_code = BytesValue::interpret_from(
             "mxsc:../output/paymaster.mxsc.json",
             &InterpreterContext::default(),
@@ -119,7 +121,6 @@ impl ContractInteract {
             .init()
             .code(&self.contract_code)
             .returns(ReturnsNewAddress)
-            .prepare_async()
             .run()
             .await;
         let new_address_bech32 = bech32::encode(&new_address);
@@ -171,7 +172,6 @@ impl ContractInteract {
             )
             .payment(payments)
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
