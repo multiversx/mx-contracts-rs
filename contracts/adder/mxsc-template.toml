@@ -12,7 +12,14 @@ files_include = [
     "scenarios",
     "src",
     "tests",
-    "wasm/Cargo.toml",
     "Cargo.toml",
     "README.md",
+    "sc-config.toml",
+    "multiversx.json",
+    "interactor/Cargo.toml",
+    "interactor/config.toml",
+    "interactor/.gitignore",
+    "interactor/src",
+    "interactor/tests",
 ]
+has_interactor = true
