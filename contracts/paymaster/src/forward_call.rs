@@ -3,7 +3,7 @@ use multiversx_sc::imports::*;
 pub type PaymentsVec<M> = ManagedVec<M, EsdtTokenPayment<M>>;
 
 static ERR_CALLBACK_MSG: &[u8] = b"Error received in callback:";
-pub const ESDT_TRANSFER_FUNC_NAME: &str = "ESDTTransfer";
+
 #[multiversx_sc::module]
 pub trait ForwardCall {
     fn forward_call(
@@ -36,32 +36,29 @@ pub trait ForwardCall {
         payments: PaymentsVec<Self::Api>,
         #[call_result] result: ManagedAsyncCallResult<MultiValueEncoded<ManagedBuffer>>,
     ) -> MultiValueEncoded<ManagedBuffer> {
-        let back_transfers = self.blockchain().get_back_transfers();
-
-        // Send the original input tokens back to the original caller
-        if !back_transfers.esdt_payments.is_empty() {
-            self.tx()
-                .to(&original_caller)
-                .payment(&back_transfers.esdt_payments)
-                .transfer();
-        }
-        if back_transfers.total_egld_amount > 0 {
-            self.tx()
-                .to(&original_caller)
-                .egld(back_transfers.total_egld_amount)
-                .transfer();
-        }
-
         match result {
             ManagedAsyncCallResult::Ok(return_values) => {
+                let back_transfers = self.blockchain().get_back_transfers();
+
+                // Send the original input tokens back to the original caller
+                if !back_transfers.esdt_payments.is_empty() {
+                    self.tx()
+                        .to(&original_caller)
+                        .payment(&back_transfers.esdt_payments)
+                        .transfer();
+                }
+                if back_transfers.total_egld_amount > 0 {
+                    self.tx()
+                        .to(&original_caller)
+                        .egld(back_transfers.total_egld_amount)
+                        .transfer();
+                }
                 // Send the resulted tokens to the original caller
                 return_values
             }
             ManagedAsyncCallResult::Err(err) => {
-                let egld_value = self.call_value().egld_value();
                 // Send the resulted tokens to the original caller
-                self.tx().to(&original_caller).payment(&payments).transfer();
-                self.tx().to(&original_caller).egld(egld_value).transfer();
+                self.tx().to(&original_caller).payment(payments).transfer();
 
                 let mut err_result = MultiValueEncoded::new();
                 err_result.push(ManagedBuffer::new_from_bytes(ERR_CALLBACK_MSG));
