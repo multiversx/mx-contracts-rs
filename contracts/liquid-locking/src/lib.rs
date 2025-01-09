@@ -45,7 +45,7 @@ pub trait LiquidLocking {
         let caller = self.blockchain().get_caller();
         for payment in payments.iter() {
             self.validate_payment(&payment);
-            self.stake_token(&caller, payment);
+            self.stake_token(&caller, payment.clone());
         }
         self.lock_event(&caller, &payments);
     }
@@ -92,7 +92,8 @@ pub trait LiquidLocking {
                             .swap_remove(&token.token_identifier);
                     }
 
-                    self.unlocked_tokens(&caller).insert(token.token_identifier);
+                    self.unlocked_tokens(&caller)
+                        .insert(token.token_identifier.clone());
                 });
         }
         self.unlock_event(&caller, &tokens);

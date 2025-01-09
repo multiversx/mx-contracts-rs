@@ -63,7 +63,7 @@ pub trait MultisigStateModule {
         );
 
         self.user_mapper().get_or_create_users(
-            new_board_members.into_iter(),
+            new_board_members.clone().into_iter(),
             |user_id, new_user| {
                 if !new_user {
                     duplicates = true;

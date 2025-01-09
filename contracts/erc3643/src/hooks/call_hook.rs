@@ -30,8 +30,8 @@ pub trait CallHookModule {
         for hook in &hooks {
             let back_transfers = self
                 .tx()
-                .to(hook.dest_address)
-                .raw_call(hook.endpoint_name)
+                .to(hook.dest_address.clone())
+                .raw_call(hook.endpoint_name.clone())
                 .arguments_raw(call_args.clone())
                 .with_multi_token_transfer(output_payments.clone())
                 .returns(ReturnsBackTransfers)

@@ -86,9 +86,11 @@ pub trait ExchangeActionsModule:
         let mapper = self.known_contracts(&sc_addr);
         let mut current_endpoints = mapper.get();
 
+        let current_endpoints_iter = current_endpoints.iter();
+
         for endpoint_to_remove in endpoint_names {
             let mut removed = false;
-            for (i, endpoint) in current_endpoints.iter().enumerate() {
+            for (i, endpoint) in current_endpoints_iter.clone().enumerate() {
                 if endpoint.endpoint_name == endpoint_to_remove {
                     removed = true;
                     current_endpoints.remove(i);
@@ -113,7 +115,7 @@ pub trait ExchangeActionsModule:
         self.require_not_paused();
         self.require_not_initial_launch();
 
-        let egld_value = self.call_value().egld_value().clone_value();
+        let egld_value = self.call_value().egld().clone_value();
         require!(egld_value == 0, "Invalid payment");
 
         let caller = self.blockchain().get_caller();
