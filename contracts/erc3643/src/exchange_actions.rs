@@ -52,7 +52,7 @@ pub trait ExchangeActionsModule:
         self.require_not_paused();
         self.require_known_endpoint(&dest, &endpoint_name);
 
-        let egld_value = self.call_value().egld_value().clone_value();
+        let egld_value = self.call_value().egld().clone_value();
         require!(egld_value == 0, "Invalid payment");
 
         let caller = self.blockchain().get_caller();

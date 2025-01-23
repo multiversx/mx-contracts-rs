@@ -28,7 +28,7 @@ pub trait PaymasterContract: forward_call::ForwardCall {
         let payments = self.call_value().all_esdt_transfers();
         require!(!payments.is_empty(), "There is no fee for payment!");
 
-        let fee_payment = payments.get(FEE_PAYMENT_INDEX);
+        let fee_payment = payments.get(FEE_PAYMENT_INDEX).clone();
         self.tx()
             .to(&relayer_addr)
             .payment(EsdtTokenPayment::new(

@@ -280,9 +280,9 @@ pub trait OrdersModule:
         order_type: OrderType,
     ) -> MultiValueManagedVec<Order<Self::Api>> {
         let mut orders_vec = MultiValueManagedVec::new();
-        for order in orders.iter() {
+        for order in orders {
             if order.order_type == order_type {
-                orders_vec.push(order);
+                orders_vec.push(order.clone());
             }
         }
 
@@ -356,9 +356,9 @@ pub trait OrdersModule:
                 self.tx()
                     .to(&transfer.to)
                     .payment(EsdtTokenPayment::new(
-                        transfer.payment.token_id,
+                        transfer.payment.token_id.clone(),
                         0,
-                        transfer.payment.amount,
+                        transfer.payment.amount.clone(),
                     ))
                     .transfer();
             }

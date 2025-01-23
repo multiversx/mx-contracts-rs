@@ -36,8 +36,8 @@ pub trait DistributionModule {
             }
 
             self.tx()
-                .to(distribution.address)
-                .raw_call(distribution.endpoint)
+                .to(&distribution.address)
+                .raw_call(distribution.endpoint.clone())
                 .payment(EgldOrEsdtTokenPayment::new(
                     token_id.clone(),
                     token_nonce,

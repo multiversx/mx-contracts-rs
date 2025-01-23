@@ -53,7 +53,7 @@ pub trait NftEscrowContract {
 
         let offer = Offer {
             creator,
-            nft: payment.token_identifier,
+            nft: payment.token_identifier.clone(),
             nonce: payment.token_nonce,
             wanted_nft,
             wanted_nonce,
@@ -124,7 +124,10 @@ pub trait NftEscrowContract {
 
         self.offers(offer_id).clear();
 
-        self.tx().to(&offer.creator).payment(payment).transfer();
+        self.tx()
+            .to(&offer.creator)
+            .payment(payment.clone())
+            .transfer();
         self.tx()
             .to(&offer.wanted_address)
             .payment(EsdtTokenPayment::new(

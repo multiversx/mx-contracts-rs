@@ -47,10 +47,7 @@ pub trait EsdtTransferWithFee {
     #[payable("*")]
     #[endpoint]
     fn transfer(&self, address: ManagedAddress) {
-        require!(
-            *self.call_value().egld_value() == 0,
-            "EGLD transfers not allowed"
-        );
+        require!(*self.call_value().egld() == 0, "EGLD transfers not allowed");
         let payments = self.call_value().all_esdt_transfers();
         let mut new_payments = ManagedVec::new();
 
@@ -72,17 +69,17 @@ pub trait EsdtTransferWithFee {
                         "Mismatching payment for covering fees"
                     );
                     let _ = self.get_payment_after_fees(fee_type, &next_payment);
-                    new_payments.push(payment);
+                    new_payments.push(payment.clone());
                 }
                 Fee::Percentage(_) => {
                     new_payments.push(self.get_payment_after_fees(fee_type, &payment));
                 }
                 Fee::Unset => {
-                    new_payments.push(payment);
+                    new_payments.push(payment.clone());
                 }
             }
         }
-        self.tx().to(&address).payment(&new_payments).transfer();
+        self.tx().to(&address).payment(new_payments).transfer();
     }
 
     fn get_payment_after_fees(
