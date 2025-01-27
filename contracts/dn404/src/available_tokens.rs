@@ -24,7 +24,7 @@ pub trait AvailableTokensModule:
         let payments = self.call_value().all_esdt_transfers().clone_value();
         let mut basket = self.basket_of_goods();
         for payment in &payments {
-            self.add_tokens(&mut basket, payment);
+            self.add_tokens(&mut basket, payment.clone());
         }
     }
 
@@ -54,7 +54,7 @@ pub trait AvailableTokensModule:
 
             price_as_payment.amount -= fee_amount;
             total_output_payment += &price_as_payment.amount;
-            self.add_tokens(&mut basket, payment);
+            self.add_tokens(&mut basket, payment.clone());
         }
 
         if total_output_payment > 0 {
@@ -100,8 +100,9 @@ pub trait AvailableTokensModule:
 
         token_mapper.burn(&total_cost);
 
-        let remaining_tokens = payment_amount - total_cost;
-        let remaining_tokens_payment = EsdtTokenPayment::new(payment_token, 0, remaining_tokens);
+        let remaining_tokens = payment_amount.clone() - total_cost;
+        let remaining_tokens_payment =
+            EsdtTokenPayment::new(payment_token.clone(), 0, remaining_tokens);
         self.tx()
             .to(ToCaller)
             .payment(&remaining_tokens_payment)
