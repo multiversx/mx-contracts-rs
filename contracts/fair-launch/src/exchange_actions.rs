@@ -4,7 +4,7 @@ use multiversx_sc::derive_imports::*;
 use multiversx_sc::imports::*;
 
 #[type_abi]
-#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, ManagedVecItem)]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, ManagedVecItem, Clone)]
 pub struct EndpointInfo<M: ManagedTypeApi> {
     pub endpoint_name: ManagedBuffer<M>,
     pub input_fee_percentage: Percentage,
@@ -70,7 +70,7 @@ pub trait ExchangeActionsModule:
                 );
             }
 
-            current_endpoints.push(new_endpoint);
+            current_endpoints.push(new_endpoint.clone());
         }
 
         mapper.set(current_endpoints);
@@ -87,17 +87,13 @@ pub trait ExchangeActionsModule:
         let mut current_endpoints = mapper.get();
 
         for endpoint_to_remove in endpoint_names {
-            let mut removed = false;
-            for (i, endpoint) in current_endpoints.iter().enumerate() {
-                if endpoint.endpoint_name == endpoint_to_remove {
-                    removed = true;
-                    current_endpoints.remove(i);
+            let pos = current_endpoints
+                .iter()
+                .position(|endpoint| endpoint.endpoint_name == endpoint_to_remove);
 
-                    break;
-                }
-            }
+            require!(pos.is_some(), "Unknown endpoint name");
 
-            require!(removed, "Unknown endpoint name");
+            current_endpoints.remove(pos.unwrap());
         }
     }
 
@@ -113,7 +109,7 @@ pub trait ExchangeActionsModule:
         self.require_not_paused();
         self.require_not_initial_launch();
 
-        let egld_value = self.call_value().egld_value().clone_value();
+        let egld_value = self.call_value().egld_direct_non_strict().clone_value();
         require!(egld_value == 0, "Invalid payment");
 
         let caller = self.blockchain().get_caller();
@@ -190,7 +186,7 @@ pub trait ExchangeActionsModule:
         }
 
         match opt_info {
-            Some(info) => info,
+            Some(info) => info.clone(),
             None => sc_panic!("Unknown endpoint"),
         }
     }

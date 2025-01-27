@@ -52,7 +52,7 @@ pub trait InitialLaunchModule:
         );
         let take_fee_result = self.take_fees(
             caller,
-            ManagedVec::from_single_item(payment),
+            ManagedVec::from_single_item(payment.clone()),
             ManagedVec::from_single_item(fee_percentage),
         );
         require!(
@@ -94,10 +94,10 @@ pub trait InitialLaunchModule:
 
         self.tx()
             .to(&take_fee_result.original_caller)
-            .payment(&received_tokens)
+            .payment(received_tokens.clone())
             .transfer();
 
-        received_tokens
+        received_tokens.clone()
     }
 
     #[payable("*")]
@@ -124,7 +124,7 @@ pub trait InitialLaunchModule:
         );
         let take_fee_result = self.take_fees(
             caller,
-            ManagedVec::from_single_item(payment),
+            ManagedVec::from_single_item(payment.clone()),
             ManagedVec::from_single_item(fee_percentage),
         );
         require!(
@@ -151,10 +151,10 @@ pub trait InitialLaunchModule:
 
         self.tx()
             .to(&take_fee_result.original_caller)
-            .payment(&received_tokens)
+            .payment(received_tokens.clone())
             .transfer();
 
-        received_tokens
+        received_tokens.clone()
     }
 
     fn get_fee_percentage(

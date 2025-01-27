@@ -1,8 +1,12 @@
 use crowdfunding_esdt::crowdfunding_esdt_proxy;
 use fair_launch::{common::CommonModule, fair_launch_proxy, initial_launch::InitialLaunchModule};
-use multiversx_sc::types::{ManagedAddress, ManagedBuffer, MultiValueEncoded, TestEsdtTransfer};
+use multiversx_sc::{
+    imports::MultiValue5,
+    types::{ManagedAddress, ManagedBuffer, MultiValueEncoded, TestEsdtTransfer},
+};
 use multiversx_sc_scenario::{
-    managed_biguint, managed_buffer, ExpectMessage, ScenarioTxRun, ScenarioTxWhitebox,
+    api::StaticApi, managed_biguint, managed_buffer, ExpectMessage, ScenarioTxRun,
+    ScenarioTxWhitebox,
 };
 use tests_common::{
     FairLaunchSetup, BUY_FEE_PERCENTAGE_END, BUY_FEE_PERCENTAGE_START, CODE_PATH_CROWDFUNDING,
@@ -382,6 +386,57 @@ fn forward_swap_sync_test() {
         .world
         .check_account(FAIR_LAUNCH_ADDRESS)
         .esdt_balance(OTHER_TOKEN_ID, 40_000);
+}
+
+#[test]
+fn remove_exchange_test() {
+    let mut fl_setup = FairLaunchSetup::new(Some(TOKEN_ID), 20);
+
+    let endpoint_info: MultiValue5<ManagedBuffer<StaticApi>, u32, bool, u32, bool> = MultiValue5((
+        ManagedBuffer::from("swap_tokens_fixed_input"),
+        1u32,
+        true,
+        2u32,
+        false,
+    ));
+
+    let mut encoded_endpoint_info: MultiValueEncoded<
+        StaticApi,
+        MultiValue5<ManagedBuffer<StaticApi>, u32, bool, u32, bool>,
+    > = MultiValueEncoded::new();
+    encoded_endpoint_info.push(endpoint_info);
+    fl_setup
+        .world
+        .tx()
+        .from(OWNER)
+        .to(FAIR_LAUNCH_ADDRESS)
+        .typed(fair_launch_proxy::FairLaunchProxy)
+        .add_exchange_endpoint(PAIR_MOCK_ADDRESS, encoded_endpoint_info)
+        .run();
+
+    let mut endpoint_names: MultiValueEncoded<StaticApi, ManagedBuffer<StaticApi>> =
+        MultiValueEncoded::new();
+    endpoint_names.push(ManagedBuffer::from("wrong_swap_tokens_fixed_input"));
+    fl_setup
+        .world
+        .tx()
+        .from(OWNER)
+        .to(FAIR_LAUNCH_ADDRESS)
+        .typed(fair_launch_proxy::FairLaunchProxy)
+        .remove_exchange_endpoint(PAIR_MOCK_ADDRESS, endpoint_names)
+        .returns(ExpectMessage("Unknown endpoint name"))
+        .run();
+
+    endpoint_names = MultiValueEncoded::new();
+    endpoint_names.push(ManagedBuffer::from("swap_tokens_fixed_input"));
+    fl_setup
+        .world
+        .tx()
+        .from(OWNER)
+        .to(FAIR_LAUNCH_ADDRESS)
+        .typed(fair_launch_proxy::FairLaunchProxy)
+        .remove_exchange_endpoint(PAIR_MOCK_ADDRESS, endpoint_names)
+        .run();
 }
 
 // #[test]
