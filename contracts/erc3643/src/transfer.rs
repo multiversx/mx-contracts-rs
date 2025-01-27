@@ -22,7 +22,7 @@ pub trait TransferModule:
     /// Forward the transfer to the specified address
     /// Part of the tokens may be taken as fees
     /// If the destination is a SC, the first argument is the function name
-    #[payable("*")]
+    #[payable]
     #[endpoint(forwardTransfer)]
     fn forward_transfer(&self, dest: ManagedAddress, extra_args: MultiValueEncoded<ManagedBuffer>) {
         self.require_not_paused();
