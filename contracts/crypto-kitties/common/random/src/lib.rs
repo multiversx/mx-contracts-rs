@@ -1,5 +1,5 @@
 #![no_std]
-#[allow(static_mut_refs)]
+#![allow(static_mut_refs)]
 use multiversx_sc::{api::ManagedTypeApi, types::ManagedByteArray};
 
 const SEED_SIZE: usize = 48;
