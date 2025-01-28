@@ -68,7 +68,7 @@ pub trait OnChainClaimContract:
         });
     }
 
-    #[payable("*")]
+    #[payable]
     #[endpoint(claimAndRepair)]
     fn claim_and_repair(&self) {
         let caller = self.blockchain().get_caller();
@@ -80,7 +80,10 @@ pub trait OnChainClaimContract:
 
         let payment = self.call_value().single_esdt();
         let repair_streak_payment = self.repair_streak_payment().get();
-        require!(payment == repair_streak_payment, "Bad payment token/amount");
+        require!(
+            *payment == repair_streak_payment,
+            "Bad payment token/amount"
+        );
 
         let current_epoch = self.blockchain().get_block_epoch();
 
