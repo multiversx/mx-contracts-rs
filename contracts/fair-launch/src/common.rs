@@ -45,7 +45,7 @@ pub trait CommonModule {
 
         for (payment, token_fees_percentage) in payments.iter().zip(fees_percentage.iter()) {
             if token_fees_percentage == 0 {
-                final_payments.push(payment);
+                final_payments.push(payment.clone());
 
                 continue;
             }
