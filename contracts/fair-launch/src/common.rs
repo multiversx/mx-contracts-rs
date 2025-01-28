@@ -18,7 +18,7 @@ pub struct TakeFeesResult<M: ManagedTypeApi> {
 #[multiversx_sc::module]
 pub trait CommonModule {
     fn get_non_empty_payments(&self) -> PaymentsVec<Self::Api> {
-        let payments = self.call_value().all_esdt_transfers().clone_value();
+        let payments = self.call_value().all_esdt_transfers().clone();
         require!(!payments.is_empty(), "Empty payments");
 
         payments

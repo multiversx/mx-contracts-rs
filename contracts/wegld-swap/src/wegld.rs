@@ -30,11 +30,11 @@ pub trait EgldEsdtSwap: multiversx_sc_modules::pause::PauseModule {
             .payment(EsdtTokenPayment::new(
                 wrapped_egld_token_id.clone(),
                 0,
-                payment_amount.clone_value(),
+                payment_amount.clone(),
             ))
             .transfer();
 
-        EsdtTokenPayment::new(wrapped_egld_token_id, 0, payment_amount.clone_value())
+        EsdtTokenPayment::new(wrapped_egld_token_id, 0, payment_amount.clone())
     }
 
     #[payable]
