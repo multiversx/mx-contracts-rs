@@ -19,7 +19,7 @@ pub trait NftEscrowContract {
     #[init]
     fn init(&self) {}
 
-    #[payable("*")]
+    #[payable]
     #[endpoint]
     fn escrow(
         &self,
@@ -53,7 +53,7 @@ pub trait NftEscrowContract {
 
         let offer = Offer {
             creator,
-            nft: payment.token_identifier,
+            nft: payment.token_identifier.clone(),
             nonce: payment.token_nonce,
             wanted_nft,
             wanted_nonce,
@@ -96,7 +96,7 @@ pub trait NftEscrowContract {
             .transfer();
     }
 
-    #[payable("*")]
+    #[payable]
     #[endpoint]
     fn accept(&self, offer_id: u32) {
         let offers_mapper = self.offers(offer_id);
@@ -124,7 +124,10 @@ pub trait NftEscrowContract {
 
         self.offers(offer_id).clear();
 
-        self.tx().to(&offer.creator).payment(payment).transfer();
+        self.tx()
+            .to(&offer.creator)
+            .payment(payment.clone())
+            .transfer();
         self.tx()
             .to(&offer.wanted_address)
             .payment(EsdtTokenPayment::new(
