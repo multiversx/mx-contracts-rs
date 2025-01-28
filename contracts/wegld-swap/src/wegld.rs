@@ -18,7 +18,7 @@ pub trait EgldEsdtSwap: multiversx_sc_modules::pause::PauseModule {
     fn wrap_egld(&self) -> EsdtTokenPayment<Self::Api> {
         self.require_not_paused();
 
-        let payment_amount = self.call_value().egld_value();
+        let payment_amount = self.call_value().egld();
         require!(*payment_amount > 0u32, "Payment must be more than 0");
 
         let wrapped_egld_token_id = self.wrapped_egld_token_id().get();
@@ -37,7 +37,7 @@ pub trait EgldEsdtSwap: multiversx_sc_modules::pause::PauseModule {
         EsdtTokenPayment::new(wrapped_egld_token_id, 0, payment_amount.clone_value())
     }
 
-    #[payable("*")]
+    #[payable]
     #[endpoint(unwrapEgld)]
     fn unwrap_egld(&self) {
         self.require_not_paused();
@@ -45,10 +45,10 @@ pub trait EgldEsdtSwap: multiversx_sc_modules::pause::PauseModule {
         let (payment_token, payment_amount) = self.call_value().single_fungible_esdt();
         let wrapped_egld_token_id = self.wrapped_egld_token_id().get();
 
-        require!(payment_token == wrapped_egld_token_id, "Wrong esdt token");
-        require!(payment_amount > 0u32, "Must pay more than 0 tokens!");
+        require!(*payment_token == wrapped_egld_token_id, "Wrong esdt token");
+        require!(*payment_amount > 0u32, "Must pay more than 0 tokens!");
         require!(
-            payment_amount <= self.get_locked_egld_balance(),
+            *payment_amount <= self.get_locked_egld_balance(),
             "Contract does not have enough funds"
         );
 
