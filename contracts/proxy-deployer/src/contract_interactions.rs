@@ -181,7 +181,7 @@ pub trait ContractInteractionsModule:
             };
 
         for index in 0..deployer_template_addresses.len() {
-            let deployed_address = deployer_template_addresses.get(index).clone_value();
+            let deployed_address = deployer_template_addresses.get(index).clone();
             if deployed_address == contract_address {
                 deployer_template_addresses.remove(index);
                 self.deployer_template_addresses(&caller)
@@ -230,10 +230,7 @@ pub trait ContractInteractionsModule:
         while self.blockchain().get_gas_left() >= gas_per_action + default_gas_for_save
             && !ongoing_upgrade_operation.contracts_remaining.is_empty()
         {
-            let contract_address = ongoing_upgrade_operation
-                .contracts_remaining
-                .get(0)
-                .clone_value();
+            let contract_address = ongoing_upgrade_operation.contracts_remaining.get(0).clone();
             // If the contract_template storage is empty, it means the contracts ownership was transfered
             if !self.contract_template(&contract_address).is_empty() {
                 self.tx()

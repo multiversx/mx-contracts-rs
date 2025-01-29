@@ -22,7 +22,7 @@ const DEPLOYED_CONTRACT_PATH_EXPR: MxscPath = MxscPath::new("../adder/output/add
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
 
-    blockchain.set_current_dir_from_workspace("contracts/proxy-developer");
+    blockchain.set_current_dir_from_workspace("contracts/proxy-deployer");
     blockchain.register_contract(PROXY_DEPLOYER_PATH_EXPR, proxy_deployer::ContractBuilder);
     blockchain.register_contract(DEPLOYED_CONTRACT_PATH_EXPR, adder::ContractBuilder);
 
@@ -273,13 +273,7 @@ fn proxy_deployer_check_metadata_test() {
     let mut state = ProxyDeployerTestState::new();
     state.deploy_proxy_deployer_contract();
 
-    state.check_contract_metadata(
-        PROXY_DEPLOYER_ADDRESS_EXPR,
-        CodeMetadata::UPGRADEABLE
-            | CodeMetadata::READABLE
-            | CodeMetadata::PAYABLE
-            | CodeMetadata::PAYABLE_BY_SC,
-    );
+    state.check_contract_metadata(PROXY_DEPLOYER_ADDRESS_EXPR, CodeMetadata::UPGRADEABLE);
 
     // Test contract deploy
     let mut deploy_args = MultiValueEncoded::new();
@@ -294,13 +288,7 @@ fn proxy_deployer_check_metadata_test() {
     state.check_contract_storage(DEPLOYED_CONTRACT_ADDRESS_EXPR1, 1u64);
     let contract_address = state.deployed_contracts[0].to_owned();
 
-    state.check_contract_metadata(
-        DEPLOYED_CONTRACT_ADDRESS_EXPR1,
-        CodeMetadata::UPGRADEABLE
-            | CodeMetadata::READABLE
-            | CodeMetadata::PAYABLE
-            | CodeMetadata::PAYABLE_BY_SC,
-    );
+    state.check_contract_metadata(DEPLOYED_CONTRACT_ADDRESS_EXPR1, CodeMetadata::UPGRADEABLE);
 
     // Test endpoint call
     let mut call_args = MultiValueEncoded::new();

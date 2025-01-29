@@ -36,7 +36,7 @@ pub trait MvxGameSc: storage::StorageModule + owner::OwnerModule + private::Priv
         }
     }
 
-    #[payable("*")]
+    #[payable]
     #[endpoint(createGame)]
     fn create_game(
         &self,
@@ -57,7 +57,7 @@ pub trait MvxGameSc: storage::StorageModule + owner::OwnerModule + private::Priv
         self.create_new_game(caller, waiting_time, min, max, wager)
     }
 
-    #[payable("*")]
+    #[payable]
     #[endpoint(joinGame)]
     fn join_game(&self, game_id: u64) {
         self.require_enabled();

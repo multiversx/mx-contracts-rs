@@ -106,7 +106,7 @@ pub trait MysteryBox:
         output_payment
     }
 
-    #[payable("*")]
+    #[payable]
     #[endpoint(openMysteryBox)]
     fn open_mystery_box(&self) {
         let caller = self.blockchain().get_caller();

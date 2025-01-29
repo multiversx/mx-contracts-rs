@@ -68,7 +68,7 @@ pub trait PingPong {
     #[payable("EGLD")]
     #[endpoint]
     fn ping(&self, _data: IgnoreValue) {
-        let payment = self.call_value().egld_value();
+        let payment = self.call_value().egld();
 
         require!(
             *payment == self.ping_amount().get(),
@@ -103,13 +103,13 @@ pub trait PingPong {
         match user_status {
             UserStatus::New => {
                 self.user_status(user_id).set(UserStatus::Registered);
-            },
+            }
             UserStatus::Registered => {
                 sc_panic!("can only ping once")
-            },
+            }
             UserStatus::Withdrawn => {
                 sc_panic!("already withdrawn")
-            },
+            }
         }
 
         self.ping_event(&caller, &payment);
@@ -129,7 +129,7 @@ pub trait PingPong {
                 } else {
                     Result::Err("unknown user")
                 }
-            },
+            }
             UserStatus::Withdrawn => Result::Err("already withdrawn"),
         }
     }
