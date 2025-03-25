@@ -28,7 +28,7 @@ pub trait DistributionModule {
         if total_amount == 0 {
             return;
         }
-        for distribution in self.distribution_rules().get().iter() {
+        for distribution in self.distribution_rules().get() {
             let payment_amount =
                 &total_amount * distribution.percentage / MAX_DISTRIBUTION_PERCENTAGE;
             if payment_amount == 0 {

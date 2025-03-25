@@ -16,7 +16,7 @@ pub trait EventsModule {
         let caller = self.blockchain().get_caller();
         let epoch = self.blockchain().get_block_epoch();
 
-        for order in orders.iter() {
+        for order in orders {
             let order_type = order.order_type;
             let order_id = order.id;
 
@@ -28,7 +28,7 @@ pub trait EventsModule {
         let caller = self.blockchain().get_caller();
         let epoch = self.blockchain().get_block_epoch();
 
-        for order in orders.iter() {
+        for order in orders {
             let order_type = order.order_type;
             let order_id = order.id;
             let order_creator = order.creator;
@@ -41,7 +41,7 @@ pub trait EventsModule {
         let caller = self.blockchain().get_caller();
         let epoch = self.blockchain().get_block_epoch();
 
-        for order in orders.iter() {
+        for order in orders {
             let order_type = order.order_type;
             let order_id = order.id;
             let order_creator = order.creator;

@@ -4,7 +4,7 @@ use multiversx_sc::derive_imports::*;
 use multiversx_sc::imports::*;
 
 #[type_abi]
-#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, ManagedVecItem)]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, ManagedVecItem, Clone)]
 pub struct EndpointInfo<M: ManagedTypeApi> {
     pub endpoint_name: ManagedBuffer<M>,
     pub input_fee_percentage: Percentage,
@@ -62,7 +62,7 @@ pub trait ExchangeActionsModule:
 
         let mapper = self.known_contracts(&sc_addr);
         let mut current_endpoints = mapper.get();
-        for new_endpoint in &new_endpoints {
+        for new_endpoint in new_endpoints {
             for current_endpoint in &current_endpoints {
                 require!(
                     current_endpoint.endpoint_name != new_endpoint.endpoint_name,
@@ -87,22 +87,18 @@ pub trait ExchangeActionsModule:
         let mut current_endpoints = mapper.get();
 
         for endpoint_to_remove in endpoint_names {
-            let mut removed = false;
-            for (i, endpoint) in current_endpoints.iter().enumerate() {
-                if endpoint.endpoint_name == endpoint_to_remove {
-                    removed = true;
-                    current_endpoints.remove(i);
+            let endpoint_to_remove_index = current_endpoints
+                .iter()
+                .position(|endpoint| endpoint.endpoint_name == endpoint_to_remove);
 
-                    break;
-                }
-            }
+            require!(endpoint_to_remove_index.is_some(), "Unknown endpoint name");
 
-            require!(removed, "Unknown endpoint name");
+            current_endpoints.remove(endpoint_to_remove_index.unwrap());
         }
     }
 
     /// forward an execute on dest context call on an exchange SC
-    #[payable("*")]
+    #[payable]
     #[endpoint(forwardExecuteOnDest)]
     fn forward_execute_on_dest(
         &self,
@@ -113,11 +109,12 @@ pub trait ExchangeActionsModule:
         self.require_not_paused();
         self.require_not_initial_launch();
 
-        let egld_value = self.call_value().egld_value().clone_value();
+        // TODO: switch to egld+esdt multi transfer handling
+        let egld_value = self.call_value().egld_direct_non_strict().clone();
         require!(egld_value == 0, "Invalid payment");
 
         let caller = self.blockchain().get_caller();
-        let payments = self.call_value().all_esdt_transfers().clone_value();
+        let payments = self.call_value().all_esdt_transfers().clone();
         let endpoint_info = self.find_endpoint_info(&dest, &endpoint_name);
 
         let mut input_fees_percentage = ManagedVec::new();
@@ -190,7 +187,7 @@ pub trait ExchangeActionsModule:
         }
 
         match opt_info {
-            Some(info) => info,
+            Some(info) => info.clone(),
             None => sc_panic!("Unknown endpoint"),
         }
     }

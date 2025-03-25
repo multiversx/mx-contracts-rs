@@ -15,7 +15,7 @@ pub trait PaymasterContract: forward_call::ForwardCall {
     fn upgrade(&self) {}
 
     #[endpoint(forwardExecution)]
-    #[payable("*")]
+    #[payable]
     fn forward_execution(
         &self,
         relayer_addr: ManagedAddress,
@@ -32,13 +32,13 @@ pub trait PaymasterContract: forward_call::ForwardCall {
         self.tx()
             .to(&relayer_addr)
             .payment(EsdtTokenPayment::new(
-                fee_payment.token_identifier,
+                fee_payment.token_identifier.clone(),
                 fee_payment.token_nonce,
-                fee_payment.amount,
+                fee_payment.amount.clone(),
             ))
             .transfer();
 
-        let mut payments_without_fee = payments.clone_value();
+        let mut payments_without_fee = payments.clone();
         payments_without_fee.remove(FEE_PAYMENT_INDEX);
 
         self.forward_call(

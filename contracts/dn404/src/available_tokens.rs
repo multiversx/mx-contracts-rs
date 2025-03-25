@@ -18,28 +18,28 @@ pub trait AvailableTokensModule:
     + multiversx_sc_modules::only_admin::OnlyAdminModule
 {
     #[only_admin]
-    #[payable("*")]
+    #[payable]
     #[endpoint]
     fn deposit(&self) {
-        let payments = self.call_value().all_esdt_transfers().clone_value();
+        let payments = self.call_value().all_esdt_transfers().clone();
         let mut basket = self.basket_of_goods();
-        for payment in &payments {
+        for payment in payments {
             self.add_tokens(&mut basket, payment);
         }
     }
 
-    #[payable("*")]
+    #[payable]
     #[endpoint(depositBasketOfGoods)]
     fn deposit_basket_of_goods(&self) {
         self.require_not_paused();
 
-        let payments = self.call_value().all_esdt_transfers().clone_value();
+        let payments = self.call_value().all_esdt_transfers().clone();
         let token_mapper = self.fractal_token();
         let token_id = token_mapper.get_token_id_ref();
 
         let mut basket = self.basket_of_goods();
         let mut total_output_payment = BigUint::zero();
-        for payment in &payments {
+        for payment in payments {
             let price = self.try_get_price(&payment.token_identifier, payment.token_nonce);
             let mut price_as_payment = EsdtTokenPayment::new(token_id.clone(), 0, price);
 
@@ -63,7 +63,7 @@ pub trait AvailableTokensModule:
         }
     }
 
-    #[payable("*")]
+    #[payable]
     #[endpoint(claimBasketOfGoods)]
     fn claim_basket_of_goods(
         &self,
@@ -80,7 +80,7 @@ pub trait AvailableTokensModule:
         let mut tokens_vec = ManagedVec::<Self::Api, _>::new();
         let mut basket = self.basket_of_goods();
         for token_to_claim in tokens_to_claim {
-            let token_as_payment = token_to_claim.into_esdt_token_payment();
+            let token_as_payment = token_to_claim.into_inner();
             let price = self.try_get_price(
                 &token_as_payment.token_identifier,
                 token_as_payment.token_nonce,
@@ -96,12 +96,13 @@ pub trait AvailableTokensModule:
             tokens_vec.push(token_as_payment);
         }
 
-        require!(payment_amount >= total_cost, "Not enough tokens");
+        require!(*payment_amount >= total_cost, "Not enough tokens");
 
         token_mapper.burn(&total_cost);
 
-        let remaining_tokens = payment_amount - total_cost;
-        let remaining_tokens_payment = EsdtTokenPayment::new(payment_token, 0, remaining_tokens);
+        let remaining_tokens = payment_amount.clone() - total_cost;
+        let remaining_tokens_payment =
+            EsdtTokenPayment::new(payment_token.clone(), 0, remaining_tokens);
         self.tx()
             .to(ToCaller)
             .payment(&remaining_tokens_payment)

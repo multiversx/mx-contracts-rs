@@ -19,13 +19,13 @@ pub trait Contract:
     #[init]
     fn init(&self) {}
 
-    #[payable("*")]
+    #[payable]
     #[endpoint(sellToken)]
     fn sell_token_endpoint(&self) {
         self.sell_token::<FunctionSelector<Self::Api>>();
     }
 
-    #[payable("*")]
+    #[payable]
     #[endpoint(buyToken)]
     fn buy_token_endpoint(
         &self,
@@ -41,7 +41,7 @@ pub trait Contract:
     }
 
     #[endpoint(deposit)]
-    #[payable("*")]
+    #[payable]
     fn deposit_endpoint(&self, payment_token: OptionalValue<TokenIdentifier>) {
         self.deposit::<FunctionSelector<Self::Api>>(payment_token)
     }
