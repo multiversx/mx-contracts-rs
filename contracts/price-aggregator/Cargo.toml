@@ -29,13 +29,13 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dev-dependencies.multiversx-sc-scenario]
-version = "0.57.0"
+version = "0.57.1"
 
 [dependencies.multiversx-sc]
-version = "0.57.0"
+version = "0.57.1"
 
 [dependencies.multiversx-sc-modules]
-version = "0.57.0"
+version = "0.57.1"
 
 [dependencies.arrayvec]
 version = "0.7.1"
