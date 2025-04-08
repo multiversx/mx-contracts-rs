@@ -14,7 +14,7 @@ pub trait TokenInfoModule:
         token_ticker: ManagedBuffer,
         num_decimals: usize,
     ) {
-        let payment_amount = self.call_value().egld_value().clone_value();
+        let payment_amount = self.call_value().egld().clone();
         match token_type {
             EsdtTokenType::Fungible => {
                 self.fungible_token().issue_and_set_all_roles(

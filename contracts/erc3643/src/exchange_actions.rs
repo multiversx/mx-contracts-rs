@@ -41,7 +41,7 @@ pub trait ExchangeActionsModule:
     }
 
     /// forward an execute on dest context call on an exchange SC
-    #[payable("*")]
+    #[payable]
     #[endpoint(forwardExecuteOnDest)]
     fn forward_execute_on_dest(
         &self,
@@ -52,13 +52,13 @@ pub trait ExchangeActionsModule:
         self.require_not_paused();
         self.require_known_endpoint(&dest, &endpoint_name);
 
-        let egld_value = self.call_value().egld_value().clone_value();
+        let egld_value = self.call_value().egld().clone();
         require!(egld_value == 0, "Invalid payment");
 
         let caller = self.blockchain().get_caller();
         self.require_whitelisted(&caller);
 
-        let payments = self.call_value().all_esdt_transfers().clone_value();
+        let payments = self.call_value().all_esdt_transfers().clone();
         let payments_after_hook = self.call_hook(
             ErcHookType::BeforeExchangeAction,
             caller.clone(),

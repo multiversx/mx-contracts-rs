@@ -27,7 +27,7 @@ pub trait CallHookModule {
         }
 
         let mut output_payments = input_payments;
-        for hook in &hooks {
+        for hook in hooks {
             let back_transfers = self
                 .tx()
                 .to(hook.dest_address)

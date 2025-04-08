@@ -57,8 +57,9 @@ pub trait MultisigStateModule {
 
     fn add_multiple_board_members(&self, new_board_members: ManagedVec<ManagedAddress>) -> usize {
         let mut duplicates = false;
+        let new_board_members_len = new_board_members.len();
         require!(
-            self.num_board_members().get() + new_board_members.len() <= MAX_BOARD_MEMBERS,
+            self.num_board_members().get() + new_board_members_len <= MAX_BOARD_MEMBERS,
             "board size cannot exceed limit"
         );
 
@@ -74,7 +75,7 @@ pub trait MultisigStateModule {
         require!(!duplicates, "duplicate board member");
 
         let num_board_members_mapper = self.num_board_members();
-        let new_num_board_members = num_board_members_mapper.get() + new_board_members.len();
+        let new_num_board_members = num_board_members_mapper.get() + new_board_members_len;
         num_board_members_mapper.set(new_num_board_members);
 
         new_num_board_members

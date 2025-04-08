@@ -49,7 +49,7 @@ pub trait Multisig:
     fn upgrade(&self) {}
 
     /// Allows the contract to receive funds even if it is marked as unpayable in the protocol.
-    #[payable("*")]
+    #[payable]
     #[endpoint]
     fn deposit(&self) {}
 

@@ -10,7 +10,7 @@ pub trait PairMock {
         self.second_token_id().set(second_token_id);
     }
 
-    #[payable("*")]
+    #[payable]
     #[endpoint(swapTokensFixedInput)]
     fn swap_tokens_fixed_input(
         &self,
@@ -21,9 +21,9 @@ pub trait PairMock {
         let first_token_id = self.first_token_id().get();
         let second_token_id = self.second_token_id().get();
         let output = if payment.token_identifier == first_token_id {
-            EsdtTokenPayment::new(second_token_id, 0, payment.amount * 2u32)
+            EsdtTokenPayment::new(second_token_id, 0, &payment.amount * 2u32)
         } else {
-            EsdtTokenPayment::new(first_token_id, 0, payment.amount / 2u32)
+            EsdtTokenPayment::new(first_token_id, 0, &payment.amount / 2u32)
         };
 
         self.tx()

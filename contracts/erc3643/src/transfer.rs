@@ -22,7 +22,7 @@ pub trait TransferModule:
     /// Forward the transfer to the specified address
     /// Part of the tokens may be taken as fees
     /// If the destination is a SC, the first argument is the function name
-    #[payable("*")]
+    #[payable]
     #[endpoint(forwardTransfer)]
     fn forward_transfer(&self, dest: ManagedAddress, extra_args: MultiValueEncoded<ManagedBuffer>) {
         self.require_not_paused();
@@ -31,7 +31,7 @@ pub trait TransferModule:
             "Cannot transfer to this SC. Use forwardExecuteOnDest instead."
         );
 
-        let payments = self.call_value().all_esdt_transfers().clone_value();
+        let payments = self.call_value().all_esdt_transfers().clone();
         require!(!payments.is_empty(), "Empty payments");
 
         self.check_transfer_allowed(&dest, &payments);
@@ -55,7 +55,7 @@ pub trait TransferModule:
         require!(!extra_args.is_empty(), "No arguments for SC Call");
 
         let all_args = extra_args.into_vec_of_buffers();
-        let endpoint_name = all_args.get(0).clone_value();
+        let endpoint_name = all_args.get(0).clone();
         let func_args = match all_args.slice(1, all_args.len()) {
             Some(args) => args,
             None => ManagedVec::new(),

@@ -1,0 +1,2 @@
+[[proxy]]
+path = "src/dn404_proxy.rs"
