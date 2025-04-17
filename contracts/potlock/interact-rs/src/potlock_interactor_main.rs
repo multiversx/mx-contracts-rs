@@ -94,9 +94,9 @@ struct ContractInteract {
 impl ContractInteract {
     async fn new() -> Self {
         let mut interactor = Interactor::new(GATEWAY).await;
-        let owner_address = interactor.register_wallet(test_wallets::alice());
-        let second_address = interactor.register_wallet(test_wallets::bob());
-        let third_address = interactor.register_wallet(test_wallets::carol());
+        let owner_address = interactor.register_wallet(test_wallets::alice()).await;
+        let second_address = interactor.register_wallet(test_wallets::bob()).await;
+        let third_address = interactor.register_wallet(test_wallets::carol()).await;
 
         let contract_code = BytesValue::interpret_from(
             "mxsc:../output/potlock.mxsc.json",
@@ -125,7 +125,6 @@ impl ContractInteract {
             .init(admins)
             .code(&self.contract_code)
             .returns(ReturnsNewAddress)
-            .prepare_async()
             .run()
             .await;
         let new_address_bech32 = bech32::encode(&new_address);
@@ -148,7 +147,6 @@ impl ContractInteract {
             .code(&self.contract_code)
             .code_metadata(CodeMetadata::UPGRADEABLE)
             .returns(ReturnsNewAddress)
-            .prepare_async()
             .run()
             .await;
 
@@ -168,7 +166,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .change_fee_for_pots(token_identifier, fee)
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -193,7 +190,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .change_fee_for_pots(token_identifier, fee)
             .returns(expected_result)
-            .prepare_async()
             .run()
             .await;
     }
@@ -208,7 +204,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .accept_pot(potlock_id)
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -230,7 +225,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .accept_pot(potlock_id)
             .returns(expected_result)
-            .prepare_async()
             .run()
             .await;
 
@@ -247,7 +241,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .remove_pot(potlock_id)
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -269,7 +262,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .remove_pot(potlock_id)
             .returns(expected_result)
-            .prepare_async()
             .run()
             .await;
 
@@ -286,7 +278,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .accept_application(project_id)
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -308,7 +299,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .accept_application(project_id)
             .returns(expected_result)
-            .prepare_async()
             .run()
             .await;
     }
@@ -325,7 +315,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .remove_application(project_id)
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -345,7 +334,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .reject_donation(potlock_id, user)
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -367,7 +355,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .distribute_pot_to_projects(potlock_id, project_percentages)
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -390,7 +377,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .distribute_pot_to_projects(potlock_id, project_percentages)
             .returns(expected_result)
-            .prepare_async()
             .run()
             .await;
 
@@ -414,7 +400,6 @@ impl ContractInteract {
             .add_pot(name, description)
             .payment((TokenIdentifier::from(token_id), token_nonce, token_amount))
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -444,7 +429,6 @@ impl ContractInteract {
             .add_pot(name, description)
             .payment((TokenIdentifier::from(token_id), token_nonce, token_amount))
             .returns(expected_result)
-            .prepare_async()
             .run()
             .await;
 
@@ -464,7 +448,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .apply_for_pot(potlock_id, project_name, description)
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -491,7 +474,6 @@ impl ContractInteract {
             .donate_to_pot(potlock_id)
             .payment((TokenIdentifier::from(token_id), token_nonce, token_amount))
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -519,7 +501,6 @@ impl ContractInteract {
             .donate_to_pot(potlock_id)
             .payment((TokenIdentifier::from(token_id), token_nonce, token_amount))
             .returns(expected_result)
-            .prepare_async()
             .run()
             .await;
 
@@ -546,7 +527,6 @@ impl ContractInteract {
             .donate_to_project(project_id)
             .payment((TokenIdentifier::from(token_id), token_nonce, token_amount))
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -574,7 +554,6 @@ impl ContractInteract {
             .donate_to_project(project_id)
             .payment((TokenIdentifier::from(token_id), token_nonce, token_amount))
             .returns(expected_result)
-            .prepare_async()
             .run()
             .await;
 
@@ -589,7 +568,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .fee_token_identifier()
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -604,7 +582,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .fee_amount()
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -621,7 +598,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .potlocks()
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -636,7 +612,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .projects()
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -653,7 +628,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .pot_donations(potlock_id)
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -670,7 +644,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .project_donations(project_id)
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -687,7 +660,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .is_admin(address)
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -706,7 +678,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .add_admin(address)
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -725,7 +696,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .remove_admin(address)
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
@@ -740,7 +710,6 @@ impl ContractInteract {
             .typed(proxy::PotlockProxy)
             .admins()
             .returns(ReturnsResultUnmanaged)
-            .prepare_async()
             .run()
             .await;
 
