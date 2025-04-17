@@ -1,5 +1,3 @@
-use __wasm__endpoints__::fee_payment;
-
 use crate::potlock_requirements;
 use crate::potlock_storage::{self, Pot, Project};
 use crate::potlock_storage::{PotlockId, ProjectId};
@@ -16,18 +14,19 @@ pub trait PotlockInteractions:
     #[payable("*")]
     #[endpoint(addPot)]
     fn add_pot(&self, name: ManagedBuffer, description: ManagedBuffer) {
-        let fee_payment = self.call_value().single_esdt();
+        let payment_for_adding_pot_ref = self.call_value().single_esdt();
 
         require!(
-            fee_payment().get() == fee_payment,
+            self.fee_token_identifier().get() == payment_for_adding_pot_ref.token_identifier
+                && self.fee_amount().get() == payment_for_adding_pot_ref.amount,
             "Wrong payment for creating a pot!"
         );
         require!(
-            self.fee_token_identifier().get() == payment_for_adding_pot.token_identifier,
+            self.fee_token_identifier().get() == payment_for_adding_pot_ref.token_identifier,
             "Wrong token identifier for creating a pot!"
         );
         require!(
-            self.fee_amount().get() == payment_for_adding_pot.amount,
+            self.fee_amount().get() == payment_for_adding_pot_ref.amount,
             "Wrong fee amount for creating a pot"
         );
         let caller = self.blockchain().get_caller();
@@ -67,13 +66,13 @@ pub trait PotlockInteractions:
                     previous_payment.token_identifier == payment_token_id.clone(),
                     "Already made a payment with a different TokenID"
                 );
-                previous_payment.amount += payment_amount;
+                previous_payment.amount += payment_amount.clone_value();
                 donation_mapper.insert(caller, previous_payment);
             }
         } else {
             donation_mapper.insert(
                 caller,
-                EsdtTokenPayment::new(payment_token_id, 0, payment_amount),
+                EsdtTokenPayment::new(payment_token_id.clone(), 0, payment_amount.clone()),
             );
         }
     }
@@ -95,11 +94,11 @@ pub trait PotlockInteractions:
                     previous_payment.token_identifier == payment.token_identifier.clone(),
                     "Already made a payment with a different TokenID"
                 );
-                previous_payment.amount += payment.amount;
+                previous_payment.amount += payment.amount.clone();
                 donation_mapper.insert(caller, previous_payment);
             }
         } else {
-            donation_mapper.insert(caller, payment);
+            donation_mapper.insert(caller, payment.clone());
         }
     }
 }

@@ -4,13 +4,15 @@ multiversx_sc::derive_imports!();
 pub type PotlockId = usize;
 pub type ProjectId = usize;
 
-#[derive(TypeAbi, TopEncode, TopDecode, PartialEq, Eq, Debug, NestedEncode, NestedDecode)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, PartialEq, Eq, Debug, NestedEncode, NestedDecode)]
 pub enum Status {
     Inactive,
     Active,
 }
 
-#[derive(TypeAbi, NestedEncode, NestedDecode, PartialEq, Debug, TopEncode, TopDecode)]
+#[type_abi]
+#[derive(NestedEncode, NestedDecode, PartialEq, Debug, TopEncode, TopDecode)]
 pub struct Pot<M: ManagedTypeApi> {
     pub potlock_id: PotlockId,
     pub proposer: ManagedAddress<M>,
@@ -40,7 +42,8 @@ impl<M: ManagedTypeApi> Pot<M> {
     }
 }
 
-#[derive(TypeAbi, NestedEncode, NestedDecode, PartialEq, Debug, TopEncode, TopDecode)]
+#[type_abi]
+#[derive(NestedEncode, NestedDecode, PartialEq, Debug, TopEncode, TopDecode)]
 pub struct Project<M: ManagedTypeApi> {
     pub potlock_id: PotlockId,
     pub name: ManagedBuffer<M>,
@@ -66,7 +69,8 @@ impl<M: ManagedTypeApi> Project<M> {
     }
 }
 
-#[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode, PartialEq, Debug)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, PartialEq, Debug)]
 pub struct UserDonations<M: ManagedTypeApi> {
     pub user: ManagedAddress<M>,
     pub donations: EsdtTokenPayment<M>,
@@ -82,9 +86,9 @@ pub trait PotlockStorage {
     #[storage_mapper("feeAmount")]
     fn fee_amount(&self) -> SingleValueMapper<BigUint>;
 
-    #[view(getFeePayment)]
-    #[storage_mapper("feePayment")]
-    fn fee_payment(&self) -> SingleValueMapper<EsdtTokenPayment>;
+    // #[view(getFeePayment)]
+    // #[storage_mapper("feePayment")]
+    // fn fee_payment(&self) -> SingleValueMapper<EsdtTokenPayment>;
 
     #[view(getPotlocks)]
     #[storage_mapper("potlocks")]
