@@ -86,10 +86,6 @@ pub trait PotlockStorage {
     #[storage_mapper("feeAmount")]
     fn fee_amount(&self) -> SingleValueMapper<BigUint>;
 
-    // #[view(getFeePayment)]
-    // #[storage_mapper("feePayment")]
-    // fn fee_payment(&self) -> SingleValueMapper<EsdtTokenPayment>;
-
     #[view(getPotlocks)]
     #[storage_mapper("potlocks")]
     fn potlocks(&self) -> VecMapper<Pot<Self::Api>>;
