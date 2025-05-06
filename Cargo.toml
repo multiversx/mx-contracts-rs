@@ -12,6 +12,8 @@ members = [
   "contracts/adder/interactor",
   "contracts/esdt-transfer-with-fee",
   "contracts/esdt-transfer-with-fee/meta",
+  "contracts/bulk-payments",
+  "contracts/bulk-payments/meta",
   "contracts/bonding-curve-contract",
   "contracts/bonding-curve-contract/meta",
   "contracts/check-pause",
