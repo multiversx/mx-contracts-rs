@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                            3
+// Endpoints:                            8
 // Async Callback (empty):               1
-// Total number of exported functions:   6
+// Total number of exported functions:  11
 
 #![no_std]
 
@@ -22,7 +22,12 @@ multiversx_sc_wasm_adapter::endpoints! {
         upgrade => upgrade
         joinParty => join_party
         bulksend => bulksend
-        getNativeToken => native_token
+        join => join
+        sendRewards => send_rewards
+        getBatchFromIndex => get_batch_from_index
+        currentBatchIndex => current_batch_index
+        maxBatchIndex => max_batch_index
+        batchSize => batch_size
     )
 }
 
