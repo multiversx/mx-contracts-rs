@@ -124,7 +124,7 @@ where
     }
 
     pub fn distribute_rewards<
-        Arg0: ProxyArg<MultiValueEncoded<Env::Api, MultiValue2<ManagedAddress<Env::Api>, u64>>>,
+        Arg0: ProxyArg<MultiValueEncoded<Env::Api, UserAddrTimestamp<Env::Api>>>,
     >(
         self,
         users: Arg0,
@@ -174,4 +174,14 @@ where
             .raw_call("batchSize")
             .original_result()
     }
+}
+
+#[type_abi]
+#[derive(NestedEncode, NestedDecode, TopEncode, TopDecode)]
+pub struct UserAddrTimestamp<Api>
+where
+    Api: ManagedTypeApi,
+{
+    pub addr: ManagedAddress<Api>,
+    pub timestamp: u64,
 }
