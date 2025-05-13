@@ -82,6 +82,8 @@ members = [
   "contracts/rewards-distribution/meta",
   "contracts/seed-nft-minter",
   "contracts/seed-nft-minter/meta",
+  "contracts/tiered-bulk-payments",
+  "contracts/tiered-bulk-payments/meta",
   "contracts/token-release",
   "contracts/token-release/meta",
   "contracts/mvx-game-sc",
