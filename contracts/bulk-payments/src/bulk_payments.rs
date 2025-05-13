@@ -1,7 +1,14 @@
 #![no_std]
 
-#[allow(unused_imports)]
+use multiversx_sc::derive_imports::*;
 use multiversx_sc::imports::*;
+
+#[type_abi]
+#[derive(NestedEncode, NestedDecode, TopEncode, TopDecode)]
+pub struct UserAddrTimestamp<M: ManagedTypeApi> {
+    pub addr: ManagedAddress<M>,
+    pub timestamp: u64,
+}
 
 /// An empty contract. To be used as a template when starting a new contract from scratch.
 #[multiversx_sc::contract]
@@ -14,7 +21,7 @@ pub trait BulkPayments {
     }
 
     #[upgrade]
-    fn upgrade(&self, batch_size: usize, max_batch_index: usize) {
+    fn upgrade(&self) {
         // self.batch_size().set(batch_size);
         // self.max_batch_index().set(max_batch_index);
     }
@@ -76,8 +83,8 @@ pub trait BulkPayments {
     }
 
     #[payable("*")]
-    #[endpoint(sendRewards)]
-    fn send_rewards(&self, payment_amount: BigUint) {
+    #[endpoint(experimentSendRewards)]
+    fn experiment_send_rewards(&self, payment_amount: BigUint) {
         let (token, _, _) = self.call_value().egld_or_single_esdt().into_tuple();
         let receivers_mapper = self.joined_addr();
         let receivers_iter = receivers_mapper.iter();
@@ -86,6 +93,27 @@ pub trait BulkPayments {
                 .to(destination)
                 .egld_or_single_esdt(&token, 0, &payment_amount)
                 .transfer();
+        }
+    }
+
+    #[payable("*")]
+    #[endpoint(distributeRewards)]
+    fn distribute_rewards(
+        &self,
+        users: MultiValueEncoded<MultiValue2<ManagedAddress<Self::Api>, u64>>,
+    ) {
+        let (token, _, amount) = self.call_value().egld_or_single_esdt().into_tuple();
+        let amount_to_send = amount / BigUint::from(users.len());
+        let current_timestamp = self.blockchain().get_block_timestamp();
+
+        for user in users {
+            let (addr, opt_in_timestamp) = user.as_tuple();
+            if opt_in_timestamp > &current_timestamp {
+                self.tx()
+                    .to(addr)
+                    .egld_or_single_esdt(&token, 0, &amount_to_send)
+                    .transfer();
+            }
         }
     }
 

@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                            8
+// Endpoints:                            9
 // Async Callback (empty):               1
-// Total number of exported functions:  11
+// Total number of exported functions:  12
 
 #![no_std]
 
@@ -23,7 +23,8 @@ multiversx_sc_wasm_adapter::endpoints! {
         joinParty => join_party
         bulksend => bulksend
         join => join
-        sendRewards => send_rewards
+        experimentSendRewards => experiment_send_rewards
+        distributeRewards => distribute_rewards
         getBatchFromIndex => get_batch_from_index
         currentBatchIndex => current_batch_index
         maxBatchIndex => max_batch_index
