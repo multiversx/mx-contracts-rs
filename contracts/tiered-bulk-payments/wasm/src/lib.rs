@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                            9
+// Endpoints:                           13
 // Async Callback (empty):               1
-// Total number of exported functions:  12
+// Total number of exported functions:  16
 
 #![no_std]
 
@@ -25,10 +25,14 @@ multiversx_sc_wasm_adapter::endpoints! {
         whitelistUsers => add_whitelist_users
         removeWhitelistWsers => remove_whitelist_users
         setBulkPaymentsScSourceAddress => set_bulk_payments_sc_source_address
+        setRewardsPerDay => set_rewards_per_day
         deployBulkPaymentsSc => deploy_bulk_payments_sc
         distributePayments => distribute_payments
         getScAddrFromTier => get_sc_addr_from_tier
         isUserWhitelisted => is_user_whitelisted
+        getTierForUserOptedIn => get_tier_for_user_opted_in
+        getTimestampForUserOptedIn => get_timestamp_for_user_opted_in
+        getNumberUsersInTier => get_number_users_in_tier
     )
 }
 
