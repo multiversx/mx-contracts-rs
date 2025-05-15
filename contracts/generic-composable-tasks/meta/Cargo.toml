@@ -1,0 +1,12 @@
+[package]
+name = "generic-composable-tasks-meta"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies.generic-composable-tasks]
+path = ".."
+
+[dependencies.multiversx-sc-meta-lib]
+version = "0.57.1"
+default-features = false
