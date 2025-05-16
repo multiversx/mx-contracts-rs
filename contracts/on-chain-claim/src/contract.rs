@@ -159,7 +159,7 @@ pub trait OnChainClaimContract:
         let current_season = self.get_current_season();
         require!(
             current_season.id == season,
-            "epoch must be equal to the current epoch"
+            "season must be the current season"
         );
 
         let address_info = AddressInfo::new(
