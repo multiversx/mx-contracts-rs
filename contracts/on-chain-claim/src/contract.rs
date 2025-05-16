@@ -134,10 +134,11 @@ pub trait OnChainClaimContract:
             return;
         }
 
+        let current_epoch = self.blockchain().get_block_epoch();
         self.seasons().update(|seasons| {
             let last_season = seasons.get(seasons.len() - 1);
             require!(
-                last_season.start_epoch < epoch,
+                last_season.start_epoch < epoch && current_epoch < epoch,
                 "new season must start after the last season"
             );
             seasons.push(SeasonInfo::new(last_season.id + 1, epoch));

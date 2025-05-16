@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           13
+// Endpoints:                           15
 // Async Callback (empty):               1
-// Total number of exported functions:  16
+// Total number of exported functions:  18
 
 #![no_std]
 
@@ -22,12 +22,14 @@ multiversx_sc_wasm_adapter::endpoints! {
         upgrade => upgrade
         claim => claim
         claimAndRepair => claim_and_repair
-        addNewSeason => add_new_season
+        addSeason => add_season
         updateState => update_state
         setRepairStreakPayment => set_repair_streak_payment
         getAddressInfo => get_address_info
+        getAddressInfoBySeason => get_address_info_by_season
         canBeRepaired => can_be_repaired
         getCurrentSeason => get_current_season
+        getSeasons => seasons
         getRepairStreakPayment => repair_streak_payment
         isAdmin => is_admin
         addAdmin => add_admin
