@@ -2,15 +2,13 @@
 #![allow(unused_attributes)]
 
 pub use address_info::AddressInfo;
-use config::FIRST_SEASON_ID;
-pub use season_info::SeasonInfo;
+use config::{FIRST_SEASON_ID, FIRST_SEASON_START_EPOCH};
 
 use multiversx_sc::imports::*;
 
 pub mod address_info;
 pub mod config;
 pub mod events;
-pub mod season_info;
 
 use crate::config::MAX_REPAIR_GAP;
 use multiversx_sc_modules::only_admin;
@@ -26,18 +24,24 @@ pub trait OnChainClaimContract:
         let caller = self.blockchain().get_caller();
         self.add_admin(caller);
 
-        let mut seasons = ManagedVec::new();
-        seasons.push(SeasonInfo::new(FIRST_SEASON_ID, 0u64));
-        self.seasons().set(seasons);
+        self.seasons().push(&FIRST_SEASON_START_EPOCH);
     }
 
     #[upgrade]
     fn upgrade(&self) {
         if self.seasons().is_empty() {
-            let mut seasons = ManagedVec::new();
-            seasons.push(SeasonInfo::new(FIRST_SEASON_ID, 0u64));
-            self.seasons().set(seasons);
+            self.seasons().push(&FIRST_SEASON_START_EPOCH);
         }
+    }
+
+    fn migrate_legacy_address_info(&self, address: &ManagedAddress) {
+        if self.address_info(&address).is_empty() {
+            return;
+        }
+
+        let address_info = self.address_info(&address).take();
+        self.address_info_by_season(address, FIRST_SEASON_ID)
+            .set(address_info);
     }
 
     #[endpoint(claim)]
@@ -49,27 +53,15 @@ pub trait OnChainClaimContract:
         );
         self.require_same_shard(&caller);
 
+        self.migrate_legacy_address_info(&caller);
+
         let current_epoch = self.blockchain().get_block_epoch();
-        let current_season = self.get_current_season();
+        let current_season_id = self.get_current_season();
 
-        if current_season.id == FIRST_SEASON_ID {
-            let address_info_mapper = self.address_info(&caller);
-            if address_info_mapper.is_empty() {
-                let address_info = AddressInfo::new_with_epoch(current_epoch);
-                self.address_info(&caller).set(&address_info);
-                self.new_claim_event(&caller, &address_info);
-                return;
-            }
-
-            address_info_mapper.update(|address_info| {
-                self.increment_address_info(address_info, current_epoch);
-            });
-        }
-
-        let address_info_by_season_mapper = self.address_info_by_season(&caller, current_season.id);
+        let address_info_by_season_mapper = self.address_info_by_season(&caller, current_season_id);
         if address_info_by_season_mapper.is_empty() {
             let address_info = AddressInfo::new_with_epoch(current_epoch);
-            self.address_info_by_season(&caller, current_season.id)
+            self.address_info_by_season(&caller, current_season_id)
                 .set(&address_info);
             self.new_claim_event(&caller, &address_info);
             return;
@@ -90,12 +82,14 @@ pub trait OnChainClaimContract:
         );
         self.require_same_shard(&caller);
 
+        self.migrate_legacy_address_info(&caller);
+
         let payment = self.call_value().single_esdt();
         let repair_streak_payment = self.repair_streak_payment().get();
         require!(payment == repair_streak_payment, "Bad payment token/amount");
 
         let current_epoch = self.blockchain().get_block_epoch();
-        let current_season = self.get_current_season();
+        let current_season_id = self.get_current_season();
         let address_info = self.get_address_info(&caller);
 
         require!(
@@ -103,18 +97,10 @@ pub trait OnChainClaimContract:
             "can't repair streak for address"
         );
 
-        if current_season.id == FIRST_SEASON_ID {
-            let address_info_mapper = self.address_info(&caller);
-            address_info_mapper.update(|address_info| {
-                self.repair_address_info_streak(&caller, address_info, current_epoch);
-            });
-        } else {
-            let address_info_by_season_mapper =
-                self.address_info_by_season(&caller, current_season.id);
-            address_info_by_season_mapper.update(|address_info| {
-                self.repair_address_info_streak(&caller, address_info, current_epoch);
-            });
-        }
+        let address_info_by_season_mapper = self.address_info_by_season(&caller, current_season_id);
+        address_info_by_season_mapper.update(|address_info| {
+            self.repair_address_info_streak(&caller, address_info, current_epoch);
+        });
 
         self.send().esdt_local_burn(
             &payment.token_identifier,
@@ -128,27 +114,29 @@ pub trait OnChainClaimContract:
         self.require_caller_is_admin();
 
         if self.seasons().is_empty() {
-            let mut seasons = ManagedVec::new();
-            seasons.push(SeasonInfo::new(FIRST_SEASON_ID, epoch));
-            self.seasons().set(seasons);
+            self.seasons().push(&epoch);
             return;
         }
 
         let current_epoch = self.blockchain().get_block_epoch();
-        self.seasons().update(|seasons| {
-            let last_season = seasons.get(seasons.len() - 1);
-            require!(
-                last_season.start_epoch < epoch && current_epoch < epoch,
-                "new season must start after the last season"
-            );
-            seasons.push(SeasonInfo::new(last_season.id + 1, epoch));
-        });
+        let last_season_starting_epoch = self.seasons().get(self.seasons().len());
+
+        require!(
+            last_season_starting_epoch < current_epoch,
+            "last season must start before the current epoch"
+        );
+
+        require!(
+            current_epoch < epoch,
+            "new season must start after the last season"
+        );
+        self.seasons().push(&epoch);
     }
 
     #[endpoint(updateState)]
     fn update_state(
         &self,
-        season: u16,
+        season_id: usize,
         address: &ManagedAddress,
         current_streak: u64,
         last_epoch_claimed: u64,
@@ -157,11 +145,13 @@ pub trait OnChainClaimContract:
     ) {
         self.require_caller_is_admin();
         self.require_same_shard(address);
-        let current_season = self.get_current_season();
+        let current_season_id = self.get_current_season();
         require!(
-            current_season.id == season,
+            current_season_id == season_id,
             "season must be the current season"
         );
+
+        self.migrate_legacy_address_info(address);
 
         let address_info = AddressInfo::new(
             current_streak,
@@ -170,12 +160,8 @@ pub trait OnChainClaimContract:
             best_streak,
         );
 
-        if current_season.id == FIRST_SEASON_ID {
-            self.address_info(address).set(&address_info);
-        } else {
-            self.address_info_by_season(address, season)
-                .set(&address_info);
-        }
+        self.address_info_by_season(address, current_season_id)
+            .set(&address_info);
 
         self.new_update_state_event(address, &address_info);
     }

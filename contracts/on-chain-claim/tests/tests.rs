@@ -101,12 +101,27 @@ fn check_before_claim() {
                 .block_epoch(20)
                 .new_address(OWNER_ADDR, TOKEN_NONCE, SC_ADDR),
         )
+        .whitebox_call(
+            &on_chain_claim_whitebox,
+            ScCallStep::new().from(SC_ADDR),
+            |sc| {
+                let address = AddressValue::from(OWNER_ADDR).to_address();
+                let managed_address = ManagedAddress::from(address);
+
+                sc.add_admin(managed_address);
+            },
+        )
+        .whitebox_call(
+            &on_chain_claim_whitebox,
+            ScCallStep::new().from(OWNER_ADDR),
+            |sc| sc.add_season(0u64),
+        )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info_mapper = sc.address_info(managed_address);
+            let address_info = sc.get_address_info(managed_address);
 
-            assert!(address_info_mapper.is_empty());
+            assert!(address_info.total_epochs_claimed == 0);
         });
 }
 
@@ -142,13 +157,6 @@ fn check_update_state() {
                 .block_epoch(20)
                 .new_address(OWNER_ADDR, TOKEN_NONCE, SC_ADDR),
         )
-        .whitebox_query(&on_chain_claim_whitebox, |sc| {
-            let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address);
-            let address_info_mapper = sc.address_info(managed_address);
-
-            assert!(address_info_mapper.is_empty());
-        })
         .whitebox_call(
             &on_chain_claim_whitebox,
             ScCallStep::new().from(SC_ADDR),
@@ -162,16 +170,28 @@ fn check_update_state() {
         .whitebox_call(
             &on_chain_claim_whitebox,
             ScCallStep::new().from(OWNER_ADDR),
+            |sc| sc.add_season(0u64),
+        )
+        .whitebox_query(&on_chain_claim_whitebox, |sc| {
+            let address = AddressValue::from(USER1_ADDR).to_address();
+            let managed_address = &ManagedAddress::from(address);
+            let address_info = sc.get_address_info(managed_address);
+
+            assert!(address_info.total_epochs_claimed == 0);
+        })
+        .whitebox_call(
+            &on_chain_claim_whitebox,
+            ScCallStep::new().from(OWNER_ADDR),
             |sc| {
                 let address = AddressValue::from(USER1_ADDR).to_address();
                 let managed_address = &ManagedAddress::from(address);
-                sc.update_state(1u16, managed_address, 5u64, 21u64, 7u64, 5u64);
+                sc.update_state(1usize, managed_address, 5u64, 21u64, 7u64, 5u64);
             },
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info(managed_address);
 
             assert_eq!(address_info.current_streak, 5);
             assert_eq!(address_info.last_epoch_claimed, 21);
@@ -213,13 +233,28 @@ fn check_after_claim() {
         )
         .whitebox_call(
             &on_chain_claim_whitebox,
+            ScCallStep::new().from(SC_ADDR),
+            |sc| {
+                let address = AddressValue::from(OWNER_ADDR).to_address();
+                let managed_address = ManagedAddress::from(address);
+
+                sc.add_admin(managed_address);
+            },
+        )
+        .whitebox_call(
+            &on_chain_claim_whitebox,
+            ScCallStep::new().from(OWNER_ADDR),
+            |sc| sc.add_season(0u64),
+        )
+        .whitebox_call(
+            &on_chain_claim_whitebox,
             ScCallStep::new().from(USER1_ADDR),
             |sc| sc.claim(),
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info(managed_address);
 
             assert_eq!(address_info.current_streak, 1);
             assert_eq!(address_info.total_epochs_claimed, 1);
@@ -234,7 +269,7 @@ fn check_after_claim() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info(managed_address);
 
             assert_eq!(address_info.current_streak, 2);
             assert_eq!(address_info.total_epochs_claimed, 2);
@@ -249,7 +284,7 @@ fn check_after_claim() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info(managed_address);
 
             assert_eq!(address_info.current_streak, 1);
             assert_eq!(address_info.total_epochs_claimed, 3);
@@ -301,6 +336,21 @@ fn check_claim_and_repair() {
             &on_chain_claim_whitebox,
             ScCallStep::new().from(SC_ADDR),
             |sc| {
+                let address = AddressValue::from(OWNER_ADDR).to_address();
+                let managed_address = ManagedAddress::from(address);
+
+                sc.add_admin(managed_address);
+            },
+        )
+        .whitebox_call(
+            &on_chain_claim_whitebox,
+            ScCallStep::new().from(OWNER_ADDR),
+            |sc| sc.add_season(0u64),
+        )
+        .whitebox_call(
+            &on_chain_claim_whitebox,
+            ScCallStep::new().from(SC_ADDR),
+            |sc| {
                 let payment = EsdtTokenPayment::new(
                     TokenIdentifier::from(TOKEN_IDENTIFIER),
                     1u64,
@@ -312,9 +362,9 @@ fn check_claim_and_repair() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info_mapper = sc.address_info(managed_address);
+            let address_info = sc.get_address_info(managed_address);
 
-            assert!(address_info_mapper.is_empty());
+            assert!(address_info.total_epochs_claimed == 0);
         })
         .whitebox_call_check(
             &on_chain_claim_whitebox,
@@ -333,9 +383,9 @@ fn check_claim_and_repair() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info_mapper = sc.address_info(managed_address);
+            let address_info = sc.get_address_info(managed_address);
 
-            assert!(address_info_mapper.is_empty());
+            assert!(address_info.total_epochs_claimed == 0);
         })
         .whitebox_call(
             &on_chain_claim_whitebox,
@@ -345,7 +395,7 @@ fn check_claim_and_repair() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info(managed_address);
 
             assert_eq!(address_info.current_streak, 1);
             assert_eq!(address_info.total_epochs_claimed, 1);
@@ -369,7 +419,7 @@ fn check_claim_and_repair() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info(managed_address);
 
             assert_eq!(address_info.current_streak, 1);
             assert_eq!(address_info.total_epochs_claimed, 1);
@@ -417,7 +467,7 @@ fn check_claim_and_repair() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info(managed_address);
             assert_eq!(address_info.current_streak, 3);
             assert_eq!(address_info.total_epochs_claimed, 3);
             assert_eq!(address_info.last_epoch_claimed, 22);
@@ -437,7 +487,7 @@ fn check_claim_and_repair() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info(managed_address);
             assert_eq!(address_info.current_streak, 9);
             assert_eq!(address_info.total_epochs_claimed, 9);
             assert_eq!(address_info.last_epoch_claimed, 28);
@@ -514,6 +564,11 @@ fn test_best_streak() {
                 sc.add_admin(managed_address);
             },
         )
+        .whitebox_call(
+            &on_chain_claim_whitebox,
+            ScCallStep::new().from(OWNER_ADDR),
+            |sc| sc.add_season(0u64),
+        )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let repair_streak_payment = sc.repair_streak_payment().get();
             let identifier = TokenIdentifier::from(TOKEN_IDENTIFIER);
@@ -527,7 +582,7 @@ fn test_best_streak() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info(managed_address);
             assert_eq!(address_info.current_streak, 1);
             assert_eq!(address_info.total_epochs_claimed, 1);
             assert_eq!(address_info.last_epoch_claimed, 20);
@@ -542,7 +597,7 @@ fn test_best_streak() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info(managed_address);
             assert_eq!(address_info.current_streak, 2);
             assert_eq!(address_info.total_epochs_claimed, 2);
             assert_eq!(address_info.last_epoch_claimed, 21);
@@ -557,7 +612,7 @@ fn test_best_streak() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info(managed_address);
             assert_eq!(address_info.current_streak, 1);
             assert_eq!(address_info.total_epochs_claimed, 3);
             assert_eq!(address_info.last_epoch_claimed, 25);
@@ -572,7 +627,7 @@ fn test_best_streak() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info(managed_address);
             assert_eq!(address_info.current_streak, 2);
             assert_eq!(address_info.total_epochs_claimed, 4);
             assert_eq!(address_info.last_epoch_claimed, 26);
@@ -587,7 +642,7 @@ fn test_best_streak() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info(managed_address);
             assert_eq!(address_info.current_streak, 3);
             assert_eq!(address_info.total_epochs_claimed, 5);
             assert_eq!(address_info.last_epoch_claimed, 27);
@@ -649,6 +704,11 @@ fn on_chain_claim_whitebox() {
                 sc.add_admin(managed_address);
             },
         )
+        .whitebox_call(
+            &on_chain_claim_whitebox,
+            ScCallStep::new().from(OWNER_ADDR),
+            |sc| sc.add_season(0u64),
+        )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let repair_streak_payment = sc.repair_streak_payment().get();
             let identifier = TokenIdentifier::from(TOKEN_IDENTIFIER);
@@ -662,7 +722,7 @@ fn on_chain_claim_whitebox() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info(managed_address);
             assert_eq!(address_info.current_streak, 1);
             assert_eq!(address_info.total_epochs_claimed, 1);
             assert_eq!(address_info.last_epoch_claimed, 20);
@@ -730,7 +790,7 @@ fn on_chain_claim_whitebox() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info(managed_address);
             assert_eq!(address_info.current_streak, 1);
             assert_eq!(address_info.total_epochs_claimed, 2);
             assert_eq!(address_info.last_epoch_claimed, 28);
@@ -742,7 +802,7 @@ fn on_chain_claim_whitebox() {
             |sc| {
                 let address = AddressValue::from(USER1_ADDR).to_address();
                 let managed_address = &ManagedAddress::from(address);
-                sc.update_state(1u16, managed_address, 5u64, 21u64, 7u64, 5u64);
+                sc.update_state(1usize, managed_address, 5u64, 21u64, 7u64, 5u64);
             },
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
@@ -754,7 +814,7 @@ fn on_chain_claim_whitebox() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info(managed_address);
             assert_eq!(address_info.current_streak, 5);
             assert_eq!(address_info.total_epochs_claimed, 7);
             assert_eq!(address_info.last_epoch_claimed, 21);
@@ -773,7 +833,7 @@ fn on_chain_claim_whitebox() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info(managed_address);
             assert_eq!(address_info.current_streak, 12);
             assert_eq!(address_info.total_epochs_claimed, 14);
             assert_eq!(address_info.last_epoch_claimed, 28);
@@ -841,10 +901,8 @@ fn on_chain_claim_seasons_whitebox() {
             |sc| sc.add_season(0u64),
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
-            let seasons = sc.seasons().get();
-            assert_eq!(seasons.len(), 1);
-            assert_eq!(seasons.get(0).id, 1);
-            assert_eq!(seasons.get(0).start_epoch, 0);
+            assert_eq!(sc.seasons().len(), 1);
+            assert_eq!(sc.seasons().get(1), 0);
         })
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let repair_streak_payment = sc.repair_streak_payment().get();
@@ -859,7 +917,7 @@ fn on_chain_claim_seasons_whitebox() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info(managed_address);
             assert_eq!(address_info.current_streak, 1);
             assert_eq!(address_info.total_epochs_claimed, 1);
             assert_eq!(address_info.last_epoch_claimed, 20);
@@ -867,7 +925,7 @@ fn on_chain_claim_seasons_whitebox() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.get_address_info_by_season(managed_address, 1u16);
+            let address_info = sc.get_address_info_by_season(managed_address, 1usize);
             assert_eq!(address_info.current_streak, 1);
             assert_eq!(address_info.total_epochs_claimed, 1);
             assert_eq!(address_info.last_epoch_claimed, 20);
@@ -878,13 +936,13 @@ fn on_chain_claim_seasons_whitebox() {
             |sc| sc.add_season(21),
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
-            let current_season = sc.get_current_season();
-            assert_eq!(current_season.id, 1);
+            let current_season_id = sc.get_current_season();
+            assert_eq!(current_season_id, 1);
         })
         .set_state_step(SetStateStep::new().block_epoch(21))
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
-            let current_season = sc.get_current_season();
-            assert_eq!(current_season.id, 2);
+            let current_season_id = sc.get_current_season();
+            assert_eq!(current_season_id, 2);
         })
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
@@ -901,7 +959,7 @@ fn on_chain_claim_seasons_whitebox() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.address_info(managed_address).get();
+            let address_info = sc.get_address_info_by_season(managed_address, 1usize);
             assert_eq!(address_info.current_streak, 1);
             assert_eq!(address_info.total_epochs_claimed, 1);
             assert_eq!(address_info.last_epoch_claimed, 20);
@@ -909,15 +967,7 @@ fn on_chain_claim_seasons_whitebox() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.get_address_info_by_season(managed_address, 1u16);
-            assert_eq!(address_info.current_streak, 1);
-            assert_eq!(address_info.total_epochs_claimed, 1);
-            assert_eq!(address_info.last_epoch_claimed, 20);
-        })
-        .whitebox_query(&on_chain_claim_whitebox, |sc| {
-            let address = AddressValue::from(USER1_ADDR).to_address();
-            let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.get_address_info_by_season(managed_address, 2u16);
+            let address_info = sc.get_address_info_by_season(managed_address, 2usize);
             assert_eq!(address_info.current_streak, 1);
             assert_eq!(address_info.total_epochs_claimed, 1);
             assert_eq!(address_info.last_epoch_claimed, 21);
@@ -948,13 +998,13 @@ fn on_chain_claim_seasons_whitebox() {
             },
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
-            let current_season = sc.get_current_season();
-            assert_eq!(current_season.id, 2);
+            let current_season_id = sc.get_current_season();
+            assert_eq!(current_season_id, 2);
         })
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.get_address_info_by_season(managed_address, 1u16);
+            let address_info = sc.get_address_info_by_season(managed_address, 1usize);
             assert_eq!(address_info.current_streak, 1);
             assert_eq!(address_info.total_epochs_claimed, 1);
             assert_eq!(address_info.last_epoch_claimed, 20);
@@ -962,7 +1012,7 @@ fn on_chain_claim_seasons_whitebox() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.get_address_info_by_season(managed_address, 2u16);
+            let address_info = sc.get_address_info_by_season(managed_address, 2usize);
             assert_eq!(address_info.current_streak, 3);
             assert_eq!(address_info.total_epochs_claimed, 3);
             assert_eq!(address_info.last_epoch_claimed, 23);
@@ -982,13 +1032,13 @@ fn on_chain_claim_seasons_whitebox() {
             |sc| {
                 let address = AddressValue::from(USER1_ADDR).to_address();
                 let managed_address = &ManagedAddress::from(address);
-                sc.update_state(2u16, managed_address, 2u64, 21u64, 2u64, 2u64);
+                sc.update_state(2usize, managed_address, 2u64, 21u64, 2u64, 2u64);
             },
         )
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.get_address_info_by_season(managed_address, 1u16);
+            let address_info = sc.get_address_info_by_season(managed_address, 1usize);
             assert_eq!(address_info.current_streak, 1);
             assert_eq!(address_info.total_epochs_claimed, 1);
             assert_eq!(address_info.last_epoch_claimed, 20);
@@ -996,7 +1046,7 @@ fn on_chain_claim_seasons_whitebox() {
         .whitebox_query(&on_chain_claim_whitebox, |sc| {
             let address = AddressValue::from(USER1_ADDR).to_address();
             let managed_address = &ManagedAddress::from(address);
-            let address_info = sc.get_address_info_by_season(managed_address, 2u16);
+            let address_info = sc.get_address_info_by_season(managed_address, 2usize);
             assert_eq!(address_info.current_streak, 2);
             assert_eq!(address_info.total_epochs_claimed, 2);
             assert_eq!(address_info.last_epoch_claimed, 21);
