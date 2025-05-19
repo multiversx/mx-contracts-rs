@@ -113,13 +113,15 @@ pub trait OnChainClaimContract:
     fn add_season(&self, epoch: u64) {
         self.require_caller_is_admin();
 
-        if self.seasons().is_empty() {
-            self.seasons().push(&epoch);
+        let mut seasons = self.seasons();
+
+        if seasons.is_empty() {
+            seasons.push(&epoch);
             return;
         }
 
         let current_epoch = self.blockchain().get_block_epoch();
-        let last_season_starting_epoch = self.seasons().get(self.seasons().len());
+        let last_season_starting_epoch = seasons.get(seasons.len());
 
         require!(
             last_season_starting_epoch < current_epoch,
@@ -130,7 +132,7 @@ pub trait OnChainClaimContract:
             current_epoch < epoch,
             "new season must start after the last season"
         );
-        self.seasons().push(&epoch);
+        seasons.push(&epoch);
     }
 
     #[endpoint(updateState)]
