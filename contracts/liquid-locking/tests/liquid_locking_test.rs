@@ -1,6 +1,6 @@
 use liquid_locking::*;
 use multiversx_sc::types::{
-    BigUint, EgldOrEsdtTokenIdentifier, EsdtTokenPayment, ManagedVec, TestAddress, TestSCAddress,
+    BigUint, EsdtTokenPayment, ManagedVec, TestAddress, TestEsdtTransfer, TestSCAddress,
     TestTokenIdentifier, TokenIdentifier,
 };
 use multiversx_sc_scenario::{
@@ -13,15 +13,13 @@ const CODE_PATH: MxscPath = MxscPath::new("output/liquid-locking.mxsc.json");
 const FIRST_USER_ADDRESS: TestAddress = TestAddress::new("user1");
 const SECOND_USER_ADDRESS: TestAddress = TestAddress::new("user2");
 const WHITELIST_TOKEN_1: TestTokenIdentifier = TestTokenIdentifier::new("AAA-111111");
-const WHITELIST_TOKEN_1_ID: &[u8] = b"AAA-111111";
 const WHITELIST_TOKEN_2: TestTokenIdentifier = TestTokenIdentifier::new("BBB-222222");
-const WHITELIST_TOKEN_2_ID: &[u8] = b"BBB-222222";
 const BLACKLIST_TOKEN: TestTokenIdentifier = TestTokenIdentifier::new("CCC-333333");
-const BLACKLIST_TOKEN_ID: &[u8] = b"CCC-333333";
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
 
+    blockchain.set_current_dir_from_workspace("contracts/liquid-locking");
     blockchain.register_contract(CODE_PATH, liquid_locking::ContractBuilder);
     blockchain
 }
@@ -71,7 +69,7 @@ fn test() {
         .from(OWNER_ADDRESS)
         .to(LIQUID_STAKING_ADDRESS)
         .typed(liquid_locking_proxy::LiquidLockingProxy)
-        .whitelist_token(WHITELIST_TOKEN_1_ID)
+        .whitelist_token(WHITELIST_TOKEN_1)
         .run();
 
     world
@@ -79,7 +77,7 @@ fn test() {
         .from(OWNER_ADDRESS)
         .to(LIQUID_STAKING_ADDRESS)
         .typed(liquid_locking_proxy::LiquidLockingProxy)
-        .whitelist_token(WHITELIST_TOKEN_2_ID)
+        .whitelist_token(WHITELIST_TOKEN_2)
         .run();
 
     world.check_account(OWNER_ADDRESS);
@@ -110,11 +108,7 @@ fn test() {
         .to(LIQUID_STAKING_ADDRESS)
         .typed(liquid_locking_proxy::LiquidLockingProxy)
         .lock()
-        .egld_or_single_esdt(
-            &EgldOrEsdtTokenIdentifier::esdt(BLACKLIST_TOKEN_ID),
-            0u64,
-            &BigUint::from(500u64),
-        )
+        .esdt(TestEsdtTransfer(BLACKLIST_TOKEN, 0u64, 500u64))
         .with_result(ExpectError(4, "token is not whitelisted"))
         .run();
 
@@ -145,11 +139,7 @@ fn test() {
         .to(LIQUID_STAKING_ADDRESS)
         .typed(liquid_locking_proxy::LiquidLockingProxy)
         .lock()
-        .egld_or_single_esdt(
-            &EgldOrEsdtTokenIdentifier::esdt(WHITELIST_TOKEN_2_ID),
-            0u64,
-            &BigUint::from(500u64),
-        )
+        .esdt(TestEsdtTransfer(WHITELIST_TOKEN_2, 0, 500))
         .run();
 
     world
@@ -158,11 +148,7 @@ fn test() {
         .to(LIQUID_STAKING_ADDRESS)
         .typed(liquid_locking_proxy::LiquidLockingProxy)
         .lock()
-        .egld_or_single_esdt(
-            &EgldOrEsdtTokenIdentifier::esdt(WHITELIST_TOKEN_2_ID),
-            0u64,
-            &BigUint::from(500u64),
-        )
+        .esdt(TestEsdtTransfer(WHITELIST_TOKEN_2, 0, 500))
         .run();
 
     world
@@ -171,11 +157,7 @@ fn test() {
         .to(LIQUID_STAKING_ADDRESS)
         .typed(liquid_locking_proxy::LiquidLockingProxy)
         .lock()
-        .egld_or_single_esdt(
-            &EgldOrEsdtTokenIdentifier::esdt(WHITELIST_TOKEN_1_ID),
-            0u64,
-            &BigUint::from(1000u64),
-        )
+        .esdt(TestEsdtTransfer(WHITELIST_TOKEN_1, 0, 1000))
         .run();
 
     world
@@ -184,11 +166,7 @@ fn test() {
         .to(LIQUID_STAKING_ADDRESS)
         .typed(liquid_locking_proxy::LiquidLockingProxy)
         .lock()
-        .egld_or_single_esdt(
-            &EgldOrEsdtTokenIdentifier::esdt(WHITELIST_TOKEN_2_ID),
-            0u64,
-            &BigUint::from(1000u64),
-        )
+        .esdt(TestEsdtTransfer(WHITELIST_TOKEN_2, 0, 1000))
         .run();
 
     world.check_account(OWNER_ADDRESS);
@@ -252,17 +230,17 @@ fn test() {
     let mut unlock_multiple_esdt = ManagedVec::<StaticApi, EsdtTokenPayment<StaticApi>>::new();
 
     unlock_single_esdt.push(EsdtTokenPayment {
-        token_identifier: TokenIdentifier::from(BLACKLIST_TOKEN_ID),
+        token_identifier: BLACKLIST_TOKEN.to_token_identifier(),
         token_nonce: 0,
         amount: BigUint::from(1500u64),
     });
     unlock_multiple_esdt.push(EsdtTokenPayment {
-        token_identifier: TokenIdentifier::from(WHITELIST_TOKEN_1_ID),
+        token_identifier: WHITELIST_TOKEN_1.to_token_identifier(),
         token_nonce: 0,
         amount: BigUint::zero(),
     });
     unlock_multiple_esdt.push(EsdtTokenPayment {
-        token_identifier: TokenIdentifier::from(WHITELIST_TOKEN_1_ID),
+        token_identifier: WHITELIST_TOKEN_1.to_token_identifier(),
         token_nonce: 0,
         amount: BigUint::from(300u64),
     });
@@ -291,17 +269,17 @@ fn test() {
     unlock_multiple_esdt = ManagedVec::<StaticApi, EsdtTokenPayment<StaticApi>>::new();
 
     unlock_single_esdt.push(EsdtTokenPayment {
-        token_identifier: TokenIdentifier::from(WHITELIST_TOKEN_2_ID),
+        token_identifier: WHITELIST_TOKEN_2.to_token_identifier(),
         token_nonce: 0,
         amount: BigUint::from(200u64),
     });
     unlock_multiple_esdt.push(EsdtTokenPayment {
-        token_identifier: TokenIdentifier::from(WHITELIST_TOKEN_1_ID),
+        token_identifier: WHITELIST_TOKEN_1.to_token_identifier(),
         token_nonce: 0,
         amount: BigUint::from(1000u64),
     });
     unlock_multiple_esdt.push(EsdtTokenPayment {
-        token_identifier: TokenIdentifier::from(WHITELIST_TOKEN_2_ID),
+        token_identifier: WHITELIST_TOKEN_2.to_token_identifier(),
         token_nonce: 0,
         amount: BigUint::from(300u64),
     });
@@ -470,7 +448,7 @@ fn test() {
     // unbond fail
 
     let mut unbond_tokens = ManagedVec::<StaticApi, TokenIdentifier<StaticApi>>::new();
-    unbond_tokens.push(TokenIdentifier::from(BLACKLIST_TOKEN_ID));
+    unbond_tokens.push(BLACKLIST_TOKEN.to_token_identifier());
     world
         .tx()
         .from(SECOND_USER_ADDRESS)
@@ -481,7 +459,7 @@ fn test() {
         .run();
 
     unbond_tokens = ManagedVec::<StaticApi, TokenIdentifier<StaticApi>>::new();
-    unbond_tokens.push(TokenIdentifier::from(WHITELIST_TOKEN_2_ID));
+    unbond_tokens.push(WHITELIST_TOKEN_2.to_token_identifier());
     world
         .tx()
         .from(SECOND_USER_ADDRESS)
@@ -494,7 +472,7 @@ fn test() {
     // unbond success
 
     unbond_tokens = ManagedVec::<StaticApi, TokenIdentifier<StaticApi>>::new();
-    unbond_tokens.push(TokenIdentifier::from(WHITELIST_TOKEN_2_ID));
+    unbond_tokens.push(WHITELIST_TOKEN_2.to_token_identifier());
     world.current_block().block_epoch(11);
     world
         .tx()
@@ -505,7 +483,7 @@ fn test() {
         .run();
 
     unbond_tokens = ManagedVec::<StaticApi, TokenIdentifier<StaticApi>>::new();
-    unbond_tokens.push(TokenIdentifier::from(WHITELIST_TOKEN_2_ID));
+    unbond_tokens.push(WHITELIST_TOKEN_2.to_token_identifier());
     world.current_block().block_epoch(22);
     world
         .tx()
@@ -516,8 +494,8 @@ fn test() {
         .run();
 
     unbond_tokens = ManagedVec::<StaticApi, TokenIdentifier<StaticApi>>::new();
-    unbond_tokens.push(TokenIdentifier::from(WHITELIST_TOKEN_2_ID));
-    unbond_tokens.push(TokenIdentifier::from(WHITELIST_TOKEN_1_ID));
+    unbond_tokens.push(WHITELIST_TOKEN_2.to_token_identifier());
+    unbond_tokens.push(WHITELIST_TOKEN_1.to_token_identifier());
     world
         .tx()
         .from(FIRST_USER_ADDRESS)

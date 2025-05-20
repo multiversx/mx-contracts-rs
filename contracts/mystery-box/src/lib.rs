@@ -4,6 +4,7 @@ use multiversx_sc::imports::*;
 
 pub mod config;
 pub mod events;
+pub mod mystery_box_proxy;
 pub mod rewards;
 pub mod token_attributes;
 
@@ -105,7 +106,7 @@ pub trait MysteryBox:
         output_payment
     }
 
-    #[payable("*")]
+    #[payable]
     #[endpoint(openMysteryBox)]
     fn open_mystery_box(&self) {
         let caller = self.blockchain().get_caller();

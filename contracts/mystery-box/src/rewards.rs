@@ -20,7 +20,7 @@ pub trait RewardsModule: config::ConfigModule {
         for reward in rewards_list {
             cumulative_percentage += reward.percentage_chance;
             if winner_number <= cumulative_percentage {
-                winning_reward = reward;
+                winning_reward = reward.clone();
                 break;
             }
         }

@@ -37,7 +37,7 @@ pub trait LiquidLocking {
         let _ = self.token_whitelist().swap_remove(token);
     }
 
-    #[payable("*")]
+    #[payable]
     #[endpoint]
     fn lock(&self) {
         let payments = self.call_value().all_esdt_transfers();
@@ -45,7 +45,7 @@ pub trait LiquidLocking {
         let caller = self.blockchain().get_caller();
         for payment in payments.iter() {
             self.validate_payment(&payment);
-            self.stake_token(&caller, payment);
+            self.stake_token(&caller, payment.clone());
         }
         self.lock_event(&caller, &payments);
     }
@@ -92,7 +92,8 @@ pub trait LiquidLocking {
                             .swap_remove(&token.token_identifier);
                     }
 
-                    self.unlocked_tokens(&caller).insert(token.token_identifier);
+                    self.unlocked_tokens(&caller)
+                        .insert(token.token_identifier.clone());
                 });
         }
         self.unlock_event(&caller, &tokens);
@@ -124,7 +125,7 @@ pub trait LiquidLocking {
             }
             if unbond_amount > 0u64 {
                 unbond_tokens.push(EsdtTokenPayment::new(
-                    token_identifier.clone_value(),
+                    token_identifier.clone(),
                     0,
                     unbond_amount,
                 ));
