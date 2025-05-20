@@ -29,19 +29,13 @@ pub trait SyncCallModule: super::common::CommonModule {
     ) -> BackTransfers<Self::Api> {
         self.require_dest_not_self(&sc_address);
         self.require_sc_address(&sc_address);
+        self.require_not_empty_payments(&esdt_payments);
 
         let contract_call = self.build_raw_call_with_args(sc_address, raw_call_data);
-        if !esdt_payments.is_empty() {
-            let contract_call_with_esdt = contract_call.with_multi_token_transfer(esdt_payments);
-            let (_, back_transfers): (IgnoreValue, _) =
-                contract_call_with_esdt.execute_on_dest_context_with_back_transfers();
+        let contract_call_with_esdt = contract_call.with_multi_token_transfer(esdt_payments);
+        let (_, back_transfers): (IgnoreValue, _) =
+            contract_call_with_esdt.execute_on_dest_context_with_back_transfers();
 
-            back_transfers
-        } else {
-            let (_, back_transfers): (IgnoreValue, _) =
-                contract_call.execute_on_dest_context_with_back_transfers();
-
-            back_transfers
-        }
+        back_transfers
     }
 }

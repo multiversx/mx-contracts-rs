@@ -6,6 +6,8 @@ pub type FunctionName<M> = ManagedBuffer<M>;
 pub type RawArgs<M> = ManagedVec<M, ManagedBuffer<M>>;
 pub type PaymentsVec<M> = ManagedVec<M, EsdtTokenPayment<M>>;
 
+pub const MIN_GAS_LIMIT: GasLimit = 1_000_000;
+
 #[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode)]
 pub enum PaymentType<M: ManagedTypeApi> {
     None,
@@ -27,6 +29,11 @@ pub trait CommonModule {
         sc_address: ManagedAddress,
         raw_call_data: RawCall<Self::Api>,
     ) -> ContractCallNoPayment<Self::Api, IgnoreValue> {
+        require!(
+            raw_call_data.gas_limit >= MIN_GAS_LIMIT,
+            "Invalid gas limit"
+        );
+
         let mut contract_call =
             ContractCallNoPayment::<_, IgnoreValue>::new(sc_address, raw_call_data.function_name);
         contract_call = contract_call.with_gas_limit(raw_call_data.gas_limit);
@@ -51,5 +58,9 @@ pub trait CommonModule {
             self.blockchain().is_smart_contract(dest_sc_address),
             "Invalid destination"
         );
+    }
+
+    fn require_not_empty_payments(&self, payments: &PaymentsVec<Self::Api>) {
+        require!(!payments.is_empty(), "May not send empty ESDT payments");
     }
 }
