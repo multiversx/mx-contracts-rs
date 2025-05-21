@@ -4,6 +4,8 @@ multiversx_sc::imports!();
 
 #[multiversx_sc::module]
 pub trait SimpleTransferModule: super::common::CommonModule {
+    // TODO: Use the new API which returns the tokens if it fails, when it's added to the framework
+
     fn perform_simple_transfer_egld(&self, to: &ManagedAddress, egld_value: &BigUint) {
         self.require_dest_not_self(to);
 

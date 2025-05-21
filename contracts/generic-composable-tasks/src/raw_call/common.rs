@@ -9,13 +9,6 @@ pub type PaymentsVec<M> = ManagedVec<M, EsdtTokenPayment<M>>;
 pub const MIN_GAS_LIMIT: GasLimit = 1_000_000;
 
 #[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode)]
-pub enum PaymentType<M: ManagedTypeApi> {
-    None,
-    FixedPayments(PaymentsVec<M>),
-    ReceivedPaymentsFromSc,
-}
-
-#[derive(TypeAbi, TopEncode, TopDecode)]
 pub struct RawCall<M: ManagedTypeApi> {
     pub gas_limit: GasLimit,
     pub function_name: FunctionName<M>,
