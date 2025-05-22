@@ -4,6 +4,7 @@
 multiversx_sc::imports!();
 
 pub mod call_dispatcher;
+pub mod high_level_calls;
 pub mod raw_call;
 pub mod unique_payments;
 
@@ -13,6 +14,8 @@ pub trait GenericComposableTasks:
     + raw_call::sync_call::SyncCallModule
     + raw_call::async_call::AsyncCallModule
     + raw_call::common::CommonModule
+    + high_level_calls::HighLevelCallsModule
+    + call_dispatcher::CallDispatcherModule
     + multiversx_sc_modules::pause::PauseModule
 {
     #[init]

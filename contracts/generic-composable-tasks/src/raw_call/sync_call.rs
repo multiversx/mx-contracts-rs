@@ -4,6 +4,7 @@ multiversx_sc::imports!();
 
 #[multiversx_sc::module]
 pub trait SyncCallModule: super::common::CommonModule {
+    #[must_use]
     fn perform_raw_sync_call_egld(
         &self,
         sc_address: ManagedAddress,
@@ -21,6 +22,7 @@ pub trait SyncCallModule: super::common::CommonModule {
         back_transfers
     }
 
+    #[must_use]
     fn perform_raw_sync_call_esdt(
         &self,
         sc_address: ManagedAddress,

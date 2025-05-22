@@ -60,9 +60,8 @@ pub trait AsyncCallModule: super::common::CommonModule {
         #[call_result] _result: ManagedAsyncCallResult<IgnoreValue>,
     ) {
         let egld_amount = self.call_value().egld().clone_value();
-        if egld_amount > 0 {
-            self.send().direct_egld(&original_caller, &egld_amount);
-        }
+        self.send()
+            .direct_non_zero_egld(&original_caller, &egld_amount);
 
         let esdt_transfers = self.call_value().all_esdt_transfers().clone_value();
         if !esdt_transfers.is_empty() {
