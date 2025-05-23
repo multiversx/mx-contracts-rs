@@ -76,7 +76,7 @@ pub trait BoostClaimContract: config::ConfigModule + only_admin::OnlyAdminModule
             address_boost_info.last_claim_timestamp = current_timestamp;
             address_boost_info.current_level = next_level;
 
-            if next_level == 1 {
+            if next_level == self.levels_prizes().len() {
                 address_boost_info.total_cycles_completed += 1;
             }
 

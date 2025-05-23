@@ -82,8 +82,8 @@ fn claim_test() {
             let managed_address = &ManagedAddress::from(USER.to_address());
             let address_info = sc.address_boost_info(managed_address).get();
 
-            assert_eq!(address_info.current_level, 1);
-            assert_eq!(address_info.last_claim_timestamp, INITIAL_TIMESTAMP);
+            assert_eq!(address_info.current_level, 0);
+            assert_eq!(address_info.last_claim_timestamp, 0);
             assert_eq!(address_info.total_cycles_completed, 0);
         });
     world
@@ -182,7 +182,7 @@ fn claim_test() {
                 address_info.last_claim_timestamp,
                 INITIAL_TIMESTAMP + 3 * TIME_DIFFERENCE + 3
             );
-            assert_eq!(address_info.total_cycles_completed, 0);
+            assert_eq!(address_info.total_cycles_completed, 1);
         });
     world
         .current_block()
