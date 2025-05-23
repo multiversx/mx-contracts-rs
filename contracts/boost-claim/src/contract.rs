@@ -27,7 +27,7 @@ pub trait BoostClaimContract: config::ConfigModule + only_admin::OnlyAdminModule
     #[endpoint(setDifferenceBetweenClaims)]
     fn set_difference_between_claims(&self, difference_between_claims: u64) {
         self.time_difference_in_seconds()
-            .set(&difference_between_claims);
+            .set(difference_between_claims);
     }
 
     #[only_admin]
