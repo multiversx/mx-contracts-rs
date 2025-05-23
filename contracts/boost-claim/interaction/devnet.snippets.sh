@@ -58,3 +58,27 @@ upgrade() {
     echo ""
     echo "Smart contract address: ${ADDRESS}"
 }
+
+addAdmin() {
+     ADMIN=0xa51ded1ff7341e1551fc86e72b5c639d3bbda237aab2932eb7570e1e8525800a
+
+     mxpy --verbose contract call ${CONTRACT_ADDRESS} --recall-nonce \
+         --pem=${WALLET} \
+         --gas-limit=10000000 \
+         --proxy=${PROXY} --chain=${CHAIN_ID} \
+         --function="addAdmin" \
+         --arguments $ADMIN \
+         --send || return
+ }
+
+setDifferenceBetweenClaims() {
+    DIFFERENCE_IN_SECONDS=0x012c
+
+     mxpy --verbose contract call ${CONTRACT_ADDRESS} --recall-nonce \
+         --pem=${WALLET} \
+         --gas-limit=10000000 \
+         --proxy=${PROXY} --chain=${CHAIN_ID} \
+         --function="setDifferenceBetweenClaims" \
+         --arguments $DIFFERENCE_IN_SECONDS \
+         --send || return
+}
