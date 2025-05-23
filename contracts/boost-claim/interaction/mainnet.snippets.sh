@@ -3,20 +3,27 @@ PROJECT="${PWD}"
 PROXY=https://gateway.multiversx.com
 CHAINID=D
 
-DEPLOY_GAS="30000000"
-SFT_IDENTIFIER=0x585354525245504149522d653162363733 #XSTRREPAIR-e1b673
+DEPLOY_GAS="100000000"
 
-CONTRACT_ADDRESS="erd1qqqqqqqqqqqqqpgqycdpxfmvxqm3cxylsyff3tkw6yhc6gwga6mqhhv6wn"
+DIFFERENCE_BETWEEN_CLAIMS=0x2a30 # 3 hours -> 10800 seconds
+PRIZE_1=0x5052495a4531 # PRIZE1
+PRIZE_2=0x5052495a4532 # PRIZE2
+PRIZE_3=0x5052495a4533 # PRIZE3
+PRIZE_4=0x5052495a4534 # PRIZE4
+
+CONTRACT_ADDRESS=erd1qqqqqqqqqqqqqpgqnsxxgdux8yntzysrnlpj33p23hxrwjwh6fyq3hw9vd # Shard 0
+# CONTRACT_ADDRESS=erd1qqqqqqqqqqqqqpgqqzg0589tjqqy4sgmv5pceyg79k38pkqzwl9svrx3sa # Shard 1
+# CONTRACT_ADDRESS=erd1qqqqqqqqqqqqqpgqvgp6g09agmvv50mslk9fjkr86327u2e8sq9qdttayh # Shard 2
 
 deploy() {
     mxpy --verbose contract deploy \
-          --bytecode="output/boost-claim.mxsc.json" \
-          --arguments ${SFT_IDENTIFIER} \
+          --bytecode="output/boost-claim.wasm" \
           --pem=${WALLET} \
           --gas-limit=${DEPLOY_GAS} \
           --proxy=${PROXY} \
           --chain=${CHAINID} \
           --recall-nonce \
+          --arguments ${DIFFERENCE_BETWEEN_CLAIMS} ${PRIZE_1} ${PRIZE_2} ${PRIZE_3} ${PRIZE_4} \
           --send \
           --outfile="deploy-mainnet.interaction.json" || return
 
@@ -32,7 +39,7 @@ deploy() {
 
 upgrade() {
     mxpy --verbose contract upgrade ${CONTRACT_ADDRESS} \
-          --bytecode="output/boost-claim.mxsc.json" \
+          --bytecode="output/boost-claim.wasm" \
           --pem=${WALLET} \
           --gas-limit=${DEPLOY_GAS} \
           --proxy=${PROXY} \
