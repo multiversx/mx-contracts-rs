@@ -35,11 +35,11 @@ pub trait OnChainClaimContract:
     }
 
     fn migrate_legacy_address_info(&self, address: &ManagedAddress) {
-        if self.address_info(&address).is_empty() {
+        if self.address_info(address).is_empty() {
             return;
         }
 
-        let address_info = self.address_info(&address).take();
+        let address_info = self.address_info(address).take();
         self.address_info_by_season(address, FIRST_SEASON_ID)
             .set(address_info);
     }
@@ -245,6 +245,6 @@ pub trait OnChainClaimContract:
             address_info.best_streak = address_info.current_streak;
         }
 
-        self.new_claim_and_repair_event(&caller, address_info);
+        self.new_claim_and_repair_event(caller, address_info);
     }
 }
