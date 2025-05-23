@@ -66,78 +66,12 @@ pub trait CallDispatcherModule:
         let mut opt_last_back_transfers = None;
 
         for arg in args {
-            let (dest_address, payment_type, call_type, gas_limit, opt_exec_arg) = arg.into_tuple();
-            require!(!dest_address.is_zero(), "May not send to zero address");
-
-            // The only reason we keep gas limit separate is to save some encoding space. Don't need the whole u64 range for it.
-            let opt_raw_call_args = opt_exec_arg.map(|exec_arg| RawCall {
-                gas_limit,
-                function_name: exec_arg.function_name,
-                args: exec_arg.args,
-            });
-
-            match payment_type {
-                PaymentType::None => {
-                    let opt_back_transfers =
-                        self.perform_no_transfer(dest_address, call_type, opt_raw_call_args);
-                    opt_last_back_transfers = self.handle_back_transfers_if_any(
-                        &mut total_egld,
-                        &mut all_esdt,
-                        opt_back_transfers,
-                    );
-                }
-                PaymentType::Egld { amount } => {
-                    let opt_back_transfers = self.perform_egld_transfer(
-                        dest_address,
-                        call_type,
-                        amount,
-                        opt_raw_call_args,
-                    );
-                    opt_last_back_transfers = self.handle_back_transfers_if_any(
-                        &mut total_egld,
-                        &mut all_esdt,
-                        opt_back_transfers,
-                    );
-                }
-                PaymentType::FixedPayments { esdt_payments } => {
-                    let opt_back_transfers = self.perform_multi_esdt_transfer(
-                        dest_address,
-                        call_type,
-                        esdt_payments,
-                        opt_raw_call_args,
-                    );
-                    opt_last_back_transfers = self.handle_back_transfers_if_any(
-                        &mut total_egld,
-                        &mut all_esdt,
-                        opt_back_transfers,
-                    );
-                }
-                PaymentType::ReceivedPaymentsFromSc => {
-                    require!(
-                        opt_last_back_transfers.is_some(),
-                        "No payments received from SC"
-                    );
-
-                    // only works with ESDTs
-                    let last_back_transfers = unsafe { opt_last_back_transfers.unwrap_unchecked() };
-                    for transfer in &last_back_transfers.esdt_payments {
-                        let deduct_result = all_esdt.deduct_payment(&transfer);
-                        require!(deduct_result.is_ok(), "May not use these back transfers");
-                    }
-
-                    let opt_back_transfers = self.perform_multi_esdt_transfer(
-                        dest_address,
-                        call_type,
-                        last_back_transfers.esdt_payments,
-                        opt_raw_call_args,
-                    );
-                    opt_last_back_transfers = self.handle_back_transfers_if_any(
-                        &mut total_egld,
-                        &mut all_esdt,
-                        opt_back_transfers,
-                    );
-                }
-            }
+            self.perform_single_call_from_arg(
+                arg,
+                &mut total_egld,
+                &mut all_esdt,
+                &mut opt_last_back_transfers,
+            );
         }
 
         let caller = self.blockchain().get_caller();
@@ -146,6 +80,73 @@ pub trait CallDispatcherModule:
         let all_esdt_payments = all_esdt.into_payments();
         if !all_esdt_payments.is_empty() {
             self.send().direct_multi(&caller, &all_esdt_payments);
+        }
+    }
+
+    fn perform_single_call_from_arg(
+        &self,
+        arg: SingleCallArg<Self::Api>,
+        total_egld: &mut BigUint,
+        all_esdt: &mut UniquePayments<Self::Api>,
+        opt_last_back_transfers: &mut Option<BackTransfers<Self::Api>>,
+    ) {
+        let (dest_address, payment_type, call_type, gas_limit, opt_exec_arg) = arg.into_tuple();
+        require!(!dest_address.is_zero(), "May not send to zero address");
+
+        // The only reason we keep gas limit separate is to save some encoding space. Don't need the whole u64 range for it.
+        let opt_raw_call_args = opt_exec_arg.map(|exec_arg| RawCall {
+            gas_limit,
+            function_name: exec_arg.function_name,
+            args: exec_arg.args,
+        });
+
+        match payment_type {
+            PaymentType::None => {
+                let opt_back_transfers =
+                    self.perform_no_transfer(dest_address, call_type, opt_raw_call_args);
+                *opt_last_back_transfers =
+                    self.handle_back_transfers_if_any(total_egld, all_esdt, opt_back_transfers);
+            }
+            PaymentType::Egld { amount } => {
+                let opt_back_transfers =
+                    self.perform_egld_transfer(dest_address, call_type, amount, opt_raw_call_args);
+                *opt_last_back_transfers =
+                    self.handle_back_transfers_if_any(total_egld, all_esdt, opt_back_transfers);
+            }
+            PaymentType::FixedPayments { esdt_payments } => {
+                let opt_back_transfers = self.perform_multi_esdt_transfer(
+                    dest_address,
+                    call_type,
+                    esdt_payments,
+                    opt_raw_call_args,
+                );
+                *opt_last_back_transfers =
+                    self.handle_back_transfers_if_any(total_egld, all_esdt, opt_back_transfers);
+            }
+            PaymentType::ReceivedPaymentsFromSc => {
+                // only works with ESDTs
+                let last_back_transfers = match opt_last_back_transfers {
+                    Some(back_transfers) => BackTransfers {
+                        total_egld_amount: back_transfers.total_egld_amount.clone(),
+                        esdt_payments: back_transfers.esdt_payments.clone(),
+                    },
+                    None => sc_panic!("No payments received from SC"),
+                };
+
+                for transfer in &last_back_transfers.esdt_payments {
+                    let deduct_result = all_esdt.deduct_payment(&transfer);
+                    require!(deduct_result.is_ok(), "May not use these back transfers");
+                }
+
+                let opt_back_transfers = self.perform_multi_esdt_transfer(
+                    dest_address,
+                    call_type,
+                    last_back_transfers.esdt_payments,
+                    opt_raw_call_args,
+                );
+                *opt_last_back_transfers =
+                    self.handle_back_transfers_if_any(total_egld, all_esdt, opt_back_transfers);
+            }
         }
     }
 
