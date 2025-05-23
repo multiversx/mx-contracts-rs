@@ -6,7 +6,8 @@ use crate::{
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
-#[derive(TypeAbi, TopEncode, TopDecode)]
+#[type_abi]
+#[derive(TopEncode, TopDecode)]
 pub enum PaymentType<M: ManagedTypeApi> {
     None,
     Egld { amount: BigUint<M> },
@@ -14,14 +15,16 @@ pub enum PaymentType<M: ManagedTypeApi> {
     ReceivedPaymentsFromSc,
 }
 
-#[derive(TypeAbi, TopEncode, TopDecode)]
+#[type_abi]
+#[derive(TopEncode, TopDecode)]
 pub enum CallType {
     SimpleTransfer,
     Sync,
     Async,
 }
 
-#[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode)]
 pub struct FunctionNameArgsPair<M: ManagedTypeApi> {
     pub function_name: FunctionName<M>,
     pub args: RawArgs<M>,
@@ -146,7 +149,6 @@ pub trait CallDispatcherModule:
         }
     }
 
-    // TODO: Clear back transfers
     #[must_use]
     fn handle_back_transfers_if_any(
         &self,

@@ -18,6 +18,7 @@ pub trait SyncCallModule: super::common::CommonModule {
         let contract_call_with_egld = contract_call.with_egld_transfer(egld_value);
         let (_, back_transfers): (IgnoreValue, _) =
             contract_call_with_egld.execute_on_dest_context_with_back_transfers();
+        self.clear_back_transfers();
 
         back_transfers
     }
@@ -37,6 +38,7 @@ pub trait SyncCallModule: super::common::CommonModule {
         let contract_call_with_esdt = contract_call.with_multi_token_transfer(esdt_payments);
         let (_, back_transfers): (IgnoreValue, _) =
             contract_call_with_esdt.execute_on_dest_context_with_back_transfers();
+        self.clear_back_transfers();
 
         back_transfers
     }

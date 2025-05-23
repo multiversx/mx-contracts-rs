@@ -8,7 +8,8 @@ pub type PaymentsVec<M> = ManagedVec<M, EsdtTokenPayment<M>>;
 
 pub const MIN_GAS_LIMIT: GasLimit = 1_000_000;
 
-#[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode)]
 pub struct RawCall<M: ManagedTypeApi> {
     pub gas_limit: GasLimit,
     pub function_name: FunctionName<M>,
@@ -17,6 +18,7 @@ pub struct RawCall<M: ManagedTypeApi> {
 
 #[multiversx_sc::module]
 pub trait CommonModule {
+    #[allow(deprecated)]
     fn build_raw_call_with_args(
         &self,
         sc_address: ManagedAddress,
@@ -36,6 +38,11 @@ pub trait CommonModule {
         }
 
         contract_call
+    }
+
+    #[inline]
+    fn clear_back_transfers(&self) {
+        let _ = self.blockchain().get_back_transfers();
     }
 
     fn require_dest_not_self(&self, dest_address: &ManagedAddress) {

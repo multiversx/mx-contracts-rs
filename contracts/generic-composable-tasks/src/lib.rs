@@ -1,5 +1,4 @@
 #![no_std]
-#![allow(deprecated)]
 
 multiversx_sc::imports!();
 

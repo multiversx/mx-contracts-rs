@@ -3,7 +3,8 @@ use crate::raw_call::common::PaymentsVec;
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
-#[derive(TypeAbi, TopEncode, TopDecode, NestedEncode, NestedDecode, Clone, PartialEq, Debug)]
+#[type_abi]
+#[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, Clone, PartialEq, Debug)]
 pub struct UniquePayments<M: ManagedTypeApi> {
     payments: PaymentsVec<M>,
 }
