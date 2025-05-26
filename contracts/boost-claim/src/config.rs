@@ -18,7 +18,7 @@ pub trait ConfigModule {
     fn get_address_boost_info(&self, address: &ManagedAddress) -> AddressBoostInfo {
         let mapper = self.address_boost_info(address);
         if mapper.is_empty() {
-            return AddressBoostInfo::new(1, 0, 0);
+            return AddressBoostInfo::new(0, 0, 0);
         }
 
         mapper.get()
