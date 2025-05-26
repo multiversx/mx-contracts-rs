@@ -124,12 +124,18 @@ pub trait CallDispatcherModule:
                     self.handle_back_transfers_if_any(total_egld, all_esdt, opt_back_transfers);
             }
             PaymentType::ReceivedPaymentsFromSc => {
-                // only works with ESDTs
                 let last_back_transfers = match opt_last_back_transfers {
-                    Some(back_transfers) => BackTransfers {
-                        total_egld_amount: back_transfers.total_egld_amount.clone(),
-                        esdt_payments: back_transfers.esdt_payments.clone(),
-                    },
+                    Some(back_transfers) => {
+                        require!(
+                            !back_transfers.esdt_payments.is_empty(),
+                            "Only EGLD received. May only use this feature with ESDT"
+                        );
+
+                        BackTransfers {
+                            total_egld_amount: back_transfers.total_egld_amount.clone(),
+                            esdt_payments: back_transfers.esdt_payments.clone(),
+                        }
+                    }
                     None => sc_panic!("No payments received from SC"),
                 };
 

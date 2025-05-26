@@ -879,6 +879,7 @@ dependencies = [
  "multiversx-sc",
  "multiversx-sc-modules",
  "multiversx-sc-scenario",
+ "multiversx-wegld-swap-sc 0.47.1",
  "num-bigint",
 ]
 
