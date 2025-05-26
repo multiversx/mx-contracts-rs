@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           10
+// Endpoints:                            9
 // Async Callback (empty):               1
-// Total number of exported functions:  13
+// Total number of exported functions:  12
 
 #![no_std]
 
@@ -20,9 +20,8 @@ multiversx_sc_wasm_adapter::endpoints! {
     (
         init => init
         upgrade => upgrade
-        setDifferenceBetweenClaims => set_difference_between_claims
-        setLevelsPrizes => set_levels_prizes
         claim => claim
+        setDifferenceBetweenClaims => set_difference_between_claims
         getAddressBoostInfo => get_address_boost_info
         getLevelsPrizes => levels_prizes
         getTimeDifferenceInSeconds => time_difference_in_seconds

@@ -41,11 +41,4 @@ pub trait ConfigModule: only_admin::OnlyAdminModule {
     #[view(getTimeDifferenceInSeconds)]
     #[storage_mapper("timeDifference")]
     fn time_difference_in_seconds(&self) -> SingleValueMapper<Timestamp>;
-
-    #[event("boost_claim")]
-    fn boost_claim_event(
-        &self,
-        #[indexed] caller: &ManagedAddress,
-        #[indexed] prize: &ManagedBuffer,
-    );
 }

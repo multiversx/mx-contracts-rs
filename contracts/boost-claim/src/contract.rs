@@ -7,9 +7,12 @@ use multiversx_sc_modules::only_admin;
 
 pub mod address_boost_info;
 pub mod config;
+pub mod events;
 
 #[multiversx_sc::contract]
-pub trait BoostClaimContract: config::ConfigModule + only_admin::OnlyAdminModule {
+pub trait BoostClaimContract:
+    config::ConfigModule + only_admin::OnlyAdminModule + events::EventsModule
+{
     #[init]
     fn init(
         &self,
@@ -41,7 +44,7 @@ pub trait BoostClaimContract: config::ConfigModule + only_admin::OnlyAdminModule
         if address_boost_info_mapper.is_empty() {
             let address_boost_info = AddressBoostInfo::new(1, current_timestamp, 0);
             self.address_boost_info(&caller).set(&address_boost_info);
-            self.boost_claim_event(&caller, &levels_prizes.get(1));
+            self.emit_boost_claim_event(&caller, &levels_prizes.get(1));
             return;
         }
 
@@ -67,7 +70,7 @@ pub trait BoostClaimContract: config::ConfigModule + only_admin::OnlyAdminModule
                 address_boost_info.total_cycles_completed += 1;
             }
 
-            self.boost_claim_event(&caller, &levels_prizes.get(next_level));
+            self.emit_boost_claim_event(&caller, &levels_prizes.get(next_level));
         });
     }
 }
