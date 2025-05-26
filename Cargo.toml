@@ -14,6 +14,8 @@ members = [
   "contracts/esdt-transfer-with-fee/meta",
   "contracts/bonding-curve-contract",
   "contracts/bonding-curve-contract/meta",
+  "contracts/boost-claim",
+  "contracts/boost-claim/meta",
   "contracts/check-pause",
   "contracts/check-pause/meta",
   "contracts/crowdfunding-esdt",
