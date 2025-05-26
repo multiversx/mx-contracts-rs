@@ -60,7 +60,7 @@ pub trait CallDispatcherModule:
     fn multi_call(&self, args: MultiValueEncoded<SingleCallArg<Self::Api>>) {
         self.require_not_paused();
 
-        let mut total_egld = self.call_value().egld().clone_value();
+        let mut total_egld = self.call_value().egld_direct_non_strict().clone_value();
         let mut all_esdt =
             UniquePayments::new_from_payments(self.call_value().all_esdt_transfers().clone_value());
         let mut opt_last_back_transfers = None;
@@ -108,12 +108,21 @@ pub trait CallDispatcherModule:
                     self.handle_back_transfers_if_any(total_egld, all_esdt, opt_back_transfers);
             }
             PaymentType::Egld { amount } => {
+                require!(*total_egld >= amount, "Invalid EGLD amount");
+
+                *total_egld -= &amount;
+
                 let opt_back_transfers =
                     self.perform_egld_transfer(dest_address, call_type, amount, opt_raw_call_args);
                 *opt_last_back_transfers =
                     self.handle_back_transfers_if_any(total_egld, all_esdt, opt_back_transfers);
             }
             PaymentType::FixedPayments { esdt_payments } => {
+                for transfer in &esdt_payments {
+                    let deduct_result = all_esdt.deduct_payment(&transfer);
+                    require!(deduct_result.is_ok(), "Invalid ESDT amount");
+                }
+
                 let opt_back_transfers = self.perform_multi_esdt_transfer(
                     dest_address,
                     call_type,

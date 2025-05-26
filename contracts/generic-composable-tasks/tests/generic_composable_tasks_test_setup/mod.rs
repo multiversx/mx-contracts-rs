@@ -1,14 +1,25 @@
-use generic_composable_tasks::GenericComposableTasks;
-use multiversx_sc::types::{Address, EsdtLocalRole};
+#![allow(deprecated)]
+
+use generic_composable_tasks::{
+    call_dispatcher::{CallType, PaymentType, SingleCallArg},
+    raw_call::common::PaymentsVec,
+    GenericComposableTasks,
+};
+use multiversx_sc::{
+    api::ManagedTypeApi,
+    imports::TopDecode,
+    types::{Address, EsdtLocalRole, EsdtTokenPayment},
+};
 use multiversx_sc_scenario::{
-    imports::{BlockchainStateWrapper, ContractObjWrapper},
-    managed_token_id, rust_biguint, DebugApi,
+    imports::{BlockchainStateWrapper, ContractObjWrapper, TxTokenTransfer},
+    managed_address, managed_biguint, managed_token_id, rust_biguint, DebugApi,
 };
 use multiversx_wegld_swap_sc::EgldEsdtSwap;
 
 pub static WEGLD_TOKEN_ID: &[u8] = b"WEGLD-12345";
+pub static RAND_ESDT_TOKEN_ID: &[u8] = b"RANDESDT-12345";
 
-pub const USER_EGLD_BALANCE: u64 = 1_000;
+pub const USER_BALANCE: u64 = 1_000;
 
 pub struct GenericCompTasksSetup<GenericCompTasksBuilder, EgldWrapperBuilder>
 where
@@ -19,6 +30,7 @@ where
     pub b_mock: BlockchainStateWrapper,
     pub owner_address: Address,
     pub user_address: Address,
+    pub other_user_address: Address,
     pub tasks_wrapper: ContractObjWrapper<
         generic_composable_tasks::ContractObj<DebugApi>,
         GenericCompTasksBuilder,
@@ -40,8 +52,15 @@ where
     ) -> Self {
         let rust_zero = rust_biguint!(0u64);
         let mut b_mock = BlockchainStateWrapper::new();
-        let user_address = b_mock.create_user_account(&rust_biguint!(USER_EGLD_BALANCE));
-        let owner_address = b_mock.create_user_account(&rust_biguint!(USER_EGLD_BALANCE));
+        let user_address = b_mock.create_user_account(&rust_biguint!(USER_BALANCE));
+        let other_user_address = b_mock.create_user_account(&rust_biguint!(USER_BALANCE));
+        let owner_address = b_mock.create_user_account(&rust_biguint!(USER_BALANCE));
+
+        b_mock.set_esdt_balance(
+            &user_address,
+            RAND_ESDT_TOKEN_ID,
+            &rust_biguint!(USER_BALANCE),
+        );
 
         let tasks_wrapper = b_mock.create_sc_account(
             &rust_zero,
@@ -81,8 +100,48 @@ where
             b_mock,
             owner_address,
             user_address,
+            other_user_address,
             tasks_wrapper,
             wegld_swap_wrapper,
         }
     }
+}
+
+pub fn build_egld_simple_transfer_data<M: ManagedTypeApi>(
+    dest_address: &Address,
+    egld_amount: u64,
+) -> SingleCallArg<M> {
+    (
+        managed_address!(dest_address),
+        PaymentType::Egld {
+            amount: managed_biguint!(egld_amount),
+        },
+        CallType::SimpleTransfer,
+        0,
+        None,
+    )
+        .into()
+}
+
+pub fn build_esdt_simple_transfer_data<M: ManagedTypeApi>(
+    dest_address: &Address,
+    esdt_transfers: Vec<TxTokenTransfer>,
+) -> SingleCallArg<M> {
+    let mut arg = build_egld_simple_transfer_data(dest_address, 0);
+    let mut payments = PaymentsVec::new();
+    for esdt_transfer in esdt_transfers {
+        payments.push(EsdtTokenPayment::new(
+            managed_token_id!(esdt_transfer.token_identifier),
+            esdt_transfer.nonce,
+            managed_biguint!(
+                u64::top_decode(esdt_transfer.value.to_bytes_be().as_slice()).unwrap()
+            ),
+        ));
+    }
+
+    arg.0 .1 = PaymentType::FixedPayments {
+        esdt_payments: payments,
+    };
+
+    arg
 }
