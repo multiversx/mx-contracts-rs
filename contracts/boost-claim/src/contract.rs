@@ -21,7 +21,7 @@ pub trait BoostClaimContract:
     ) {
         self.set_difference_between_claims(difference_between_claims);
         require!(
-            levels_prizes.len() > 0,
+            !levels_prizes.is_empty(),
             "Levels prizes must be greater than 0"
         );
         for level_prize in levels_prizes.into_iter() {
