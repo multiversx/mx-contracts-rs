@@ -20,7 +20,12 @@ pub trait BoostClaimContract:
         levels_prizes: MultiValueEncoded<ManagedBuffer>,
     ) {
         self.set_difference_between_claims(difference_between_claims);
+        require!(
+            levels_prizes.len() > 0,
+            "Levels prizes must be greater than 0"
+        );
         for level_prize in levels_prizes.into_iter() {
+            require!(!level_prize.is_empty(), "Level prize must not be empty");
             self.levels_prizes().push(&level_prize);
         }
     }
