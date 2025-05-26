@@ -1,11 +1,18 @@
 use multiversx_sc::imports::*;
 
 use crate::address_boost_info::*;
-
+use multiversx_sc_modules::only_admin;
 pub type Timestamp = u64;
 
 #[multiversx_sc::module]
-pub trait ConfigModule {
+pub trait ConfigModule: only_admin::OnlyAdminModule {
+    #[only_admin]
+    #[endpoint(setDifferenceBetweenClaims)]
+    fn set_difference_between_claims(&self, difference_between_claims: u64) {
+        self.time_difference_in_seconds()
+            .set(difference_between_claims);
+    }
+
     fn require_same_shard(&self, address: &ManagedAddress) {
         let address_shard = self.blockchain().get_shard_of_address(address);
         let sc_address = self.blockchain().get_sc_address();

@@ -1,6 +1,6 @@
 use boost_claim::{config::ConfigModule, BoostClaimContract};
 use imports::{MxscPath, TestAddress, TestSCAddress};
-use multiversx_sc::types::{ManagedAddress, ManagedBuffer, MultiValueEncoded};
+use multiversx_sc::types::{ManagedAddress, ManagedBuffer};
 use multiversx_sc_modules::only_admin::OnlyAdminModule;
 use multiversx_sc_scenario::*;
 
@@ -54,12 +54,10 @@ fn setup(world: &mut ScenarioWorld) {
         .from(ADMIN)
         .to(SC_ADDR)
         .whitebox(boost_claim::contract_obj, |sc| {
-            let mut prizes = MultiValueEncoded::new();
-            prizes.push(ManagedBuffer::from(b"PRIZE1"));
-            prizes.push(ManagedBuffer::from(b"PRIZE2"));
-            prizes.push(ManagedBuffer::from(b"PRIZE3"));
-            prizes.push(ManagedBuffer::from(b"PRIZE4"));
-            sc.set_levels_prizes(prizes);
+            sc.levels_prizes().push(&ManagedBuffer::from(b"PRIZE1"));
+            sc.levels_prizes().push(&ManagedBuffer::from(b"PRIZE2"));
+            sc.levels_prizes().push(&ManagedBuffer::from(b"PRIZE3"));
+            sc.levels_prizes().push(&ManagedBuffer::from(b"PRIZE4"));
         });
 }
 
