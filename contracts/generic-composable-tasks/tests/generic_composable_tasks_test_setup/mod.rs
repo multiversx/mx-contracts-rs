@@ -158,6 +158,19 @@ pub fn build_esdt_simple_transfer_data<M: ManagedTypeApi>(
     arg
 }
 
+pub fn build_simple_transfer_payments_received_from_sc_data<M: ManagedTypeApi>(
+    dest_address: &Address,
+) -> SingleCallArg<M> {
+    (
+        managed_address!(dest_address),
+        PaymentType::ReceivedPaymentsFromSc,
+        CallType::SimpleTransfer,
+        0,
+        None,
+    )
+        .into()
+}
+
 pub fn build_sync_call_egld_transfer_data<M: ManagedTypeApi>(
     dest_address: &Address,
     egld_amount: u64,

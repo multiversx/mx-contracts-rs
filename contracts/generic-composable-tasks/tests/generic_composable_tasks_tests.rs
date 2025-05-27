@@ -2,9 +2,9 @@ use generic_composable_tasks::call_dispatcher::CallDispatcherModule;
 use generic_composable_tasks_test_setup::{
     build_async_call_egld_transfer_data, build_async_call_esdt_transfer_data,
     build_egld_simple_transfer_data, build_esdt_simple_transfer_data,
-    build_sync_call_egld_transfer_data, build_sync_call_esdt_transfer_data, GenericCompTasksSetup,
-    RAND_ESDT_TOKEN_ID, UNWRAP_EGLD_ENDPOINT_NAME, USER_BALANCE, WEGLD_TOKEN_ID,
-    WRAP_EGLD_ENDPOINT_NAME,
+    build_simple_transfer_payments_received_from_sc_data, build_sync_call_egld_transfer_data,
+    build_sync_call_esdt_transfer_data, GenericCompTasksSetup, RAND_ESDT_TOKEN_ID,
+    UNWRAP_EGLD_ENDPOINT_NAME, USER_BALANCE, WEGLD_TOKEN_ID, WRAP_EGLD_ENDPOINT_NAME,
 };
 use multiversx_sc::types::MultiValueEncoded;
 use multiversx_sc_scenario::{imports::TxTokenTransfer, managed_token_id, rust_biguint, DebugApi};
@@ -421,5 +421,59 @@ fn async_call_test() {
         &setup.user_address,
         WEGLD_TOKEN_ID,
         &rust_biguint!(2 * transfer_amount),
+    );
+}
+
+#[test]
+fn sync_call_then_use_received_payments_test() {
+    let mut setup = GenericCompTasksSetup::new(
+        generic_composable_tasks::contract_obj,
+        multiversx_wegld_swap_sc::contract_obj,
+    );
+
+    let transfer_amount = 100;
+    let dest_sc_address = setup.wegld_swap_wrapper.address_ref().clone();
+    let other_user_address = setup.other_user_address.clone();
+
+    setup
+        .b_mock
+        .execute_tx(
+            &setup.user_address,
+            &setup.tasks_wrapper,
+            &rust_biguint!(transfer_amount),
+            |sc| {
+                let arg1 = build_sync_call_egld_transfer_data::<DebugApi>(
+                    &dest_sc_address,
+                    transfer_amount,
+                    WRAP_EGLD_ENDPOINT_NAME,
+                    Vec::new(),
+                );
+                let arg2 = build_simple_transfer_payments_received_from_sc_data::<DebugApi>(
+                    &other_user_address,
+                );
+
+                let mut all_args = MultiValueEncoded::new();
+                all_args.push(arg1);
+                all_args.push(arg2);
+
+                sc.multi_call(all_args);
+            },
+        )
+        .assert_ok();
+
+    setup.b_mock.check_egld_balance(
+        &setup.user_address,
+        &rust_biguint!(USER_BALANCE - transfer_amount),
+    );
+    setup
+        .b_mock
+        .check_egld_balance(&dest_sc_address, &rust_biguint!(transfer_amount));
+    setup
+        .b_mock
+        .check_esdt_balance(&setup.user_address, WEGLD_TOKEN_ID, &rust_biguint!(0));
+    setup.b_mock.check_esdt_balance(
+        &setup.other_user_address,
+        WEGLD_TOKEN_ID,
+        &rust_biguint!(transfer_amount),
     );
 }
