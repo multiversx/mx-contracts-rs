@@ -199,3 +199,45 @@ pub fn build_sync_call_esdt_transfer_data<M: ManagedTypeApi>(
 
     arg
 }
+
+pub fn build_async_call_egld_transfer_data<M: ManagedTypeApi>(
+    dest_address: &Address,
+    egld_amount: u64,
+    function_name: &[u8],
+    args: Vec<Vec<u8>>,
+) -> SingleCallArg<M> {
+    let mut managed_args = ManagedVec::new();
+    for arg in args {
+        managed_args.push(managed_buffer!(&arg));
+    }
+
+    (
+        managed_address!(dest_address),
+        PaymentType::Egld {
+            amount: managed_biguint!(egld_amount),
+        },
+        CallType::Async,
+        DEFAULT_GAS_LIMIT,
+        Some(FunctionNameArgsPair {
+            function_name: managed_buffer!(function_name),
+            args: managed_args,
+        }),
+    )
+        .into()
+}
+
+pub fn build_async_call_esdt_transfer_data<M: ManagedTypeApi>(
+    dest_address: &Address,
+    esdt_transfers: Vec<TxTokenTransfer>,
+    function_name: &[u8],
+    args: Vec<Vec<u8>>,
+) -> SingleCallArg<M> {
+    let mut arg = build_async_call_egld_transfer_data(dest_address, 0, function_name, args);
+    let payments = convert_transfers_to_managed(esdt_transfers);
+
+    arg.0 .1 = PaymentType::FixedPayments {
+        esdt_payments: payments,
+    };
+
+    arg
+}

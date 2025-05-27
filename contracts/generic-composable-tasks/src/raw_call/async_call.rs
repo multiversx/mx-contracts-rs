@@ -17,10 +17,14 @@ pub trait AsyncCallModule: super::common::CommonModule {
         let gas_for_callback = self.get_gas_for_callback(raw_call_data.gas_limit);
 
         let contract_call = self.build_raw_call_with_args(sc_address, raw_call_data);
-        let contract_call_with_egld = contract_call.with_egld_transfer(egld_value);
+        let contract_call_with_egld = contract_call.with_egld_transfer(egld_value.clone());
         contract_call_with_egld
             .async_call_promise()
-            .with_callback(self.callbacks().raw_async_callback(original_caller))
+            .with_callback(self.callbacks().raw_async_callback(
+                original_caller,
+                egld_value,
+                PaymentsVec::new(),
+            ))
             .with_extra_gas_for_callback(gas_for_callback)
             .register_promise();
     }
@@ -39,10 +43,15 @@ pub trait AsyncCallModule: super::common::CommonModule {
         let gas_for_callback = self.get_gas_for_callback(raw_call_data.gas_limit);
 
         let contract_call = self.build_raw_call_with_args(sc_address, raw_call_data);
-        let contract_call_with_esdt = contract_call.with_multi_token_transfer(esdt_payments);
+        let contract_call_with_esdt =
+            contract_call.with_multi_token_transfer(esdt_payments.clone());
         contract_call_with_esdt
             .async_call_promise()
-            .with_callback(self.callbacks().raw_async_callback(original_caller))
+            .with_callback(self.callbacks().raw_async_callback(
+                original_caller,
+                BigUint::zero(),
+                esdt_payments,
+            ))
             .with_extra_gas_for_callback(gas_for_callback)
             .register_promise();
     }
@@ -57,15 +66,30 @@ pub trait AsyncCallModule: super::common::CommonModule {
     fn raw_async_callback(
         &self,
         original_caller: ManagedAddress,
-        #[call_result] _result: ManagedAsyncCallResult<IgnoreValue>,
+        original_egld_value: BigUint,
+        original_esdt_transfers: PaymentsVec<Self::Api>,
+        #[call_result] result: ManagedAsyncCallResult<IgnoreValue>,
     ) {
-        let egld_amount = self.call_value().egld().clone_value();
-        self.send()
-            .direct_non_zero_egld(&original_caller, &egld_amount);
+        match result {
+            ManagedAsyncCallResult::Ok(_) => {
+                let egld_amount = self.call_value().egld_direct_non_strict().clone_value();
+                self.send()
+                    .direct_non_zero_egld(&original_caller, &egld_amount);
 
-        let esdt_transfers = self.call_value().all_esdt_transfers().clone_value();
-        if !esdt_transfers.is_empty() {
-            self.send().direct_multi(&original_caller, &esdt_transfers);
+                let esdt_transfers = self.call_value().all_esdt_transfers().clone_value();
+                if !esdt_transfers.is_empty() {
+                    self.send().direct_multi(&original_caller, &esdt_transfers);
+                }
+            }
+            ManagedAsyncCallResult::Err(_) => {
+                self.send()
+                    .direct_non_zero_egld(&original_caller, &original_egld_value);
+
+                if !original_esdt_transfers.is_empty() {
+                    self.send()
+                        .direct_multi(&original_caller, &original_esdt_transfers);
+                }
+            }
         }
     }
 }
