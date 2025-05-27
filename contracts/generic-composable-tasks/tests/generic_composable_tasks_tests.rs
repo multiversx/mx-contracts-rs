@@ -378,4 +378,48 @@ fn async_call_test() {
     setup
         .b_mock
         .check_esdt_balance(&setup.user_address, WEGLD_TOKEN_ID, &rust_biguint!(0));
+
+    // perform two asyncs
+
+    setup
+        .b_mock
+        .execute_tx(
+            &setup.user_address,
+            &setup.tasks_wrapper,
+            &rust_biguint!(transfer_amount * 2),
+            |sc| {
+                let arg1 = build_async_call_egld_transfer_data::<DebugApi>(
+                    &dest_sc_address,
+                    transfer_amount,
+                    WRAP_EGLD_ENDPOINT_NAME,
+                    Vec::new(),
+                );
+                let arg2 = build_async_call_egld_transfer_data::<DebugApi>(
+                    &dest_sc_address,
+                    transfer_amount,
+                    WRAP_EGLD_ENDPOINT_NAME,
+                    Vec::new(),
+                );
+
+                let mut all_args = MultiValueEncoded::new();
+                all_args.push(arg1);
+                all_args.push(arg2);
+
+                sc.multi_call(all_args);
+            },
+        )
+        .assert_ok();
+
+    setup.b_mock.check_egld_balance(
+        &setup.user_address,
+        &rust_biguint!(USER_BALANCE - 2 * transfer_amount),
+    );
+    setup
+        .b_mock
+        .check_egld_balance(&dest_sc_address, &rust_biguint!(2 * transfer_amount));
+    setup.b_mock.check_esdt_balance(
+        &setup.user_address,
+        WEGLD_TOKEN_ID,
+        &rust_biguint!(2 * transfer_amount),
+    );
 }
