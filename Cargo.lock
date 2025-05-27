@@ -873,6 +873,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "generic-composable-tasks"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc",
+ "multiversx-sc-modules",
+ "multiversx-sc-scenario",
+ "multiversx-wegld-swap-sc 0.47.1",
+ "num-bigint",
+]
+
+[[package]]
+name = "generic-composable-tasks-meta"
+version = "0.0.0"
+dependencies = [
+ "generic-composable-tasks",
+ "multiversx-sc-meta-lib",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
