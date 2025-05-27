@@ -61,7 +61,6 @@ pub trait AsyncCallModule: super::common::CommonModule {
         full_gas_limit / 8
     }
 
-    // TODO: Test to see if this works properly in both cases
     #[promises_callback]
     fn raw_async_callback(
         &self,

@@ -119,6 +119,8 @@ pub trait CallDispatcherModule:
             }
             PaymentType::FixedPayments { esdt_payments } => {
                 for transfer in &esdt_payments {
+                    require!(transfer.amount > 0, "Invalid ESDT value");
+
                     let deduct_result = all_esdt.deduct_payment(&transfer);
                     require!(deduct_result.is_ok(), "Invalid ESDT amount");
                 }
@@ -137,7 +139,7 @@ pub trait CallDispatcherModule:
                     Some(back_transfers) => {
                         require!(
                             !back_transfers.esdt_payments.is_empty(),
-                            "Only EGLD received. May only use this feature with ESDT"
+                            "Only EGLD received or no ESDT received. May only use this feature with ESDT"
                         );
 
                         BackTransfers {
