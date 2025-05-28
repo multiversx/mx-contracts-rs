@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                            9
+// Endpoints:                           10
 // Async Callback (empty):               1
-// Total number of exported functions:  12
+// Total number of exported functions:  13
 
 #![no_std]
 
@@ -20,15 +20,16 @@ multiversx_sc_wasm_adapter::endpoints! {
     (
         init => init
         upgrade => upgrade
-        joinParty => join_party
-        bulksend => bulksend
-        join => join
-        experimentSendRewards => experiment_send_rewards
-        distributeRewards => distribute_rewards
-        getBatchFromIndex => get_batch_from_index
-        currentBatchIndex => current_batch_index
-        maxBatchIndex => max_batch_index
-        batchSize => batch_size
+        optIn => opt_in
+        distribute => distribute
+        cleanupStorage => cleanup_storage
+        whitelistUsers => add_whitelist_users
+        removeWhitelistWsers => remove_whitelist_users
+        setAmountToSend => set_amount_to_send
+        isUserWhitelisted => is_user_whitelisted
+        isUserOptedIn => is_user_opted_in
+        getUsersOptedIn => get_users_opted_in
+        getNumberUsersOptedIn => get_number_users_opted_in
     )
 }
 
