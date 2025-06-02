@@ -217,6 +217,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "boost-claim"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc",
+ "multiversx-sc-modules",
+ "multiversx-sc-scenario",
+]
+
+[[package]]
+name = "boost-claim-meta"
+version = "0.0.0"
+dependencies = [
+ "boost-claim",
+ "multiversx-sc-meta-lib",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

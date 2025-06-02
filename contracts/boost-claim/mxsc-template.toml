@@ -1,0 +1,19 @@
+name = "boost-claim"
+contract_trait = "BoostClaim"
+src_file = "contract.rs"
+rename_pairs = [
+    [
+        "blockchain.set_current_dir_from_workspace(\"contracts/examples/boost-claim\");",
+        "// blockchain.set_current_dir_from_workspace(\"relative path to your workspace, if applicable\");",
+    ],
+]
+files_include = [
+    "meta",
+    "scenarios",
+    "src",
+    "tests",
+    "wasm/Cargo.toml",
+    "Cargo.toml",
+    "README.md",
+    "multiversx.json",
+]
