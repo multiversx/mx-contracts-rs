@@ -3,10 +3,10 @@
 use multiversx_sc::derive_imports::*;
 use multiversx_sc::imports::*;
 
-const MAX_USERS_ALLOW: usize = 1_000;
+const MAX_USERS_ALLOW: usize = 1000;
 const _FOUR_HOURS: u64 = 60 * 60 * 4 * 1_000; // 4 hours
 const FOUR_MINUTES: u64 = 4 * 60 * 1_000; // 4 minutes
-const MAX_CLEANUP_ITER: usize = 100;
+                                          // const MAX_CLEANUP_ITER: usize = 100;
 
 #[type_abi]
 #[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, Clone, PartialEq)]
@@ -15,7 +15,6 @@ pub struct UserAddrTimestamp<M: ManagedTypeApi> {
     pub timestamp: u64,
 }
 
-/// An empty contract. To be used as a template when starting a new contract from scratch.
 #[multiversx_sc::contract]
 pub trait BulkPayments {
     #[init]
@@ -32,75 +31,29 @@ pub trait BulkPayments {
             "User not whitelisted"
         );
 
-        require!(
-            !self.is_user_opted_in(caller.clone()),
-            "User already opted in"
-        );
+        if self.is_user_opted_in(caller.clone()) && self.is_user_eligible(caller.clone()) {
+            sc_panic!("User already opted in");
+        }
 
-        require!(
-            self.get_number_users_opted_in() < MAX_USERS_ALLOW,
-            "Max CAP reached"
-        );
-        let deadline_timestamp = self.blockchain().get_block_timestamp() + FOUR_MINUTES;
-        self.opted_in_users_addr_timestamp()
-            .insert(UserAddrTimestamp {
-                addr: caller.clone(),
-                timestamp: deadline_timestamp,
-            });
+        let number_users_opted_in = self.get_number_users_opted_in();
+        let timestamp = self.blockchain().get_block_timestamp();
+        if number_users_opted_in >= MAX_USERS_ALLOW {
+            self.try_clear_first_user_if_timestamp_expired(caller.clone(), timestamp);
+        }
+
+        let deadline_timestamp = timestamp + FOUR_MINUTES;
+        self.addr_timestamp(caller.clone()).set(deadline_timestamp);
         self.opted_in_addrs().insert(caller);
     }
 
-    // Move this offchain
-    #[only_owner]
-    #[payable("*")]
-    #[endpoint(distribute)]
-    fn distribute(&self) {
-        let payment_amount = self.amount_to_send().get();
-        let opted_in_users_addr_timestamp_mapper = self.opted_in_users_addr_timestamp();
+    fn try_clear_first_user_if_timestamp_expired(&self, user: ManagedAddress, timestamp: u64) {
+        let addr_timestamp = self.addr_timestamp(user.clone()).get();
 
-        let current_timestamp = self.blockchain().get_block_timestamp();
-        for user_addr_timestamp in opted_in_users_addr_timestamp_mapper.iter() {
-            self.addr_feedback_event(
-                &user_addr_timestamp.addr,
-                user_addr_timestamp.timestamp,
-                current_timestamp,
-            );
-            if user_addr_timestamp.timestamp > current_timestamp {
-                // 1747660414308
-                // 1747661136108
-                self.tx()
-                    .to(user_addr_timestamp.addr)
-                    .egld(&payment_amount)
-                    .transfer();
-            }
-        }
-    }
-
-    #[only_owner]
-    #[endpoint(cleanupStorage)]
-    fn cleanup_storage(&self) {
-        let mut opted_in_users_addr_timestamp_mapper = self.opted_in_users_addr_timestamp();
-        let mut opted_in_users_mapper = self.opted_in_addrs();
-
-        let mut interations = 0usize;
-        let mut index = 1usize;
-        let current_timestamp: u64 = self.blockchain().get_block_timestamp();
-
-        while interations < MAX_CLEANUP_ITER && index <= opted_in_users_addr_timestamp_mapper.len()
-        {
-            self.debug_count(interations, index);
-
-            let user = opted_in_users_addr_timestamp_mapper.get_by_index(index);
-
-            self.addr_feedback_event(&user.addr, user.timestamp, current_timestamp);
-
-            if user.timestamp <= current_timestamp {
-                opted_in_users_addr_timestamp_mapper.swap_remove(&user);
-                opted_in_users_mapper.swap_remove(&user.addr);
-            } else {
-                index += 1;
-            }
-            interations += 1;
+        if addr_timestamp < timestamp {
+            self.addr_timestamp(user.clone()).clear();
+            self.opted_in_addrs().remove(&user);
+        } else {
+            sc_panic!("Max CAP reached");
         }
     }
 
@@ -122,14 +75,7 @@ pub trait BulkPayments {
         }
     }
 
-    #[only_owner]
-    #[endpoint(setAmountToSend)]
-    fn set_amount_to_send(&self, amount: BigUint) {
-        self.amount_to_send().set(amount);
-    }
-
-    /// # view - check if user is opted-in
-
+    /// # views
     #[view(isUserWhitelisted)]
     fn is_user_whitelisted(&self, user: ManagedAddress) -> bool {
         self.user_whitelist().contains(&user)
@@ -140,47 +86,51 @@ pub trait BulkPayments {
         return self.opted_in_addrs().contains(&user);
     }
 
-    // TODO: get_user_timestamp
+    #[view(isUserEligible)]
+    fn is_user_eligible(&self, user: ManagedAddress) -> bool {
+        let user_timestamp = self.addr_timestamp(user).get();
 
+        user_timestamp > self.blockchain().get_block_timestamp()
+    }
+
+    // Returns user without timestamp expired
     #[view(getUsersOptedIn)]
     fn get_users_opted_in(&self) -> MultiValueEncoded<ManagedAddress> {
         let mut users_opted_in = MultiValueEncoded::new();
-        let opted_in_users_addr_timestamp_mapper = self.opted_in_users_addr_timestamp();
+        let addr_timestamp_mapper = self.opted_in_addrs();
         let current_timestamp = self.blockchain().get_block_timestamp();
 
-        for user_addr_timestamp in opted_in_users_addr_timestamp_mapper.iter() {
-            if user_addr_timestamp.timestamp > current_timestamp {
-                users_opted_in.push(user_addr_timestamp.addr);
+        for user_addr in addr_timestamp_mapper.iter() {
+            let timestamp = self.addr_timestamp(user_addr.clone()).get();
+            if timestamp > current_timestamp {
+                users_opted_in.push(user_addr);
             }
         }
         return users_opted_in;
     }
 
+    // Total user without timestamp expired
+    #[view(getEligibleNumberUsersOptedIn)]
+    fn get_eligible_number_users_opted_in(&self) -> usize {
+        return self.get_users_opted_in().len();
+    }
+
+    // Total user with timestamp expired and not expired
     #[view(getNumberUsersOptedIn)]
     fn get_number_users_opted_in(&self) -> usize {
         return self.opted_in_addrs().len();
     }
 
-    #[storage_mapper("amountToSend")]
-    fn amount_to_send(&self) -> SingleValueMapper<BigUint>;
+    #[view(getUserTimestamp)]
+    fn get_user_timstamp(&self, user: ManagedAddress) -> u64 {
+        return self.addr_timestamp(user).get();
+    }
 
-    /// events
-    #[event("addrJoined")]
-    fn addr_feedback_event(
-        &self,
-        #[indexed] user: &ManagedAddress,
-        #[indexed] timestamp: u64,
-        #[indexed] current_timestamp: u64,
-    );
-
-    #[event("debugCount")]
-    fn debug_count(&self, #[indexed] count: usize, #[indexed] storage_len: usize);
-
-    #[storage_mapper("optedInUsersAddrTimestamp")]
-    fn opted_in_users_addr_timestamp(&self) -> UnorderedSetMapper<UserAddrTimestamp<Self::Api>>;
+    #[storage_mapper("addrTimestamp")]
+    fn addr_timestamp(&self, user: ManagedAddress) -> SingleValueMapper<u64>;
 
     #[storage_mapper("optedInAddrs")]
-    fn opted_in_addrs(&self) -> UnorderedSetMapper<ManagedAddress<Self::Api>>;
+    fn opted_in_addrs(&self) -> SetMapper<ManagedAddress<Self::Api>>;
 
     #[storage_mapper("userWhitelist")]
     fn user_whitelist(&self) -> WhitelistMapper<ManagedAddress>;

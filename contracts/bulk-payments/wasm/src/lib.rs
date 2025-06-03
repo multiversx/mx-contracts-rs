@@ -21,15 +21,15 @@ multiversx_sc_wasm_adapter::endpoints! {
         init => init
         upgrade => upgrade
         optIn => opt_in
-        distribute => distribute
-        cleanupStorage => cleanup_storage
         whitelistUsers => add_whitelist_users
         removeWhitelistWsers => remove_whitelist_users
-        setAmountToSend => set_amount_to_send
         isUserWhitelisted => is_user_whitelisted
         isUserOptedIn => is_user_opted_in
+        isUserEligible => is_user_eligible
         getUsersOptedIn => get_users_opted_in
+        getEligibleNumberUsersOptedIn => get_eligible_number_users_opted_in
         getNumberUsersOptedIn => get_number_users_opted_in
+        getUserTimestamp => get_user_timstamp
     )
 }
 
