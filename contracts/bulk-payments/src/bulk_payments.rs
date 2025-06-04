@@ -127,7 +127,7 @@ pub trait BulkPayments {
     }
 
     #[view(getUserTimestamp)]
-    fn get_user_timstamp(&self, user: ManagedAddress) -> u64 {
+    fn get_user_timestamp(&self, user: ManagedAddress) -> u64 {
         return self.addr_timestamp(user).get();
     }
 
