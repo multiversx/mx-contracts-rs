@@ -32,14 +32,14 @@ pub trait BulkPayments {
         );
 
         let user_already_opted_in = self.is_user_opted_in(caller.clone());
-        require!(
-            user_already_opted_in && self.is_timestamp_expired(caller.clone()),
-            "User already opted in"
-        );
+
+        if user_already_opted_in && self.is_timestamp_expired(caller.clone()) {
+            sc_panic!("User already opted in");
+        }
 
         let number_users_opted_in = self.get_number_users_opted_in();
         let timestamp = self.blockchain().get_block_timestamp();
-        
+
         if number_users_opted_in >= MAX_USERS_ALLOW {
             require!(!user_already_opted_in, "Max cap reached");
             self.try_clear_first_user_if_timestamp_expired(caller.clone(), timestamp);

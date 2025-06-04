@@ -25,7 +25,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         removeWhitelistWsers => remove_whitelist_users
         isUserWhitelisted => is_user_whitelisted
         isUserOptedIn => is_user_opted_in
-        isUserEligible => is_user_eligible
+        isTimestampExpired => is_timestamp_expired
         getUsersOptedIn => get_users_opted_in
         getEligibleNumberUsersOptedIn => get_eligible_number_users_opted_in
         getNumberUsersOptedIn => get_number_users_opted_in
