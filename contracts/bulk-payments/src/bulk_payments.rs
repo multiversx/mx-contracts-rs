@@ -31,13 +31,17 @@ pub trait BulkPayments {
             "User not whitelisted"
         );
 
-        if self.is_user_opted_in(caller.clone()) && self.is_user_eligible(caller.clone()) {
-            sc_panic!("User already opted in");
-        }
+        let user_already_opted_in = self.is_user_opted_in(caller.clone());
+        require!(
+            user_already_opted_in && self.is_timestamp_expired(caller.clone()),
+            "User already opted in"
+        );
 
         let number_users_opted_in = self.get_number_users_opted_in();
         let timestamp = self.blockchain().get_block_timestamp();
+        
         if number_users_opted_in >= MAX_USERS_ALLOW {
+            require!(!user_already_opted_in, "Max cap reached");
             self.try_clear_first_user_if_timestamp_expired(caller.clone(), timestamp);
         }
 
@@ -86,8 +90,8 @@ pub trait BulkPayments {
         return self.opted_in_addrs().contains(&user);
     }
 
-    #[view(isUserEligible)]
-    fn is_user_eligible(&self, user: ManagedAddress) -> bool {
+    #[view(isTimestampExpired)]
+    fn is_timestamp_expired(&self, user: ManagedAddress) -> bool {
         let user_timestamp = self.addr_timestamp(user).get();
 
         user_timestamp > self.blockchain().get_block_timestamp()
