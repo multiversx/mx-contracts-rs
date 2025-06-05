@@ -4,9 +4,7 @@ use multiversx_sc::derive_imports::*;
 use multiversx_sc::imports::*;
 
 const MAX_USERS_ALLOW: usize = 1000;
-const _FOUR_HOURS: u64 = 60 * 60 * 4 * 1_000; // 4 hours
-const FOUR_MINUTES: u64 = 4 * 60 * 1_000; // 4 minutes
-                                          // const MAX_CLEANUP_ITER: usize = 100;
+const FOUR_HOURS: u64 = 60 * 60 * 4 * 1_000; // 4 hours
 
 #[type_abi]
 #[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, Clone, PartialEq)]
@@ -45,7 +43,7 @@ pub trait BulkPayments {
             self.try_clear_first_user_if_timestamp_expired();
         }
 
-        let deadline_timestamp = timestamp + FOUR_MINUTES;
+        let deadline_timestamp = timestamp + FOUR_HOURS;
         self.addr_timestamp(caller.clone()).set(deadline_timestamp);
         self.opted_in_addrs().insert(caller);
     }
