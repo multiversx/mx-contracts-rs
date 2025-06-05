@@ -1,7 +1,7 @@
 name: On pull request, build contracts
 
 on:
-  pull_request:
+  pull_request:#145
 
 permissions:
   contents: write
