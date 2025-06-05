@@ -2600,23 +2600,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tiered-bulk-payments"
-version = "0.0.0"
-dependencies = [
- "multiversx-sc",
- "multiversx-sc-scenario",
- "num-bigint",
-]
-
-[[package]]
-name = "tiered-bulk-payments-meta"
-version = "0.0.0"
-dependencies = [
- "multiversx-sc-meta-lib",
- "tiered-bulk-payments",
-]
-
-[[package]]
 name = "tinyvec"
 version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

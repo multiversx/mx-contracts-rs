@@ -29,7 +29,7 @@ multiversx_sc_wasm_adapter::endpoints! {
         getUsersOptedIn => get_users_opted_in
         getEligibleNumberUsersOptedIn => get_eligible_number_users_opted_in
         getNumberUsersOptedIn => get_number_users_opted_in
-        getUserTimestamp => get_user_timstamp
+        getUserTimestamp => get_user_timestamp
     )
 }
 
