@@ -226,18 +226,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bulk-payments-interact"
-version = "0.0.0"
-dependencies = [
- "bulk-payments",
- "clap",
- "multiversx-sc",
- "multiversx-sc-snippets",
- "serde",
- "toml",
-]
-
-[[package]]
 name = "bulk-payments-meta"
 version = "0.0.0"
 dependencies = [
