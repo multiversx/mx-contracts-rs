@@ -11,3 +11,5 @@
 # The mxpy output
 **/output/**
 **/*.interaction.json
+
+*.pem
