@@ -42,6 +42,8 @@ members = [
   "contracts/fair-launch/meta",
   "contracts/fractional-nfts",
   "contracts/fractional-nfts/meta",
+  "contracts/generic-composable-tasks",
+  "contracts/generic-composable-tasks/meta",
   "contracts/lottery-esdt",
   "contracts/lottery-esdt/meta",
   "contracts/liquid-locking",
