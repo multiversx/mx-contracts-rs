@@ -62,3 +62,16 @@ addAdmin() {
          --arguments $ADMIN \
          --send || return
  }
+
+setRepairStreakPayment() {
+     IDENTIFIER=0x58504f5254414c53332d303230343837
+     NONCE=0x0c
+
+     mxpy --verbose contract call ${CONTRACT_ADDRESS} --recall-nonce \
+         --pem=${WALLET} \
+         --gas-limit=10000000 \
+         --proxy=${PROXY} --chain=${CHAIN_ID} \
+         --function="setRepairStreakPayment" \
+         --arguments $IDENTIFIER $NONCE \
+         --send || return
+ }
