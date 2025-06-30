@@ -3,17 +3,17 @@ PROJECT="${PWD}"
 PROXY=https://gateway.multiversx.com
 CHAINID=D
 
-DEPLOY_GAS="100000000"
+DEPLOY_GAS="20000000"
 
-DIFFERENCE_BETWEEN_CLAIMS=0x2a30 # 3 hours -> 10800 seconds
+DIFFERENCE_BETWEEN_CLAIMS=0x3840 # 4 hours -> 14400 seconds
 PRIZE_1=0x5052495a4531 # PRIZE1
 PRIZE_2=0x5052495a4532 # PRIZE2
 PRIZE_3=0x5052495a4533 # PRIZE3
 PRIZE_4=0x5052495a4534 # PRIZE4
 
-CONTRACT_ADDRESS=erd1qqqqqqqqqqqqqpgqnsxxgdux8yntzysrnlpj33p23hxrwjwh6fyq3hw9vd # Shard 0
-# CONTRACT_ADDRESS=erd1qqqqqqqqqqqqqpgqqzg0589tjqqy4sgmv5pceyg79k38pkqzwl9svrx3sa # Shard 1
-# CONTRACT_ADDRESS=erd1qqqqqqqqqqqqqpgqvgp6g09agmvv50mslk9fjkr86327u2e8sq9qdttayh # Shard 2
+CONTRACT_ADDRESS=erd1qqqqqqqqqqqqqpgq0dsmyccxtlkrjvv0czyv2p4kcy72xvt3nzgq8j2q3y # Shard 0
+# CONTRACT_ADDRESS=erd1qqqqqqqqqqqqqpgqeu0tkupaqr64h95jtnk7pnhjnjs4sn9l7y9smjl4n9 # Shard 1
+# CONTRACT_ADDRESS=erd1qqqqqqqqqqqqqpgqmksd4gl3xau5eja42sp6qmrxewxgj0ny4d3qfksmrq # Shard 2
 
 deploy() {
     mxpy --verbose contract deploy \
