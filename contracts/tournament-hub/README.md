@@ -57,46 +57,47 @@ For more details on each module, see the comments at the top of each file.
 ```mermaid
 flowchart TD
     %% Step 1: Game Registration
-    subgraph Step1["1. Game Registration"]
-        Owner -.->|registerGame| GameReg[Game Registration Module]
+    subgraph Step1 ["1. Game Registration"]
+        Owner -->|registerGame| GameReg[Game Registration Module]
     end
 
     %% Step 2: Tournament Creation & Joining
-    subgraph Step2["2. Tournament Creation & Joining"]
-        Owner -.->|createTournament| TourManage[Tournament Management Module]
-        User -.->|joinTournament| TourManage
-        TourManage -.->|startTournament| TourManage
+    subgraph Step2 ["2. Tournament Creation & Joining"]
+        Owner -->|createTournament| TourManage[Tournament Management Module]
+        User -->|joinTournament| TourManage
+        TourManage -->|startTournament| TourManage
     end
 
     %% Step 3: Spectator Betting
-    subgraph Step3["3. Spectator Betting"]
-        Spectator -.->|placeSpectatorBet| SpectBet[Betting Module]
+    subgraph Step3 ["3. Spectator Betting"]
+        Spectator -->|placeSpectatorBet| SpectBet[Betting Module]
     end
 
     %% Step 4: Tournament Play & Results
-    subgraph Step4["4. Tournament Play & Results"]
-        TourManage -.->|submitResults| Results[Results Management Module]
-        Results -.->|distributePrizes| Results
+    subgraph Step4 ["4. Tournament Play & Results"]
+        TourManage -->|submitResults| Results[Results Management Module]
+        Results -->|distributePrizes| Results
     end
 
     %% Step 5: Spectator Claims
-    subgraph Step5["5. Spectator Claims"]
-        Spectator -.->|claimSpectatorWinnings| SpectBet
+    subgraph Step5 ["5. Spectator Claims"]
+        Spectator -->|claimSpectatorWinnings| SpectBet
     end
 
     %% Step 6: Views (Anytime)
-    subgraph Step6["6. Views (Anytime)"]
-        Anyone -.->|view endpoints| Views[Views Module]
+    subgraph Step6 ["6. Views (Anytime)"]
+        Anyone -->|view endpoints| Views[Views Module]
     end
 
     %% Module dependencies
-    GameReg -.->|uses| Shared[models.rs / storage.rs]
-    TourManage -.->|uses| Shared
-    SpectBet -.->|uses| Shared
-    Results -.->|uses| Shared
-    Views -.->|uses| Shared
-    Shared -.->|helpers| Helpers[helpers.rs]
+    GameReg -->|uses| Shared[models.rs / storage.rs]
+    TourManage -->|uses| Shared
+    SpectBet -->|uses| Shared
+    Results -->|uses| Shared
+    Views -->|uses| Shared
+    Shared -->|helpers| Helpers[helpers.rs]
 
+    %% Styling
     style GameReg fill:#8ecae6,stroke:#333,stroke-width:1px
     style TourManage fill:#ffb703,stroke:#333,stroke-width:1px
     style Results fill:#bfb,stroke:#333,stroke-width:1px
