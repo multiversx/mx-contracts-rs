@@ -83,6 +83,8 @@ members = [
   "contracts/seed-nft-minter/meta",
   "contracts/token-release",
   "contracts/token-release/meta",
+  "contracts/tournament-hub",
+  "contracts/tournament-hub/meta",
   "contracts/mvx-game-sc",
   "contracts/mvx-game-sc/meta",
 ]

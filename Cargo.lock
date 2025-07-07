@@ -2676,6 +2676,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "tournament-hub"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc",
+ "multiversx-sc-modules",
+ "multiversx-sc-scenario",
+ "num-bigint",
+]
+
+[[package]]
+name = "tournament-hub-meta"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc-meta-lib",
+ "tournament-hub",
+]
+
+[[package]]
 name = "tower-service"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
