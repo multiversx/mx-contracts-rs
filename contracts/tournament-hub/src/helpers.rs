@@ -51,7 +51,7 @@ pub trait HelperModule: crate::storage::StorageModule {
         let mut key = ManagedBuffer::new();
         key.append(tournament_id);
         key.append(&ManagedBuffer::from(b"_"));
-        key.append(&caller.as_managed_buffer());
+        key.append(caller.as_managed_buffer());
         key
     }
 
