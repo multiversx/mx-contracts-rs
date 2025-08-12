@@ -4,7 +4,7 @@ use multiversx_sc::derive_imports::*;
 use multiversx_sc::imports::*;
 
 const MAX_USERS_ALLOW: usize = 1000;
-const FOUR_HOURS: u64 = 60 * 60 * 4 * 1_000; // 4 hours
+const FOUR_HOURS: u64 = 60 * 60 * 4; // 4 hours
 
 #[type_abi]
 #[derive(NestedEncode, NestedDecode, TopEncode, TopDecode, Clone, PartialEq)]
@@ -44,7 +44,7 @@ pub trait BulkPayments {
         }
 
         let deadline_timestamp = timestamp + FOUR_HOURS;
-        self.addr_timestamp(caller.clone()).set(deadline_timestamp);
+        self.addr_timestamp(&caller).set(deadline_timestamp);
         self.opted_in_addrs().insert(caller);
     }
 
@@ -56,7 +56,7 @@ pub trait BulkPayments {
             self.is_timestamp_expired(first_user.clone()),
             "Max CAP reached"
         );
-        self.addr_timestamp(first_user.clone()).clear();
+        self.addr_timestamp(&first_user).clear();
         self.opted_in_addrs().remove(&first_user);
     }
 
@@ -91,7 +91,7 @@ pub trait BulkPayments {
 
     #[view(isTimestampExpired)]
     fn is_timestamp_expired(&self, user: ManagedAddress) -> bool {
-        let user_timestamp = self.addr_timestamp(user).get();
+        let user_timestamp = self.addr_timestamp(&user).get();
 
         user_timestamp < self.blockchain().get_block_timestamp()
     }
@@ -104,7 +104,7 @@ pub trait BulkPayments {
         let current_timestamp = self.blockchain().get_block_timestamp();
 
         for user_addr in addr_timestamp_mapper.iter() {
-            let timestamp = self.addr_timestamp(user_addr.clone()).get();
+            let timestamp = self.addr_timestamp(&user_addr).get();
             if timestamp > current_timestamp {
                 users_opted_in.push(user_addr);
             }
@@ -126,11 +126,11 @@ pub trait BulkPayments {
 
     #[view(getUserTimestamp)]
     fn get_user_timestamp(&self, user: ManagedAddress) -> u64 {
-        return self.addr_timestamp(user).get();
+        return self.addr_timestamp(&user).get();
     }
 
     #[storage_mapper("addrTimestamp")]
-    fn addr_timestamp(&self, user: ManagedAddress) -> SingleValueMapper<u64>;
+    fn addr_timestamp(&self, user: &ManagedAddress) -> SingleValueMapper<u64>;
 
     #[storage_mapper("optedInAddrs")]
     fn opted_in_addrs(&self) -> SetMapper<ManagedAddress<Self::Api>>;
