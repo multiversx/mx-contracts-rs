@@ -1,9 +1,11 @@
 ALICE="${USERS}/alice.pem"
 ADDRESS=$(mxpy data load --key=address-devnet)
 DEPLOY_TRANSACTION=$(mxpy data load --key=deployTransaction-devnet)
+PROXY=https://devnet-api.multiversx.com
+PROJECT="../output/adder.wasm"
 
 deploy() {
-    mxpy --verbose contract deploy --project=${PROJECT} --recall-nonce --pem=${ALICE} --gas-limit=50000000 --arguments 0 --send --outfile="deploy-devnet.interaction.json" || return
+    mxpy --verbose contract deploy --bytecode=${PROJECT} --pem=${ALICE} --arguments 0 --send --outfile="deploy-devnet.interaction.json" --proxy=${PROXY} || return
 
     TRANSACTION=$(mxpy data parse --file="deploy-devnet.interaction.json" --expression="data['emittedTransactionHash']")
     ADDRESS=$(mxpy data parse --file="deploy-devnet.interaction.json" --expression="data['contractAddress']")
@@ -17,9 +19,9 @@ deploy() {
 
 add() {
     read -p "Enter number: " NUMBER
-    mxpy --verbose contract call ${ADDRESS} --recall-nonce --pem=${ALICE} --gas-limit=50000000 --function="add" --arguments ${NUMBER} --send
+    mxpy --verbose contract call ${ADDRESS} --pem=${ALICE} --function="add" --arguments ${NUMBER} --proxy=${PROXY} --send
 }
 
 getSum() {
-    mxpy --verbose contract query ${ADDRESS} --function="getSum"
+    mxpy --verbose contract query ${ADDRESS} --function="getSum" --proxy=${PROXY}
 }
