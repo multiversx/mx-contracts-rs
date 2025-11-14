@@ -1,3 +1,4 @@
+# fixing release
 name: On pull request, build contracts
 
 on:
