@@ -26,11 +26,13 @@ pub trait MysteryBox:
             mystery_box_token_id.is_valid_esdt_identifier(),
             "Invalid token ID"
         );
-        self.mystery_box_token_id()
-            .set_if_empty(mystery_box_token_id);
+        self.mystery_box_token_id().set(mystery_box_token_id);
         let caller = self.blockchain().get_caller();
         self.add_admin(caller);
     }
+
+    #[upgrade]
+    fn upgrade(&self) {}
 
     #[endpoint(setupMysteryBox)]
     fn setup_mystery_box(
