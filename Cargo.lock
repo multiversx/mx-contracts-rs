@@ -723,6 +723,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e8c02a5121d4ea3eb16a80748c74f5549a5665e4c21333c6098f283870fbdea6"
 
 [[package]]
+name = "faucet"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc",
+ "multiversx-sc-modules",
+ "multiversx-sc-scenario",
+]
+
+[[package]]
+name = "faucet-meta"
+version = "0.0.0"
+dependencies = [
+ "faucet",
+ "multiversx-sc-meta-lib",
+]
+
+[[package]]
 name = "fiat-crypto"
 version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
