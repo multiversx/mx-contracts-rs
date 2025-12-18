@@ -2033,6 +2033,36 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cc9c68a3f6da06753e9335d63e27f6b9754dd1920d941135b7ea8224f141adb2"
 
 [[package]]
+name = "potlock"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc",
+ "multiversx-sc-modules",
+ "multiversx-sc-scenario",
+ "num-bigint",
+]
+
+[[package]]
+name = "potlock-interact"
+version = "0.0.0"
+dependencies = [
+ "clap",
+ "multiversx-sc",
+ "multiversx-sc-snippets",
+ "potlock",
+ "serde",
+ "toml",
+]
+
+[[package]]
+name = "potlock-meta"
+version = "0.0.0"
+dependencies = [
+ "multiversx-sc-meta-lib",
+ "potlock",
+]
+
+[[package]]
 name = "ppv-lite86"
 version = "0.2.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
